@@ -3,7 +3,10 @@ name = "mangetamain"
 version = "1.0.0"
 description = ""
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Bryan LY",                 email = "bryan29.ly@gmail.com"},
+    {name = "Khalil OUNIS",             email = "khalilounis10@gmail.com"},
+    {name = "Mohammed ELAMINE",         email = "elamine.mohammed.14@gmail.com"},
+    {name = "Lokeshwaran VENGADABADY",  email = "lokeshvengadabady@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
