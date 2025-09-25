@@ -1,5 +1,8 @@
+import streamlit as st 
+
+
 def main():
-    print("Launched application !")
+    st.write("Launched application !")
 
 if __name__ == "__main__":
     main()
