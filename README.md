@@ -53,13 +53,21 @@ mangetamain/
   ```
 - To run commands inside the environment:
   ```bash
-  poetry run python src/mangetamain/main.py
+  poetry run python <python_file_name>
+  ```
+- To launch the Streamlit application:
+  ```bash
+  poetry run streamlit run src/mangetamain/main.py  # Run with 'poetry run' to ensure the application uses the project's venv and deps.
   ```
 
 ## Development
 - Add dependencies with:
   ```bash
   poetry add <package>
+  ```
+- Remove dependencies with:
+  ```bash
+  poetry remove <package>
   ```
 - Run tests:
   ```bash
