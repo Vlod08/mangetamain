@@ -3,61 +3,51 @@
 # This script sets up the Poetry environment for the project
 
 set -e  # Exit on any error
+PYTHON_PATH_MANGETAMAIN=`which python3.11`
 
 echo "=== Kit Big Data Project Setup ==="
-echo ""
-
-# Load environment variables
-if [ -f ".env" ]; then
-    echo "Loading environment variables from .env file..."
-    export $(grep -v '^#' .env | xargs)
-    echo "Environment variables loaded"
-else
-    echo "Warning: .env file not found"
-    exit 1
-fi
-
 echo ""
 
 # Check if Poetry is installed
 echo "Checking Poetry installation..."
 if ! command -v poetry &> /dev/null; then
     echo ""
-    echo "ERROR: Poetry is not installed!"
-    echo ""
-    exit 1
+    echo "Poetry is not installed on your system."
+    echo "Poetry is required to manage this project's dependencies."
 else
-    poetry_version=$(poetry --version 2>/dev/null || echo "unknown")
-    echo "Poetry is installed: $poetry_version"
+    # Get poetry version string
+    VERSION=$(poetry --version 2>/dev/null | awk '{print $3}' | tr -d '()')
+    if [ "$VERSION" = "2.2.0" ]; then
+      echo "Poetry version 2.2.0 is installed !"
+    else
+      echo "Poetry version is $VERSION (not 2.2.0)"
+    fi
 fi
 
 echo ""
 
-# Check if the specified Python path exists
-if [ -z "$PYTHON_PATH" ]; then
-    echo "ERROR: PYTHON_PATH not set in .env file"
-    exit 1
-fi
 
 echo "Checking if the specified Python installation exists..."
-if [ ! -f "$PYTHON_PATH" ]; then
-    echo "ERROR: Python 3.11 not found at: $PYTHON_PATH"
-    echo ""
-    echo "Then update the PYTHON_PATH in your .env file"
+if [ ! -f "$PYTHON_PATH_MANGETAMAIN" ]; then
+    echo "ERROR: Python 3.11 not found at: $PYTHON_PATH_MANGETAMAIN"
     exit 1
 else
-    python_version=$("$PYTHON_PATH" --version 2>/dev/null || echo "unknown")
-    echo "Python version found: $python_version"
-    echo "Path: $PYTHON_PATH"
+    PY_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
+
+    if [[ "$PY_VERSION" == 3.11.* ]]; then
+        echo "Python version 3.11.x is installed !"
+    else
+        echo "Python version is $PY_VERSION (not 3.11.x)"
+    fi
 fi
 
 echo ""
 
 # Set up Poetry virtual environment
 echo "Setting up Poetry virtual environment..."
-echo "Using Python: $PYTHON_PATH"
+echo "Using Python: $PYTHON_PATH_MANGETAMAIN"
 
-if poetry env use "$PYTHON_PATH"; then
+if poetry env use "$PYTHON_PATH_MANGETAMAIN"; then
     echo "Poetry virtual environment configured successfully"
 else
     echo "ERROR: Failed to configure Poetry virtual environment"
