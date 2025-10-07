@@ -1,0 +1,2 @@
+[virtualenvs]
+in-project = true  # Create the virtual environment in the project directory
