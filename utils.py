@@ -72,6 +72,66 @@ def count_words(texts, voc = None):
     
     return vocabulary, counts
 
+def n_perceentage_random_sample(df, frac_per_class, random_state=42):
+    """
+    Randomly sample a fraction (percentage) of entries from each class in the dataframe.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing a 'rating' column to group by.
+    frac_per_class : float
+        Fraction of samples to draw from each class (e.g. 0.2 for 20%).
+    random_state : int, optional
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    sampled_df : pandas.DataFrame
+        DataFrame containing the sampled entries.
+    """
+    sampled_df = df.groupby('rating', group_keys=False).apply(
+        lambda x: x.sample(frac=frac_per_class, random_state=random_state)
+    ).reset_index(drop=True)
+    return sampled_df
+
+
+import pandas as pd
+
+def n_random_sample(df, class_col='rating', n_per_class=5, random_state=42):
+    """
+    Randomly sample the same number of entries from each class in a dataframe.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing a class column (default: 'rating').
+    class_col : str, optional
+        Column name representing the class labels.
+    fraction : float, optional
+        Fraction of the smallest class size to sample (default: 1.0 = all).
+    random_state : int, optional
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    sampled_df : pandas.DataFrame
+        Balanced dataframe with equal samples per class.
+    """
+
+    # Find the smallest class size
+    min_class_size = df[class_col].value_counts().min()
+
+    # Apply balanced sampling
+    sampled_df = (
+        df.groupby(class_col, group_keys=False)
+          .apply(lambda x: x.sample(n=min(n_per_class, len(x)), random_state=random_state))
+          .reset_index(drop=True)
+    )
+
+    return sampled_df
+
+
 def tfidf_transform(bow):
     import numpy as np
 
