@@ -1,7 +1,7 @@
 name: Docs — Build and Deploy Sphinx pages
 on:
   push:
-    branches: [ dev/app-interface ] 
+    branches: [ setup/sphinx_docs ] 
   workflow_dispatch:
 permissions:
   contents: write
