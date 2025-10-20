@@ -1,4 +1,4 @@
-name: Docs — Build Sphinx
+name: Docs — Build and Deploy Sphinx pages
 on:
   push:
     branches: [ dev/app-interface ] 
