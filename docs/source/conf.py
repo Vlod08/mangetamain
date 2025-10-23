@@ -6,6 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+
+# -- Path setup --------------------------------------------------------------
+sys.path.insert(0, os.path.abspath('../../src/mangetamain'))
+
 project = 'mangetamain'
 copyright = '2025, Bryan Ly, Lokesh'
 author = 'Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY'
@@ -13,7 +19,7 @@ author = 'Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VEN
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo']
 
 templates_path = ['_templates']
 exclude_patterns = []
