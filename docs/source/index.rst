@@ -12,6 +12,7 @@ Welcome to the official documentation for the **mangetamain** project — a data
 This project explores food recipes and user interactions from the `Food.com dataset <https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions>`_, providing insights into recipe popularity, user behavior, and contributor influence.  
 
 Inside this documentation, you’ll find:
+
 - An overview of the project’s objectives and structure  
 - Descriptions of core modules and functions  
 - Technical references generated automatically from the source code  
