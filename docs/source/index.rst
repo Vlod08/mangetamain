@@ -1,18 +1,25 @@
-.. mangetamain documentation master file, created by
-   sphinx-quickstart on Mon Oct 20 08:42:00 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 mangetamain documentation
 =========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+.. figure:: _static/main_logo.jpg
+   :class: padded-image
+   :alt: Project overview image
+   :width: 300px
+   :align: center
 
+
+Welcome to the official documentation for the **mangetamain** project — a data analysis and visualization toolkit built as part of the *Kit Big Data* program.  
+This project explores food recipes and user interactions from the `Food.com dataset <https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions>`_, providing insights into recipe popularity, user behavior, and contributor influence.  
+
+Inside this documentation, you’ll find:
+- An overview of the project’s objectives and structure  
+- Descriptions of core modules and functions  
+- Technical references generated automatically from the source code  
+
+Use the navigation below to explore the available sections.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-modules
+   modules
