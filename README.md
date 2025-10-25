@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Mangetamain - Food.com Recipe Recommendation System
 
 **Mangetamain** is a *web application* developed as part of the **Kit Big Data** project at [Telecom Paris](https://www.telecom-paris.fr/).
@@ -111,3 +112,6 @@ The project uses several configuration files:
 - `poetry.toml`: Poetry-specific configuration
 
 ---
+=======
+# Mangetamain
+>>>>>>> 123b55e (Initial commit)
