@@ -1,3 +1,8 @@
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+
 import streamlit as st
 from app_utils.io import load_data
 from app_utils.country import add_country_column

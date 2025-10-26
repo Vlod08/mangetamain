@@ -1,8 +1,12 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import streamlit as st
 import pandas as pd
-from app_utils.io import load_data
-from app_utils.filters import parse_tag_str
-from app_utils.ui import use_global_ui
+from app.app_utils.io import load_data
+from app.app_utils.filters import parse_tag_str
+from app.app_utils.ui import use_global_ui
 use_global_ui("Mangetamain — Événements & Saisons",     logo="image/image.jpg",
     
     logo_size_px=90,
