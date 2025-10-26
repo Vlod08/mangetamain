@@ -4,6 +4,7 @@ import ast
 import re
 from pathlib import Path
 
+
 class RecipesPreprocessor:
 
     issues = {}
@@ -13,12 +14,6 @@ class RecipesPreprocessor:
         self.recipes_df = recipes_df
         self.lookup_root_dir()
         self.set_data_paths()
-
-    def __init__(self):
-        self.lookup_root_dir()
-        self.set_data_paths()
-        self.recipes_df = pd.DataFrame()
-        self.load_dataset()
 
     def lookup_root_dir(self) -> None:
         """
@@ -65,7 +60,8 @@ class RecipesPreprocessor:
             if not isinstance(list_strings, list):
                 return []
             # Remove empty or whitespace-only strings
-            cleaned = [x.strip() for x in list_strings if isinstance(x, str) and x.strip() != '']
+            cleaned = [x.strip() for x in list_strings if isinstance(
+                x, str) and x.strip() != '']
             return cleaned
         except (ValueError, SyntaxError):
             # If literal_eval fails, return empty list
@@ -85,10 +81,14 @@ class RecipesPreprocessor:
             self.issues['nan'][column] = self.recipes_df[column].isnull().sum()
         self.recipes_df[column] = self.recipes_df[column].fillna('[]')
         self.recipes_df[column] = self.recipes_df[column].astype(str)
-        self.recipes_df[column] = self.recipes_df[column].str.lower().str.strip()
-        self.recipes_df[column] = self.recipes_df[column].apply(lambda s: re.sub(r'[^a-z0-9\s\'\[\]\,-]', '', s))
-        self.recipes_df[column] = self.recipes_df[column].apply(lambda s: s if not re.search(r"less_than|greater_than|sql", s) else None)
-        self.recipes_df[column] = self.recipes_df[column].apply(self.extract_list_strings)
+        self.recipes_df[column] = self.recipes_df[column].str.lower(
+        ).str.strip()
+        self.recipes_df[column] = self.recipes_df[column].apply(
+            lambda s: re.sub(r'[^a-z0-9\s\'\[\]\,-]', '', s))
+        self.recipes_df[column] = self.recipes_df[column].apply(
+            lambda s: s if not re.search(r"less_than|greater_than|sql", s) else None)
+        self.recipes_df[column] = self.recipes_df[column].apply(
+            self.extract_list_strings)
 
     def preprocess_string_column(
         self,
@@ -101,7 +101,8 @@ class RecipesPreprocessor:
             self.issues['nan'][column] = self.recipes_df[column].isnull().sum()
         self.recipes_df[column] = self.recipes_df[column].fillna('')
         self.recipes_df[column] = self.recipes_df[column].astype(str)
-        self.recipes_df[column] = self.recipes_df[column].str.lower().str.strip()
+        self.recipes_df[column] = self.recipes_df[column].str.lower(
+        ).str.strip()
 
     def preprocess_int_column(
         self,
@@ -125,7 +126,8 @@ class RecipesPreprocessor:
         if column not in self.issues['nan']:
             self.issues['nan'][column] = self.recipes_df[column].isnull().sum()
         # Convert to datetime, extract date, handle errors
-        self.recipes_df[column] = pd.to_datetime(self.recipes_df[column], errors='coerce')
+        self.recipes_df[column] = pd.to_datetime(
+            self.recipes_df[column], errors='coerce')
         self.recipes_df[column] = self.recipes_df[column].dt.date
         self.recipes_df[column] = self.recipes_df[column].fillna(pd.NaT)
 
@@ -151,19 +153,30 @@ class RecipesPreprocessor:
 
         self.preprocess_date_column('submitted')
 
-        #------------------------------------------------------------------------------
+        # ------------------------------------------------------------------------------
 
-        assert not self.recipes_df['name'].isnull().any(), "Null values found in 'name' column after preprocessing."
-        assert not self.recipes_df['description'].isnull().any(), "Null values found in 'description' column after preprocessing."
-        assert not self.recipes_df['tags'].isnull().any(), "Null values found in 'tags' column after preprocessing."
-        assert not self.recipes_df['ingredients'].isnull().any(), "Null values found in 'ingredients' column after preprocessing."
-        assert not self.recipes_df['steps'].isnull().any(), "Null values found in 'steps' column after preprocessing."
-        assert not self.recipes_df['minutes'].isnull().any(), "Null values found in 'minutes' column after preprocessing."
-        assert not self.recipes_df['contributor_id'].isnull().any(), "Null values found in 'contributor_id' column after preprocessing."
-        assert not self.recipes_df['n_steps'].isnull().any(), "Null values found in 'n_steps' column after preprocessing."
-        assert not self.recipes_df['n_ingredients'].isnull().any(), "Null values found in 'n_ingredients' column after preprocessing."
+        assert not self.recipes_df['name'].isnull().any(
+        ), "Null values found in 'name' column after preprocessing."
+        assert not self.recipes_df['description'].isnull().any(
+        ), "Null values found in 'description' column after preprocessing."
+        assert not self.recipes_df['tags'].isnull().any(
+        ), "Null values found in 'tags' column after preprocessing."
+        assert not self.recipes_df['ingredients'].isnull().any(
+        ), "Null values found in 'ingredients' column after preprocessing."
+        assert not self.recipes_df['steps'].isnull().any(
+        ), "Null values found in 'steps' column after preprocessing."
+        assert not self.recipes_df['minutes'].isnull().any(
+        ), "Null values found in 'minutes' column after preprocessing."
+        assert not self.recipes_df['contributor_id'].isnull().any(
+        ), "Null values found in 'contributor_id' column after preprocessing."
+        assert not self.recipes_df['n_steps'].isnull().any(
+        ), "Null values found in 'n_steps' column after preprocessing."
+        assert not self.recipes_df['n_ingredients'].isnull().any(
+        ), "Null values found in 'n_ingredients' column after preprocessing."
 
-        #------------------------------------------------------------------------------
+        # ------------------------------------------------------------------------------
 
-        assert self.recipes_df['n_steps'] == self.recipes_df['steps'].apply(len).all(), "'n_steps' does not match the length of 'steps' after preprocessing."
-        assert self.recipes_df['n_ingredients'] == self.recipes_df['ingredients'].apply(len).all(), "'n_ingredients' does not match the length of 'ingredients' after preprocessing."
+        assert self.recipes_df['n_steps'] == self.recipes_df['steps'].apply(
+            len).all(), "'n_steps' does not match the length of 'steps' after preprocessing."
+        assert self.recipes_df['n_ingredients'] == self.recipes_df['ingredients'].apply(len).all(
+        ), "'n_ingredients' does not match the length of 'ingredients' after preprocessing."
