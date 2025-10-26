@@ -2,45 +2,34 @@ from typing import List
 import pandas as pd
 import re
 
+from recipes_handler import RecipesHandler
 
-class SeasonHandler:
-    def __init__(self, path: str, verbose: bool = False):
+class SeasonHandler(RecipesHandler):
+    def __init__(self, path: str = None):
         """Initialize the SeasonHandler.
 
         Args:
             path: Path where season/event references could be loaded from.
-            verbose: If True, enables extra logging (reserved for future use).
-
-        Side effects:
-            - Sets ``self.stop_words`` from utils.string_utils.stop_words.
-            - Initializes ``self.ref_season`` and ``self.ref_event`` by calling
-              :meth:`load_dataset`.
         """
-        # Domain stop words possibly used by future fuzzy matching helpers
-        self.stop_words: set = None
-        # References that will store valid season and event labels
-        self.ref_season: List[str] = None
-        self.ref_event: List[str] = None
+        super().__init__(path)
 
-        # Load (or initialize) reference vocabularies
-        self.load_dataset(path)
-
-    def load_dataset(self, path: str) -> None:
-        """Load reference period vocabularies.
-
-        For now, this method initializes in-memory lists of seasons and events.
-        The ``path`` parameter is reserved for future versions where references could
-        be loaded from a CSV or other source.
+    def build_ref(self, path: str = None) -> None:
+        """Build reference season and event names.
 
         Args:
-            path: Path to a potential reference file (currently unused).
-
-        Returns:
-            None
+            path: Path where season/event references could be loaded from.
         """
         # Static references; adjust or replace with file-based loading if needed
-        self.ref_season = ['winter', 'spring', 'summer', 'fall']
-        self.ref_event = ['christmas', 'halloween', 'thanksgiving']
+        ref_season = ['winter', 'spring', 'summer', 'fall']
+        ref_event = ['christmas', 'halloween', 'thanksgiving']
+        self.ref_names = {
+            "season": [ref_season],
+            "event": [ref_event]
+        }
+
+    def infer(self, df: pd.DataFrame) -> pd.DataFrame:
+        # TODO: implement inference logic if needed
+        return df
 
     def get_period_type_column(self, column: pd.Series, period_type: List[str]) -> pd.Series:
         """Extract occurrences of a given period type from a text Series.
@@ -95,7 +84,7 @@ class SeasonHandler:
         # Ensure missing values are represented as empty strings for downstream code
         final_seasons = final_seasons.fillna('')
         return final_seasons
-
+    
     def get_periods_all(self, recipe: pd.DataFrame) -> pd.DataFrame:
         """Compute season and event labels for all recipes.
 

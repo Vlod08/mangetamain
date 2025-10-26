@@ -22,8 +22,9 @@ class RecipesAnalyzer:
         self.logger.info("Initializing RecipesAnalyzer...")
         self.recipes_preprocessor = RecipesPreprocessor()
         self.recipes_preprocessor.preprocess()
-        self.country_handler = CountryHandler(self.recipes_preprocessor.COUNTRIES_FILE_PATH)
         self.recipes_df = self.recipes_preprocessor.recipes_df
+        self.country_handler = CountryHandler(self.recipes_preprocessor.COUNTRIES_FILE_PATH)
+        self.season_handler = SeasonHandler()
 
     def analyze(self):
         """
@@ -44,10 +45,16 @@ class RecipesAnalyzer:
         }
 
         # Fetch country names from relevant columns
-        columns_for_country_matching = ["tags", "name", "description"]
+        fetch_columns = ["tags", "name", "description"]
         self.recipes_df = self.country_handler.fetch(
-            self.recipes_df, columns=columns_for_country_matching)
+            self.recipes_df, columns=fetch_columns)
         self.logger.info("Country names fetched and updated in DataFrame.")
+
+        # Fetch season and event labels from relevant colmns
+        self.recipes_df = self.season_handler.fetch(
+            self.recipes_df, 
+            columns=fetch_columns)
+        self.logger.info("Season names fetched and updated in DataFrame.")
 
     def export_results(self, dir_path: str):
         """
@@ -71,16 +78,10 @@ class RecipesAnalyzer:
         
         self.logger.info("Results exported successfully.")
 
-        # Fetch season and event labels
-        self.recipes_df = self.season_handler.get_periods_all(self.recipes_df)
-        if self.verbose:
-            print("\n\nSeason and event labels fetched and updated in DataFrame.")
-            print(self.recipes_df[["season", "event"]])
-
 
 if __name__ == "__main__":
     analyzer = RecipesAnalyzer()
     analyzer.analyze()
     analyzer.export_results(dir_path="output/recipes_analysis")
     print()
-    print(analyzer.recipes_df[["name", "tags", "description", "country", "region"]].head(10))
+    print(analyzer.recipes_df[["name", "tags", "description", "country", "region", "season", "event"]].head(10))

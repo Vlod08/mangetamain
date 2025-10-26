@@ -7,20 +7,16 @@ from pathlib import Path
 from utils.string_utils import extract_list_strings
 
 class RecipesPreprocessor:
+    """Preprocess recipes DataFrame."""
 
     issues = {}
     info = {}
 
-    def __init__(self, recipes_df: pd.DataFrame):
+    def __init__(self, recipes_df: pd.DataFrame = None):
+        """RecipesPreprocessor initializer."""
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing RecipesPreprocessor with provided DataFrame...")
         self.recipes_df = recipes_df
-        self.lookup_root_dir()
-        self.set_data_paths()
-
-    def __init__(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info("Initializing RecipesPreprocessor...")
         self.lookup_root_dir()
         self.set_data_paths()
         self.recipes_df = pd.DataFrame()

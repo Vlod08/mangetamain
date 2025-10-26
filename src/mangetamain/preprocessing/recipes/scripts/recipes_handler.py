@@ -37,9 +37,9 @@ class RecipesHandler(ABC):
     def check_ref(self):
         """Check the integrity of the reference dataset and names."""
         self.logger.info("Checking reference dataset and names...")
-        assert self.ref_dataset is not None, "Ref Dataset is not properly set"
-        assert isinstance(self.ref_dataset, pd.DataFrame), "Ref Dataset should be a pandas DataFrame"
-        assert len(self.ref_dataset) > 0, "Ref Dataset is empty"
+        if self.ref_dataset is not None:
+            assert isinstance(self.ref_dataset, pd.DataFrame), "Ref Dataset should be a pandas DataFrame"
+            assert len(self.ref_dataset) > 0, "Ref Dataset is empty"
 
         assert self.ref_names is not None, "Ref Names is not properly set"
         assert len(self.ref_names) > 0, "Ref Names is empty"
