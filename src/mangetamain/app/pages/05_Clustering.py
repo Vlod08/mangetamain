@@ -1,8 +1,16 @@
+from pathlib import Path
+import sys
+
+
 import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 import plotly.express as px
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+
 from app_utils.io import load_data
 from app_utils.ui import use_global_ui
 use_global_ui("Mangetamain —  Clustering (TF-IDF + KMeans)",    logo="image/image.jpg",

@@ -1,5 +1,10 @@
+from pathlib import Path
+import sys
 import streamlit as st
-from app_utils.ui import use_global_ui
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from app.app_utils.ui import use_global_ui
 use_global_ui("Mangetamain — À propos",     logo="image/image.jpg",
     
     logo_size_px=90,

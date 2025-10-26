@@ -12,11 +12,10 @@ class RecipesPreprocessor:
     issues = {}
     info = {}
 
-    def __init__(self, recipes_df: pd.DataFrame = None):
+    def __init__(self):
         """RecipesPreprocessor initializer."""
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info("Initializing RecipesPreprocessor with provided DataFrame...")
-        self.recipes_df = recipes_df
+        self.logger.info("Initializing RecipesPreprocessor...")
         self.lookup_root_dir()
         self.set_data_paths()
         self.recipes_df = pd.DataFrame()

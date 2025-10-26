@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Mangetamain - Food.com Recipe Recommendation System
 
 **Mangetamain** is a *web application* developed as part of the **Kit Big Data** project at [Telecom Paris](https://www.telecom-paris.fr/).
@@ -7,22 +6,29 @@
 
 ```
 mangetamain/
-├── data/                   # Dataset storage
-│   ├── processed_data/     # Processed data (pickle files)
-│   └── raw_data/           # Original downloaded data (pickle files)
+├── data/                       # Dataset storage
+│   ├── processed/              # Processed data (pickle files)
+│   └── raw/                    # Original downloaded data (pickle files)
 ├── src/
-│   └── mangetamain/
-│       ├── __init__.py
-│       └── main.py         # Streamlit application
+│   ├── mangetamain/
+│   │   ├── app/
+│   │   │   ├── app_utils/
+│   │   │   ├── pages/
+│   │   │   └── __init__.py         
+│   │   ├── core/               
+│   │   ├── preprocessing/      # Data preprocessing
+│   │   ├── main.py             # Streamlit application
+│   │   └── __init__.py
+│   └── scripts/                # Utility scripts
 ├── tests/
 │   └── __init__.py
-├── docs/                   # Documentation
-├── pyproject.toml          # Project dependencies
+├── docs/                       # Documentation
+├── image/
+├── pyproject.toml              # Project dependencies
 ├── poetry.lock
 ├── poetry.toml
-├── .env                    # Environment configuration
 ├── .gitignore
-├── setup.sh                # Setup script
+├── setup.sh                    # Setup script
 └── README.md
 ```
 
@@ -111,7 +117,4 @@ The project uses several configuration files:
 - `pyproject.toml`: Project metadata and dependencies
 - `poetry.toml`: Poetry-specific configuration
 
----
-=======
-# Mangetamain
->>>>>>> 123b55e (Initial commit)
+--- 
