@@ -80,6 +80,7 @@ class RecipesEDAService:
 
         def _to_hashable(x):
             import numpy as np
+
             if isinstance(x, np.ndarray):
                 try:
                     return tuple(_to_hashable(v) for v in x.tolist())
@@ -97,14 +98,13 @@ class RecipesEDAService:
                     return str(x)
             return x
 
-    # convert only object-like columns; numeric/datetime are fine as-is
+        # convert only object-like columns; numeric/datetime are fine as-is
         obj_cols = df.select_dtypes(include=["object"]).columns
         df2 = df.copy()
         for c in obj_cols:
             df2[c] = df2[c].map(_to_hashable)
 
         return df2.nunique(dropna=True).sort_values(ascending=False)
-
 
     # ---------- Explorer helpers ----------
     @st.cache_data(show_spinner=False)
@@ -131,8 +131,10 @@ class RecipesEDAService:
         df["year"] = pd.to_datetime(df["submitted"], errors="coerce").dt.year
         return (
             df.dropna(subset=["year"])
-              .groupby("year").size().reset_index(name="n")
-              .sort_values("year")
+            .groupby("year")
+            .size()
+            .reset_index(name="n")
+            .sort_values("year")
         )
 
     @staticmethod
@@ -164,15 +166,27 @@ class RecipesEDAService:
         # tags/ingredients are lists in the artefact
         if include_tags:
             inc = [t.lower().strip() for t in include_tags if t]
-            df = df[df["tags"].apply(lambda lst: isinstance(lst, list) and any(t in lst for t in inc))]
+            df = df[
+                df["tags"].apply(
+                    lambda lst: isinstance(lst, list) and any(t in lst for t in inc)
+                )
+            ]
 
         if exclude_tags:
             exc = [t.lower().strip() for t in exclude_tags if t]
-            df = df[~df["tags"].apply(lambda lst: isinstance(lst, list) and any(t in lst for t in exc))]
+            df = df[
+                ~df["tags"].apply(
+                    lambda lst: isinstance(lst, list) and any(t in lst for t in exc)
+                )
+            ]
 
         if include_ings:
             inc = [t.lower().strip() for t in include_ings if t]
-            df = df[df["ingredients"].apply(lambda lst: isinstance(lst, list) and any(t in lst for t in inc))]
+            df = df[
+                df["ingredients"].apply(
+                    lambda lst: isinstance(lst, list) and any(t in lst for t in inc)
+                )
+            ]
 
         return df
 

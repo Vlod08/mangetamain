@@ -29,7 +29,9 @@ sns.set_theme()
 # ---- Sidebar : source & filtres ----
 with st.sidebar:
     st.header("⚙️ Données")
-    uploaded = st.file_uploader("Upload CSV/Parquet (optionnel)", type=["csv","parquet"])
+    uploaded = st.file_uploader(
+        "Upload CSV/Parquet (optionnel)", type=["csv", "parquet"]
+    )
 with st.sidebar:
     st.header("⚙️ Artefact")
     if st.button("🧹 Régénérer l’artefact propre"):
@@ -41,14 +43,13 @@ with st.sidebar:
     min_len = st.number_input("Longueur min. review", min_value=0, value=0, step=10)
 
 
-
 # (optionnel) pipeline RAW -> CLEAN comme Recipes
-#with st.expander("Pipeline RAW → CLEAN (artefact Reviews)", expanded=False):
-    #st.caption("Exécute le script de prétraitement pour générer/mettre à jour l'artefact reviews_clean.parquet.")
-    #if st.button("🧹 Régénérer l’artefact Reviews"):
-        #import os
-        #code = os.system("poetry run python src/core/interactions_preprocess.py")
-        #st.success("Artefact Reviews régénéré. Recharge la page (Ctrl/Cmd+R).") if code == 0 else st.error("Échec génération.")
+# with st.expander("Pipeline RAW → CLEAN (artefact Reviews)", expanded=False):
+# st.caption("Exécute le script de prétraitement pour générer/mettre à jour l'artefact reviews_clean.parquet.")
+# if st.button("🧹 Régénérer l’artefact Reviews"):
+# import os
+# code = os.system("poetry run python src/core/interactions_preprocess.py")
+# st.success("Artefact Reviews régénéré. Recharge la page (Ctrl/Cmd+R).") if code == 0 else st.error("Échec génération.")
 
 svc = ReviewsEDAService(anchor=Path(__file__), uploaded_file=uploaded)
 df = svc.load()
@@ -64,17 +65,20 @@ if "rating" in df.columns:
 else:
     c3.metric("% rating NA", "—")
 import pandas as pd
-dates_ok = ("date" in df.columns) and pd.to_datetime(df["date"], errors="coerce").notna().any()
-c4.metric("Dates parsées", "✅" if dates_ok else "—")
-    # petit aperçu
-with st.expander("👀 Aperçu / info"):
-        st.dataframe(df.head(20), width="stretch")
-        buf = io.StringIO()
-        df.info(buf=buf)
-        st.text(buf.getvalue())
-#st.tabs(["Qualité", "Exploration", "Table"])
 
-#tab_quality, tab_explo, tab_table = st.tabs(["Qualité", "Exploration", "Table"])
+dates_ok = ("date" in df.columns) and pd.to_datetime(
+    df["date"], errors="coerce"
+).notna().any()
+c4.metric("Dates parsées", "✅" if dates_ok else "—")
+# petit aperçu
+with st.expander("👀 Aperçu / info"):
+    st.dataframe(df.head(20), width="stretch")
+    buf = io.StringIO()
+    df.info(buf=buf)
+    st.text(buf.getvalue())
+# st.tabs(["Qualité", "Exploration", "Table"])
+
+# tab_quality, tab_explo, tab_table = st.tabs(["Qualité", "Exploration", "Table"])
 tabs = st.tabs(["🧹 Qualité", "📊 Exploration", "📄 Table"])
 
 # =========================
@@ -100,7 +104,6 @@ with tabs[0]:
         st.dataframe(svc.cardinalities().head(30), width="stretch")
 
 
-
 # =========================
 # 📊 Exploration
 # =========================
@@ -111,24 +114,37 @@ with tabs[1]:
     with colA:
         h = svc.hist_rating()
         if not h.empty:
-            st.plotly_chart(px.bar(h, x="left", y="count", title="Distribution des ratings"), width="stretch")
+            st.plotly_chart(
+                px.bar(h, x="left", y="count", title="Distribution des ratings"),
+                width="stretch",
+            )
     with colB:
         h2 = svc.hist_review_len()
         if not h2.empty:
-            st.plotly_chart(px.bar(h2, x="left", y="count", title="Longueur des reviews (caractères)"), width="stretch")
+            st.plotly_chart(
+                px.bar(
+                    h2, x="left", y="count", title="Longueur des reviews (caractères)"
+                ),
+                width="stretch",
+            )
 
     bm = svc.by_month()
     if not bm.empty:
         st.subheader("Temporalité")
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(px.line(bm, x="month", y="n", title="Reviews par mois"), width="stretch")
+            st.plotly_chart(
+                px.line(bm, x="month", y="n", title="Reviews par mois"), width="stretch"
+            )
         with c2:
-            st.plotly_chart(px.line(bm, x="month", y="mean_rating", title="Rating moyen par mois"), width="stretch")
+            st.plotly_chart(
+                px.line(bm, x="month", y="mean_rating", title="Rating moyen par mois"),
+                width="stretch",
+            )
 
         yr = svc.year_range()
         if yr:
-            y = st.slider("Année (zoom)", yr[0], yr[1], value=int((yr[0]+yr[1])//2))
+            y = st.slider("Année (zoom)", yr[0], yr[1], value=int((yr[0] + yr[1]) // 2))
             oy = svc.one_year(y)
             c3, c4 = st.columns(2)
             with c3:
@@ -169,7 +185,11 @@ with tabs[2]:
     fdf = svc.apply_filters(rating_range=rating_range, min_len=min_len, year=year_opt)
     st.caption(f"{len(fdf):,} lignes après filtres")
 
-    cols = [c for c in ["user_id", "recipe_id", "date", "rating", "review"] if c in fdf.columns]
+    cols = [
+        c
+        for c in ["user_id", "recipe_id", "date", "rating", "review"]
+        if c in fdf.columns
+    ]
     st.dataframe(fdf.head(1000)[cols], width="stretch", hide_index=True)
 
     st.download_button(
