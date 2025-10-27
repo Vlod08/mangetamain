@@ -7,6 +7,7 @@ authors = [
     {name = "Khalil OUNIS",             email = "khalilounis10@gmail.com"},
     {name = "Mohammed ELAMINE",         email = "elamine.mohammed.14@gmail.com"},
     {name = "Lokeshwaran VENGADABADY",  email = "lokeshvengadabady@gmail.com"}
+    
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
@@ -14,7 +15,7 @@ dependencies = [
     "streamlit (>=1.50.0,<2.0.0)",
     "plotly (>=6.3.1,<7.0.0)",
     "scikit-learn (>=1.7.2,<2.0.0)",
-    "seaborn (>=0.13.2,<0.14.0)"
+    "seaborn (>=0.13.2,<0.14.0)",
 ]
 
 
@@ -29,5 +30,23 @@ dev = [
     "ghp-import (>=2.1.0,<3.0.0)"
 ]
 test = [
-    "ruff (>=0.14.2,<0.15.0)"
+    "ruff (>=0.14.2,<0.15.0)",
+    "black (>=25.9.0,<26.0.0)"
 ]
+
+[tool.ruff]
+
+# E: Pycodestyle error codes (PEP 8 style violations)
+# W: Pycodestyle warning codes
+# F: PyFlakes rules (logical errors, unused imports/variables)
+# C90: McCabe complexity rules (code complexity analysis)
+select = ["E", "W", "F", "C90"]
+
+# If you use Black, ignore E203 to avoid conflicts
+extend-ignore = ["E203", "E501"]
+
+# Exclude typical build/venv paths
+exclude = ["build", "docs", "dist", ".venv", "venv", ".git", "__pycache__"]
+
+# Optionally tell ruff about the python target version
+target-version = "py311"
