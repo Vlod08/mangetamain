@@ -16,10 +16,44 @@ from core.dataset import InteractionsDataset  # dataset loader
 # Helpers
 # ----------------------------
 _STOP_BASIC = {
-    "the","a","an","and","or","is","it","to","for","of","on","in","with","this","that","these","those",
-    "very","really","so","just","i","we","you","he","she","they","was","were","be","been","are","am",
-    "thanks","thank","recipe"
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "is",
+    "it",
+    "to",
+    "for",
+    "of",
+    "on",
+    "in",
+    "with",
+    "this",
+    "that",
+    "these",
+    "those",
+    "very",
+    "really",
+    "so",
+    "just",
+    "i",
+    "we",
+    "you",
+    "he",
+    "she",
+    "they",
+    "was",
+    "were",
+    "be",
+    "been",
+    "are",
+    "am",
+    "thanks",
+    "thank",
+    "recipe",
 }
+
 
 def _read_uploaded(uploaded) -> pd.DataFrame:
     name = uploaded.name.lower()
@@ -30,12 +64,13 @@ def _read_uploaded(uploaded) -> pd.DataFrame:
     except Exception:
         return pd.read_csv(uploaded)
 
+
 # ----------------------------
 # Service
 # ----------------------------
 @dataclass
 class ReviewsEDAService:
-    anchor: Path                       # Path(__file__) from the page
+    anchor: Path  # Path(__file__) from the page
     uploaded_file: Optional[IO[bytes]] = None  # st.file_uploader returns this
 
     # --- data source (cached resource) ---
@@ -54,19 +89,24 @@ class ReviewsEDAService:
         return _read_uploaded(self.uploaded_file)
 
     def load(self) -> pd.DataFrame:
-        df = self._load_uploaded() if self.uploaded_file is not None else self._load_default()
+        df = (
+            self._load_uploaded()
+            if self.uploaded_file is not None
+            else self._load_default()
+        )
 
         # normalize
         df = df.copy()
         df.columns = [c.strip().lower() for c in df.columns]
         if "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
-        for col in ("user_id","recipe_id","rating"):
+        for col in ("user_id", "recipe_id", "rating"):
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         if "review" in df.columns:
             df["review"] = (
-                df["review"].astype("string")
+                df["review"]
+                .astype("string")
                 .str.replace(r"\s+", " ", regex=True)
                 .str.strip()
             )
@@ -92,7 +132,9 @@ class ReviewsEDAService:
                 return str(x)
         if isinstance(x, dict):
             try:
-                return tuple((k, ReviewsEDAService._to_hashable(v)) for k, v in sorted(x.items()))
+                return tuple(
+                    (k, ReviewsEDAService._to_hashable(v)) for k, v in sorted(x.items())
+                )
             except Exception:
                 return str(x)
         return x
@@ -110,7 +152,7 @@ class ReviewsEDAService:
     def duplicates(self) -> dict:
         d = self.load().applymap(self._to_hashable)
         dup_total = int(d.duplicated().sum())
-        keys = [c for c in ["user_id","recipe_id","date"] if c in d.columns]
+        keys = [c for c in ["user_id", "recipe_id", "date"] if c in d.columns]
         dup_keys = int(d.duplicated(subset=keys).sum()) if keys else None
         return {"dup_total": dup_total, "dup_on_keys": dup_keys, "keys": keys}
 
@@ -120,12 +162,14 @@ class ReviewsEDAService:
         df = self.load().copy()
         if "review" in df.columns:
             s = df["review"].fillna("")
-            df["review_len"]     = s.str.len()
-            df["review_words"]   = s.str.split().map(len)
-            df["exclamations"]   = s.str.count("!")
+            df["review_len"] = s.str.len()
+            df["review_words"] = s.str.split().map(len)
+            df["exclamations"] = s.str.count("!")
             df["question_marks"] = s.str.count(r"\?")
-            df["has_caps"]       = s.str.contains(r"[A-Z]{3,}", regex=True)
-            df["mentions_thanks"]= s.str.contains(r"\bthank(s| you)?\b", case=False, regex=True)
+            df["has_caps"] = s.str.contains(r"[A-Z]{3,}", regex=True)
+            df["mentions_thanks"] = s.str.contains(
+                r"\bthank(s| you)?\b", case=False, regex=True
+            )
         return df
 
     @st.cache_data(show_spinner=False)
@@ -135,34 +179,52 @@ class ReviewsEDAService:
 
     # ---------- Agrégations ----------
     @st.cache_data(show_spinner=False)
-    def agg_by_user(self, user_col: str = "user_id", rating_col: str = "rating") -> pd.DataFrame:
+    def agg_by_user(
+        self, user_col: str = "user_id", rating_col: str = "rating"
+    ) -> pd.DataFrame:
         df = self.with_text_features()
-        if not {user_col, rating_col}.issubset(df.columns): 
+        if not {user_col, rating_col}.issubset(df.columns):
             return pd.DataFrame()
-        return (df.groupby(user_col)
-                .agg(n_reviews=(rating_col,"size"),
-                     mean_rating=(rating_col,"mean"),
-                     median_rating=(rating_col,"median"),
-                     p95_len=("review_len", lambda s: s.quantile(0.95) if s is not None else np.nan))
-                .sort_values("n_reviews", ascending=False))
+        return (
+            df.groupby(user_col)
+            .agg(
+                n_reviews=(rating_col, "size"),
+                mean_rating=(rating_col, "mean"),
+                median_rating=(rating_col, "median"),
+                p95_len=(
+                    "review_len",
+                    lambda s: s.quantile(0.95) if s is not None else np.nan,
+                ),
+            )
+            .sort_values("n_reviews", ascending=False)
+        )
 
     @st.cache_data(show_spinner=False)
-    def agg_by_recipe(self, recipe_col: str = "recipe_id", rating_col: str = "rating") -> pd.DataFrame:
+    def agg_by_recipe(
+        self, recipe_col: str = "recipe_id", rating_col: str = "rating"
+    ) -> pd.DataFrame:
         df = self.with_text_features()
-        if not {recipe_col, rating_col}.issubset(df.columns): 
+        if not {recipe_col, rating_col}.issubset(df.columns):
             return pd.DataFrame()
-        return (df.groupby(recipe_col)
-                .agg(n_reviews=(rating_col,"size"),
-                     mean_rating=(rating_col,"mean"),
-                     median_rating=(rating_col,"median"),
-                     p95_len=("review_len", lambda s: s.quantile(0.95) if s is not None else np.nan))
-                .sort_values("n_reviews", ascending=False))
+        return (
+            df.groupby(recipe_col)
+            .agg(
+                n_reviews=(rating_col, "size"),
+                mean_rating=(rating_col, "mean"),
+                median_rating=(rating_col, "median"),
+                p95_len=(
+                    "review_len",
+                    lambda s: s.quantile(0.95) if s is not None else np.nan,
+                ),
+            )
+            .sort_values("n_reviews", ascending=False)
+        )
 
     # ---------- Distributions ----------
     @st.cache_data(show_spinner=False)
     def hist_rating(self) -> pd.DataFrame:
         df = self.load()
-        if "rating" not in df.columns: 
+        if "rating" not in df.columns:
             return pd.DataFrame()
         s = pd.to_numeric(df["rating"], errors="coerce").dropna()
         edges = np.linspace(0.5, 5.5, 6)  # 1..5 centrés
@@ -172,7 +234,7 @@ class ReviewsEDAService:
     @st.cache_data(show_spinner=False)
     def hist_review_len(self, bins: int = 50) -> pd.DataFrame:
         df = self.with_text_features()
-        if "review_len" not in df.columns: 
+        if "review_len" not in df.columns:
             return pd.DataFrame()
         s = pd.to_numeric(df["review_len"], errors="coerce").dropna()
         counts, edges = np.histogram(s, bins=bins)
@@ -182,32 +244,39 @@ class ReviewsEDAService:
     @st.cache_data(show_spinner=False)
     def by_month(self) -> pd.DataFrame:
         df = self.load()
-        if "date" not in df.columns: 
+        if "date" not in df.columns:
             return pd.DataFrame()
         work = df.copy()
         work["month"] = work["date"].dt.to_period("M").dt.to_timestamp()
-        agg = (work.groupby("month")
-               .agg(n=("review","size") if "review" in work.columns else ("date","size"),
-                    mean_rating=("rating","mean"))
-               .reset_index()
-               .sort_values("month"))
+        agg = (
+            work.groupby("month")
+            .agg(
+                n=("review", "size") if "review" in work.columns else ("date", "size"),
+                mean_rating=("rating", "mean"),
+            )
+            .reset_index()
+            .sort_values("month")
+        )
         return agg
 
     @st.cache_data(show_spinner=False)
     def seasonal_profile(self) -> pd.DataFrame:
         m = self.by_month()
-        if m.empty: 
+        if m.empty:
             return m
         tmp = m.assign(mon=m["month"].dt.month)
-        return (tmp.groupby("mon")["n"].mean()
-                .reindex(range(1,13))
-                .reset_index()
-                .rename(columns={"mon":"month", "n":"n_mean"}))
+        return (
+            tmp.groupby("mon")["n"]
+            .mean()
+            .reindex(range(1, 13))
+            .reset_index()
+            .rename(columns={"mon": "month", "n": "n_mean"})
+        )
 
     @st.cache_data(show_spinner=False)
     def year_range(self) -> tuple[int, int] | None:
         m = self.by_month()
-        if m.empty: 
+        if m.empty:
             return None
         ys = m["month"].dt.year
         return int(ys.min()), int(ys.max())
@@ -215,16 +284,18 @@ class ReviewsEDAService:
     @st.cache_data(show_spinner=False)
     def one_year(self, year: int) -> pd.DataFrame:
         m = self.by_month()
-        if m.empty: 
+        if m.empty:
             return m
         return m[m["month"].dt.year == year].copy()
 
     # ---------- Filtres tableau ----------
     @st.cache_data(show_spinner=False)
-    def apply_filters(self,
-                      rating_range: tuple[float,float] | None = None,
-                      min_len: int = 0,
-                      year: int | None = None) -> pd.DataFrame:
+    def apply_filters(
+        self,
+        rating_range: tuple[float, float] | None = None,
+        min_len: int = 0,
+        year: int | None = None,
+    ) -> pd.DataFrame:
         df = self.with_text_features().copy()
 
         if rating_range and "rating" in df.columns:
@@ -252,30 +323,34 @@ class ReviewsEDAService:
     @st.cache_data(show_spinner=False)
     def rating_vs_length(self) -> pd.DataFrame:
         d = self.load()
-        if not {"rating","review"}.issubset(d.columns):
-            return pd.DataFrame(columns=["rating","review_len"])
-        out = pd.DataFrame({
-            "rating": pd.to_numeric(d["rating"], errors="coerce"),
-            "review_len": d["review"].fillna("").astype(str).str.len()
-        }).dropna()
+        if not {"rating", "review"}.issubset(d.columns):
+            return pd.DataFrame(columns=["rating", "review_len"])
+        out = pd.DataFrame(
+            {
+                "rating": pd.to_numeric(d["rating"], errors="coerce"),
+                "review_len": d["review"].fillna("").astype(str).str.len(),
+            }
+        ).dropna()
         return out
 
     @st.cache_data(show_spinner=False)
     def user_bias(self) -> pd.DataFrame:
         d = self.load()
-        if not {"user_id","rating"}.issubset(d.columns):
+        if not {"user_id", "rating"}.issubset(d.columns):
             return pd.DataFrame()
-        g = (d.groupby("user_id")["rating"]
-               .agg(n="size", mean="mean", median="median")
-               .reset_index()
-               .sort_values("n", ascending=False))
+        g = (
+            d.groupby("user_id")["rating"]
+            .agg(n="size", mean="mean", median="median")
+            .reset_index()
+            .sort_values("n", ascending=False)
+        )
         return g
 
     @st.cache_data(show_spinner=False)
     def tokens_by_rating(self, k: int = 20) -> pd.DataFrame:
         d = self.load()
-        if not {"review","rating"}.issubset(d.columns):
-            return pd.DataFrame(columns=["rating","token","count"])
+        if not {"review", "rating"}.issubset(d.columns):
+            return pd.DataFrame(columns=["rating", "token", "count"])
         tbl = str.maketrans("", "", string.punctuation.replace("'", ""))
         d = d.dropna(subset=["rating"]).copy()
         d["bucket"] = pd.to_numeric(d["rating"], errors="coerce").round()
@@ -288,14 +363,28 @@ class ReviewsEDAService:
                         cnt.update([t])
             for tok, c in cnt.most_common(k):
                 rows.append((int(r), tok, int(c)))
-        return (pd.DataFrame(rows, columns=["rating","token","count"])
-                  .sort_values(["rating","count"], ascending=[True, False]))
+        return pd.DataFrame(rows, columns=["rating", "token", "count"]).sort_values(
+            ["rating", "count"], ascending=[True, False]
+        )
 
     # ---------- Exports ----------
     @st.cache_data(show_spinner=False)
     def export_clean_min(self) -> pd.DataFrame:
         df = self.with_text_features()
-        keep = [c for c in ["user_id","recipe_id","date","rating","review","review_len","review_words","exclamations"] if c in df.columns]
+        keep = [
+            c
+            for c in [
+                "user_id",
+                "recipe_id",
+                "date",
+                "rating",
+                "review",
+                "review_len",
+                "review_words",
+                "exclamations",
+            ]
+            if c in df.columns
+        ]
         out = df[keep].copy()
         out = out.convert_dtypes(dtype_backend="numpy_nullable")
         if "date" in out.columns:
