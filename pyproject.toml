@@ -1,30 +1,52 @@
-[project]
+[tool.poetry]
 name = "mangetamain"
 version = "1.0.0"
 description = ""
-authors = [
-    {name = "Bryan LY",                 email = "bryan29.ly@gmail.com"},
-    {name = "Khalil OUNIS",             email = "khalilounis10@gmail.com"},
-    {name = "Mohammed ELAMINE",         email = "elamine.mohammed.14@gmail.com"},
-    {name = "Lokeshwaran VENGADABADY",  email = "lokeshvengadabady@gmail.com"}
-]
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
-dependencies = [
-    "streamlit (>=1.50.0,<2.0.0)",
-    "plotly (>=6.3.1,<7.0.0)",
-    "scikit-learn (>=1.7.2,<2.0.0)",
-    "seaborn (>=0.13.2,<0.14.0)"
+
+authors = [
+    "Bryan LY <bryan29.ly@gmail.com>",
+    "Khalil OUNIS <khalilounis10@gmail.com>",
+    "Mohammed ELAMINE <elamine.mohammed.14@gmail.com>",
+    "Lokeshwaran VENGADABADY <lokeshvengadabady@gmail.com>",
+    "Lina RHIATI HAZIME <lina.rhiati2@gmail.com>"
 ]
 
+license = "MIT"
+
+packages = [
+    { include = "mangetamain", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+streamlit = ">=1.50.0,<2.0.0"
+plotly = ">=6.3.1,<7.0.0"
+scikit-learn = ">=1.7.2,<2.0.0"
+seaborn = ">=0.13.2,<0.14.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0"
+sphinx = ">=8.2.3,<9.0.0"
+sphinx-rtd-theme = ">=3.0.2,<4.0.0"
+ghp-import = ">=2.1.0,<3.0.0"
+black = ">=24.0.0,<25.0.0"
+flake8 = ">=7.0.0,<8.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "sphinx (>=8.2.3,<9.0.0)",
-    "sphinx-rtd-theme (>=3.0.2,<4.0.0)",
-    "ghp-import (>=2.1.0,<3.0.0)"
-]
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
