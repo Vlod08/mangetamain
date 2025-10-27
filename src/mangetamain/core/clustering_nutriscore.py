@@ -5,6 +5,7 @@ nutrition columns (calories, total_fat, sugar, sodium, protein, saturated_fat,
 carbohydrates) and computes a cosine-similarity matrix. It reuses
 `RecipesDataset` for loading data and follows the project's helpers style.
 """
+
 from __future__ import annotations
 from typing import Optional
 from pathlib import Path
@@ -39,7 +40,9 @@ def _select_nutri_matrix(df: pd.DataFrame) -> pd.DataFrame:
     return mat
 
 
-def build_nutri_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def build_nutri_similarity(
+    df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42
+) -> pd.DataFrame:
     """Compute cosine similarity DataFrame using nutritional features.
 
     Parameters
@@ -79,7 +82,9 @@ def build_nutri_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, ran
     return simdf
 
 
-def find_similar_by_nutri(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> pd.Series:
+def find_similar_by_nutri(
+    sim_df: pd.DataFrame, recipe_id, top_n: int = 25
+) -> pd.Series:
     """Return top-N similar recipes by nutritional similarity."""
     if sim_df.empty:
         return pd.Series(dtype=float)
@@ -90,7 +95,11 @@ def find_similar_by_nutri(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> p
     return s.head(top_n)
 
 
-def compute_similarity_from_dataset(anchor: str | Path | None = None, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def compute_similarity_from_dataset(
+    anchor: str | Path | None = None,
+    sample_n: Optional[int] = None,
+    random_state: int = 42,
+) -> pd.DataFrame:
     """Load recipes using RecipesDataset and compute nutritional similarity.
 
     anchor can be Path(__file__) from caller or None (defaults to module path).

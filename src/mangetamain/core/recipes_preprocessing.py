@@ -2,9 +2,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-import ast, os
+import ast
+import os
 import numpy as np
 import pandas as pd
+
 
 @dataclass
 class RecipesPreprocessor:
@@ -20,9 +22,12 @@ class RecipesPreprocessor:
         return p
 
     @property
-    def RAW(self) -> Path: return self._root() / self.raw_rel
+    def RAW(self) -> Path:
+        return self._root() / self.raw_rel
+
     @property
-    def OUT(self) -> Path: return self._root() / self.out_rel
+    def OUT(self) -> Path:
+        return self._root() / self.out_rel
 
     def run(self) -> Path:
         RAW, OUT = self.RAW, self.OUT
@@ -45,27 +50,43 @@ class RecipesPreprocessor:
             except Exception:
                 ...
             return []
-        if "tags" in df.columns:        df["tags"] = df["tags"].apply(to_list)
-        if "ingredients" in df.columns: df["ingredients"] = df["ingredients"].apply(to_list)
+
+        if "tags" in df.columns:
+            df["tags"] = df["tags"].apply(to_list)
+        if "ingredients" in df.columns:
+            df["ingredients"] = df["ingredients"].apply(to_list)
 
         # ---- Description
         df["description"] = df.get("description", "").fillna("").astype(str)
 
         # ---- Nutrition -> colonnes
         if "nutrition" in df.columns:
+
             def split_nut(x):
                 try:
-                    v = ast.literal_eval(x); assert isinstance(v, list)
-                    v = (v + [np.nan]*7)[:7]
+                    v = ast.literal_eval(x)
+                    assert isinstance(v, list)
+                    v = (v + [np.nan] * 7)[:7]
                     return v
                 except Exception:
-                    return [np.nan]*7
-            cols = ["calories","total_fat","sugar","sodium","protein","saturated_fat","carbohydrates"]
-            nut = pd.DataFrame(df["nutrition"].apply(split_nut).tolist(), columns=cols, index=df.index)
+                    return [np.nan] * 7
+
+            cols = [
+                "calories",
+                "total_fat",
+                "sugar",
+                "sodium",
+                "protein",
+                "saturated_fat",
+                "carbohydrates",
+            ]
+            nut = pd.DataFrame(
+                df["nutrition"].apply(split_nut).tolist(), columns=cols, index=df.index
+            )
             df = pd.concat([df.drop(columns=["nutrition"]), nut], axis=1)
 
         # ---- Nettoyage
-        df = df.drop_duplicates(subset=["name","description"])
+        df = df.drop_duplicates(subset=["name", "description"])
         df = df[df["minutes"].notna()].reset_index(drop=True)
 
         OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +96,13 @@ class RecipesPreprocessor:
         url = os.getenv("DATABASE_URL")
         if url:
             from sqlalchemy import create_engine
-            pd.io.sql.to_sql(df, name="recipes_clean", con=create_engine(url), if_exists="replace", index=False)
+
+            pd.io.sql.to_sql(
+                df,
+                name="recipes_clean",
+                con=create_engine(url),
+                if_exists="replace",
+                index=False,
+            )
 
         return OUT
