@@ -38,6 +38,18 @@ jobs:
       - name: Run black
         run: |
           poetry run black src/mangetamain || true
+
+      - name: Check for remaining lint issues
+        id: lint-check
+        run: |
+          # Run ruff check (without --fix) to see if any issues remain
+          if poetry run ruff check src/mangetamain; then
+            echo "lint_issues=false" >> $GITHUB_OUTPUT
+            echo "No linting issues remaining"
+          else
+            echo "lint_issues=true" >> $GITHUB_OUTPUT
+            echo "Linting issues still present after auto-fixes"
+          fi
     
       - name: Check for changes
         id: check-changes
@@ -55,11 +67,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: apply automatic ruff/black fixes"
           branch: auto/ruff-fixes-${{ github.run_number }}
-          title: "Auto: ruff & black fixes"
+          title: |
+            Auto: ruff & black fixes
+            ${{ steps.lint-check.outputs.lint_issues == 'true' && '(Needs Manual Fixes)' || '' }}
           body: |
             This pull request was created automatically by the CI workflow.
             It contains automatic fixes applied by ruff (lint) and Black (format).
 
+            ${{ steps.lint-check.outputs.lint_issues == 'true' && '⚠️ **MANUAL FIXES NEEDED**: Some linting issues could not be automatically fixed and require manual intervention.' || '✅ All linting issues were automatically resolved.' }}
+
+            Remaining issues that need manual fixes:
+            ```bash
+            ${{ steps.lint-check.outputs.lint_issues == 'true' && 'poetry run ruff check src/mangetamain' || 'No issues found' }}
+            ```
+
             If nothing changed, no PR will be created.
-          base: ${{ github.ref_name }}  # Target current branch and not main
-          labels: auto-fix, ruff
+          base: ${{ github.ref_name }}
+          labels: |
+            auto-fix
+            ${{ steps.lint-check.outputs.lint_issues == 'true' && 'needs-work' || 'ready' }}
