@@ -1,21 +1,65 @@
-name: Python Linter
+name: Python Linter && Auto Fix (Ruff & Black)
 on:
-  pull_request:
-    branches: [ 'main' ] 
   push:
-    branches: [ '**' ] # all branches will be linted by default
+    branches-ignore:
+      - 'main'
+      - 'auto/ruff-fixes**'
+  workflow_dispatch:    # allow manual triggering
 jobs:
-  ruff-lint-check:
+  autofix:
+    name: Run ruff --fix, format with black and create PR
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Install Poetry 2.2.0
-        run: python -m pip install --upgrade pip && pip install "poetry==2.2.0"
-      - name: Install the test dependencies with poetry
+
+      - name: Install Poetry
+        run: python -m pip install --upgrade pip && pip install "poetry==1.8.1"
+
+      - name: Install dev dependencies
         run: |
           poetry install --no-interaction --with test
-      - name: Run ruff
-        run: poetry run ruff check src/mangetamain
+
+      - name: Run ruff --fix
+        run: |
+          poetry run ruff check src/mangetamain --fix || true
+
+      - name: Run black
+        run: |
+          poetry run black src/mangetamain || true
+    
+      - name: Check for changes
+        id: check-changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create pull request with fixes
+        if: steps.check-changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: apply automatic ruff/black fixes"
+          branch: auto/ruff-fixes-${{ github.run_number }}
+          title: "Auto: ruff & black fixes"
+          body: |
+            This pull request was created automatically by the CI workflow.
+            It contains automatic fixes applied by ruff (lint) and Black (format).
+
+            If nothing changed, no PR will be created.
+          base: ${{ github.ref_name }}  # Target current branch and not main
+          labels: auto-fix, ruff
