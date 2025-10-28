@@ -1,6 +1,6 @@
 from pathlib import Path
 import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 import streamlit as st
@@ -30,3 +30,5 @@ else:
     # Top tags / ingrédients (comptage naïf)
     st.subheader(f"Top tags — {country}")
     st.plotly_chart(bar_top_counts(sub["tags"].astype(str).str.split(",").explode().str.strip()), use_container_width=True)
+
+
