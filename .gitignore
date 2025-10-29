@@ -212,3 +212,6 @@ data/RAW_recipes.csv
 
 # Results output directory
 output/
+
+#
+.DS_Store
