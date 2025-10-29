@@ -31,6 +31,8 @@ folium = "^0.20.0"
 streamlit-folium = "^0.25.3"
 geopandas = "^1.1.1"
 geodatasets = "^2024.8.0"
+rapidfuzz = "^3.14.1"
+nltk = "^3.9.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0"
