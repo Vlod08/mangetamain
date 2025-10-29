@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from functools import wraps
 import streamlit as st
 
-from core.utils.string_utils import fuzzy_fetch
+from mangetamain.core.utils.string_utils import fuzzy_fetch
 
 def enforce_check(method):
     """Decorator to ensure check_ref() is called after build_ref()."""

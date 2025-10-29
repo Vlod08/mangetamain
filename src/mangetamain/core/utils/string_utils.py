@@ -9,8 +9,8 @@ import re
 
 from nltk.corpus import stopwords
 import nltk
-nltk.download('stopwords', quiet=True)
-STOP_WORDS_EN = set(stopwords.words('english'))
+# nltk.download('stopwords', quiet=True)
+# STOP_WORDS_EN = set(stopwords.words('english'))
 
 
 def is_list_string(s: str) -> bool:

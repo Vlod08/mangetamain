@@ -11,8 +11,8 @@ import re
 import numpy as np
 from threading import Thread
 
-from config import ROOT_DIR
-from core.utils.string_utils import (
+from mangetamain.config import ROOT_DIR
+from mangetamain.core.utils.string_utils import (
     extract_list_strings, extract_list_floats, 
     looks_like_datetime, is_list_string, is_list_floats_string
 )
