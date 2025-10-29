@@ -2,13 +2,13 @@
 from __future__ import annotations
 import streamlit as st
 
-from app.app_utils.viz import bar_top_counts
-from app.app_utils.ui import use_global_ui
-from core.recipes_eda import RecipesEDAService
+from mangetamain.app.app_utils.viz import bar_top_counts
+from mangetamain.app.app_utils.ui import use_global_ui
+from src.mangetamain.core.recipes_eda import RecipesEDAService
 
 import pandas as pd
 from streamlit_folium import st_folium
-from map import BubbleMapFolium
+from src.mangetamain.core.map_builder.map import BubbleMapFolium
 
 
 def app():
@@ -49,7 +49,7 @@ def app():
         st.session_state["country_choice"] = "(aucun)"
 
     # DATA LOAD
-    file = r"C:\Users\khali\Desktop\MS DATA-IA\Kit Big Data\mangetamain\data\raw_data\recipes_raw_sample.csv"
+    file = r"C:\Users\khali\Desktop\MS DATA-IA\Kit Big Data\mangetamain\data\recipes_raw_sample.csv"
     df_raw = pd.read_csv(file)
 
     # LEVEL SELECTION
