@@ -25,7 +25,7 @@ class BubbleMapFolium:
     - If auto_centroids=True (default), computes centroids via GeoPandas/Natural Earth.
     Otherwise uses provided 'country_centroids' or a minimal built-in table.
     """
-
+    
     # Minimal fallback if GeoPandas is unavailable
     _COUNTRY_CENTROIDS_POOL = pd.DataFrame(
         [
@@ -579,7 +579,8 @@ columns=["country", "lat", "lon"])
                         data=gdf.__geo_interface__,
                         name="Countries (English)",
                         style_function=lambda feat: _style(feat.get("properties", {})),
-                        tooltip=folium.GeoJsonTooltip(fields=["display_name"], aliases=["Country"], sticky=False),
+                        tooltip=folium.GeoJsonTooltip(fields=["name"], aliases=["Country"], sticky=False),
+                        popup=folium.GeoJsonPopup(fields=["name"], labels=False, sticky=False),
                         control=False,
                     ).add_to(m)
 
@@ -615,6 +616,7 @@ columns=["country", "lat", "lon"])
                         data=WORLD_GEOJSON_URL,
                         name="Countries",
                         style_function=lambda feat: _style(feat.get("properties", {})),
+                        popup=folium.GeoJsonPopup(fields=["name"], labels=False, sticky=False),
                         control=False,
                     ).add_to(m)
                 except Exception:
