@@ -7,13 +7,14 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
 import streamlit as st
 import logging
 from abc import ABC, abstractmethod
 
-from core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
-from core.utils.string_utils import extract_classes
-from core.handlers.country_handler import CountryHandler
+from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
+from mangetamain.core.utils.string_utils import extract_classes
+from mangetamain.core.handlers.country_handler import CountryHandler
 
 @dataclass
 class EDAService(ABC):
@@ -125,18 +126,18 @@ class RecipesEDAService(EDAService):
         return extract_classes(self.ds.df[column])
 
     # ---------- Data Fetching ----------
-    def fetch_country(self) -> pd.DataFrame:
+    def fetch_country(self, df) -> pd.DataFrame:
         """Fetch recipes with country information.
         Returns:
             pd.DataFrame: DataFrame containing recipes with country information.
         """
         self.country_handler.build_ref()
         df_country = self.country_handler.fetch(
-            self.ds.df, ["tags", "name", "description"])
+            df, ["tags", "name", "description"])
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
-        return df_country[df_country["country"].notna()]
+        return df_country[df_country["country"]!='']
 
     # ---------- Explorer helpers ----------
     def nutrition(self) -> pd.DataFrame:
@@ -216,3 +217,33 @@ class RecipesEDAService(EDAService):
             if isinstance(row, list):
                 cnt.update([str(x).lower().strip() for x in row if x])
         return pd.DataFrame(cnt.most_common(k), columns=["ingredient", "count"])
+    
+    # Analyze signature ingredients per country
+    @staticmethod
+    def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
+       
+
+        # Aggregate all ingredient lists per country into a single list per country
+        country_docs_lists = df.groupby('country')['ingredients'].sum()
+
+        # Configure vectorizer to accept pre-tokenized input (lists)
+        vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
+                                     lowercase=False, max_df=0.5, max_features=14000)
+
+        # Fit TF-IDF on the per-country documents (each document is a list of tokens)
+        tfidf_matrix = vectorizer.fit_transform(country_docs_lists)
+
+        ingredients = vectorizer.get_feature_names_out()
+
+        # Build a convenient DataFrame: rows=countries, cols=ingredients, values=tf-idf
+        df_tfidf = pd.DataFrame(
+            tfidf_matrix.toarray(), index=country_docs_lists.index, columns=ingredients
+        )
+
+        signatures = {}
+        for country in df_tfidf.index:
+            # Pick the "top_n" highest-scoring ingredients for this country
+            top_scores_series = df_tfidf.loc[country].nlargest(top_n)
+            signatures[country] = top_scores_series.to_dict()
+
+        return signatures

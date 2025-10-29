@@ -5,7 +5,7 @@ from typing import List
 import pandas as pd
 from dataclasses import dataclass
 
-from core.handlers.recipes_handler import RecipesHandler
+from mangetamain.core.handlers.recipes_handler import RecipesHandler
 
 @dataclass
 class CountryHandler(RecipesHandler):

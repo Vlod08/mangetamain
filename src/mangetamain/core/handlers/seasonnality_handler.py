@@ -6,7 +6,7 @@ import re
 import streamlit as st
 from dataclasses import dataclass
 
-from core.handlers.recipes_handler import RecipesHandler
+from mangetamain.core.handlers.recipes_handler import RecipesHandler
 
 @dataclass
 class SeasonalityHandler(RecipesHandler):
