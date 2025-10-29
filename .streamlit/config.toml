@@ -11,3 +11,6 @@ toolbarMode = "minimal"   # masque le bouton "Deploy"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+pagesDir = "src/mangetamain/app/pages"

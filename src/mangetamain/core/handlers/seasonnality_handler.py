@@ -1,18 +1,25 @@
+# core/handlers/seasonnality_handler.py
+from __future__ import annotations
 from typing import List
 import pandas as pd
 import re
+import streamlit as st
+from dataclasses import dataclass
 
-from recipes_handler import RecipesHandler
+from core.handlers.recipes_handler import RecipesHandler
 
-class SeasonHandler(RecipesHandler):
-    def __init__(self, path: str = None):
-        """Initialize the SeasonHandler.
+@dataclass
+class SeasonalityHandler(RecipesHandler):
+    def __post_init__(self, path: str = None):
+        """Initialize the SeasonalityHandler.
 
         Args:
             path: Path where season/event references could be loaded from.
         """
-        super().__init__(path)
+        super().__post_init__(path)
+        self.logger.info("SeasonalityHandler initialized.")
 
+    @st.cache_data(show_spinner=False)
     def build_ref(self, path: str = None) -> None:
         """Build reference season and event names.
 

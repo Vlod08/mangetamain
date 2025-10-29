@@ -1,14 +1,43 @@
 
-from typing import List, Tuple, Dict, Union
+from typing import Iterable, List, Tuple, Dict, Union
 import numpy as np
 import pandas as pd
 import ast
 from rapidfuzz import fuzz, process
 from sklearn.preprocessing import MultiLabelBinarizer
+import re
 
-# from nltk.corpus import stopwords
-# nltk.download('stopwords')
-# STOP_WORDS_EN = set(stopwords.words('english'))
+from nltk.corpus import stopwords
+import nltk
+nltk.download('stopwords', quiet=True)
+STOP_WORDS_EN = set(stopwords.words('english'))
+
+
+def is_list_string(s: str) -> bool:
+    """Check if a string is a list of strings representation."""
+    if not isinstance(s, str):
+        return False
+    s = s.strip()
+    if not (s.startswith("[") and s.endswith("]")):
+        return False
+    try:
+        lst = ast.literal_eval(s)
+        return all(isinstance(x, str) for x in lst)
+    except Exception:
+        return False
+
+def is_list_floats_string(s: str) -> bool:
+    """Check if a string is a list of floats representation."""
+    if not isinstance(s, str):
+        return False
+    s = s.strip()
+    if not (s.startswith("[") and s.endswith("]")):
+        return False
+    try:
+        lst = ast.literal_eval(s)
+        return all(isinstance(x, float) or x is None for x in lst)
+    except Exception:
+        return False
 
 def extract_list_strings(str_l: str) -> List[str]:
     """Extracts a list of strings from a string representation of a list.
@@ -28,6 +57,55 @@ def extract_list_strings(str_l: str) -> List[str]:
     except (ValueError, SyntaxError):
         # If literal_eval fails, return empty list
         return []
+    
+def extract_list_floats(str_l: str) -> List[float]:
+    """Extracts a list of floats from a string representation of a list.
+
+    Returns:
+        list: A list of floats extracted from the input string.
+    """
+    if pd.isna(str_l) or str_l == '':
+        return []
+    try:
+        list_floats = ast.literal_eval(str_l)
+        if not isinstance(list_floats, list):
+            return []
+        # Convert to floats and remove non-convertible entries
+        cleaned = []
+        for x in list_floats:
+            try:
+                cleaned.append(float(x))
+            except (ValueError, TypeError):
+                continue
+        return cleaned
+    except (ValueError, SyntaxError):
+        # If literal_eval fails, return empty list
+        return []
+
+# Covers ISO, European, US, textual, and timestamp-like formats
+DATETIME_PATTERN = re.compile(
+    r"""
+    ^(?:                                   # entire string must match
+        # ISO-like: 2024-03-12, 2024/03/12, 2024.03.12
+        \d{4}[-/.]\d{1,2}[-/.]\d{1,2}
+        |
+        # European/US-like: 12/03/2024 or 03-12-24
+        \d{1,2}[-/]\d{1,2}[-/]\d{2,4}
+        |
+        # Textual month: 12 Mar 2024, March 12, 2024
+        (?:\d{1,2}\s*[A-Za-z]{3,9}|[A-Za-z]{3,9}\s*\d{1,2})(?:,?\s*\d{2,4})?
+    )$                                     # must end here
+    """,
+    re.VERBOSE,
+)
+
+def looks_like_datetime(s: str) -> bool:
+    """Check if a string has potential to represent a date or datetime."""
+    if s.startswith("[") and s.endswith("]"):
+        return False
+    if (not isinstance(s, str)) or (len(s) < 4) or (len(s) > 20):
+        return False
+    return bool(DATETIME_PATTERN.search(s))
 
 def fuzzy_fetch(
     queries: Union[str, List[str]],
@@ -113,6 +191,11 @@ def fuzzy_fetch(
 
     # ---- 8. Always return from the first group ----
     return list_ref_names[0][global_best_idx]
+
+def contains_any(values: Iterable[str], items: Iterable[str]) -> bool:
+    """Check if any of the items are present in the values."""
+    s = set(v.strip().lower() for v in values if v)
+    return any(t in s for t in items)
 
 def extract_classes(list_strings: List[str|List[str]]) -> List[str]:
     """Extracts unique classes from a list of strings or list of strings.

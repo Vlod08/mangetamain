@@ -1,11 +1,26 @@
-
+# core/handlers/recipes_handler.py
+from __future__ import annotations
+from dataclasses import dataclass
 import logging
 import pandas as pd
-from typing import List, Dict, Union
+from typing import List, Dict
 from abc import ABC, abstractmethod
+from functools import wraps
+import streamlit as st
 
-from utils.string_utils import fuzzy_fetch
+from core.utils.string_utils import fuzzy_fetch
 
+def enforce_check(method):
+    """Decorator to ensure check_ref() is called after build_ref()."""
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        result = method(self, *args, **kwargs)
+        if hasattr(self, "check_ref"):
+            self.check_ref()
+        return result
+    return wrapper
+
+@dataclass
 class RecipesHandler(ABC):
     """Abstract base class for handling recipe-related data processing.
     
@@ -19,17 +34,19 @@ class RecipesHandler(ABC):
 
     ref_dataset: pd.DataFrame = None
     ref_names: Dict[str, List[List[str]]] = None
-    
-    def __init__(self, path: str = None):
-        """Initialize the RecipesHandler with the given path.
-        Args:
-            path (str): Path to the reference dataset.
-        """
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info("Initializing CountryHandler...")
-        self.build_ref(path)
-        self.check_ref()
+    ref_path: str = None
 
+    def __post_init__(self):
+        """Initialize the RecipesHandler."""
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def __init_subclass__(cls, **kwargs):
+        """Automatically wraps subclass build_ref with enforce_check."""
+        super().__init_subclass__(**kwargs)
+        if hasattr(cls, "build_ref"):
+            cls.build_ref = enforce_check(cls.build_ref)
+
+    @st.cache_data(show_spinner=False)
     @abstractmethod
     def build_ref(self, path: str = None):
         pass

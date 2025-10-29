@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-def setup_logging(log_dir="logs", log_level=logging.INFO):
+def setup_logging(log_dir: str = "logs", log_level: int = logging.INFO):
     """Configure global logging."""
     os.makedirs(log_dir, exist_ok=True)
     # log_filename = f"recipes_analyzer_{datetime.now():%Y%m%d_%H%M%S}.log"

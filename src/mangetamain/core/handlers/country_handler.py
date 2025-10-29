@@ -1,21 +1,25 @@
-
+# core/handlers/country_handler.py
+from __future__ import annotations
 import json
-from typing import List, Dict
+from typing import List
 import pandas as pd
+from dataclasses import dataclass
 
-from recipes_handler import RecipesHandler
+from core.handlers.recipes_handler import RecipesHandler
 
+@dataclass
 class CountryHandler(RecipesHandler):
     """Class for handling country-related data processing.
     Inherits from RecipesHandler.
     """
 
-    def __init__(self, path: str = None):
+    def __post_init__(self, path: str = None):
         """Initialize the CountryHandler with the given path.
         Args:
             path (str): Path to the countries JSON file.
         """
-        super().__init__(path)
+        super().__post_init__()
+        self.logger.info("CountryHandler initialized.")
 
     def extract_ref_countries(self, countries_data: dict):
         """Extract reference countries and regions from the provided JSON data.
@@ -67,7 +71,10 @@ class CountryHandler(RecipesHandler):
             path (str): Path to the JSON file containing country names.
         """
         if not path:
-            raise ValueError("Path to countries JSON file must be provided.")
+            if self.ref_path:
+                path = self.ref_path
+            else:
+                raise ValueError("Path to countries JSON file must be provided.")
         try:
             self.logger.info(f"Loading countries from {path}...")
             countries_dataset = json.load(open(path, "r", encoding="utf-8"))

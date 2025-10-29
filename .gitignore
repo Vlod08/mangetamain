@@ -209,6 +209,7 @@ __marimo__/
 
 # Mangetamain raw data
 data/RAW_recipes.csv
+data/RAW_interactions.csv
 
 # Results output directory
 output/
