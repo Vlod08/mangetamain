@@ -1,5 +1,5 @@
+# app/app_utils/io.py
 from __future__ import annotations
-import os
 from pathlib import Path
 import pandas as pd
 import streamlit as st
@@ -26,6 +26,7 @@ REQUIRED_COLS = {
     "id", "name", "minutes", "n_steps", "n_ingredients",
     "tags", "ingredients", "description", "submitted"
 }
+
 OPTIONAL_COLS = {
     "calories","total_fat","sugar","sodium","protein",
     "saturated_fat","carbohydrates",
@@ -35,29 +36,30 @@ OPTIONAL_COLS = {
 
 def _read_any(path: Path) -> pd.DataFrame:
     if path.suffix == ".parquet":
-        return pd.read_parquet(path)  # nécessite pyarrow ou fastparquet
+        return pd.read_parquet(path)  # needs pyarrow or fastparquet
     return pd.read_csv(path)
 
 @st.cache_data(show_spinner=False)
 def load_data() -> pd.DataFrame:
-    # 1) Cherche le premier fichier dispo
+    # 1) Look for the first available data file
+    df = None
     for p in DATA_PATHS:
         if p.exists():
             df = _read_any(p)
             break
-    else:
+    if df is None:
         raise FileNotFoundError(
             f"Aucune donnée trouvée.\n"
             f"Attendu : {DATA_PATHS[0]} OU {DATA_PATHS[1]}"
         )
 
-    # 2) Colonnes minimales
+    # 2) Ensure required columns are present
     for c in REQUIRED_COLS:
         if c not in df.columns:
             df[c] = None
 
-    # 3) Types doux
-    for c in ("minutes","n_steps","n_ingredients"):
+    # 3) Soft types
+    for c in ("minutes", "n_steps", "n_ingredients"):
         df[c] = pd.to_numeric(df[c], errors="coerce")
 
     if "submitted" in df.columns and df["submitted"].notna().any():

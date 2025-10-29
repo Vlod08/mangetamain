@@ -22,7 +22,7 @@ This project provides a unified platform for exploring datasets, generating pred
 </td>
 <td>
 
-<img src="assets/mangetamain-icon.jpeg" alt="App Screenshot" width="300" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+<img src="assets/mangetamain-logo.jpg" alt="App logo" width="300" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 
 </td>
 </tr>
