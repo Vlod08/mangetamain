@@ -6,6 +6,7 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import time
 import pandas as pd
+import plotly.express as px
 
 from mangetamain.app.app_utils.ui import use_global_ui
 from mangetamain.core.recipes_eda import RecipesEDAService
@@ -15,12 +16,14 @@ from mangetamain.core.utils.utils import load_lottie
 MIN_TOP_N = 5
 MAX_TOP_N = 20
 
+
 def format_time(start_time: float, end_time: float) -> str:
     elapsed = end_time - start_time
     minutes, seconds = divmod(elapsed, 60)
     if minutes == 0:
         return f"{seconds:.2f} sec"
     return f"{int(minutes)} min {seconds:.2f} sec"
+
 
 def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
     # Placeholders
@@ -40,15 +43,16 @@ def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame
     # --- Replace loading elements with success message ---
     lottie_placeholder.empty()
     st.toast(
-        f"Country column added ({formatted})", 
-        icon=":material/thumb_up:", 
+        f"Country column added ({formatted})",
+        icon=":material/thumb_up:",
         duration=5)
-    
+
     return df_country
 
+
 def display_signature(
-        signature: dict, 
-        selected_country: str, 
+        signature: dict,
+        selected_country: str,
         top_n_to_display: int):
     """Displays the signature of the selected country as a word cloud
     Args:
@@ -84,9 +88,9 @@ def display_signature(
             width=width,
             height=height,
             background_color='white',
-            colormap='viridis',
-            prefer_horizontal=0.9,
-            random_state=42
+            colormap='plasma',
+            prefer_horizontal=0.95,
+            random_state=42, margin=5
         ).generate_from_frequencies(scores_to_display)
 
         # --- DISPLAY WITH RESPONSIVE FIGURE SIZE ---
@@ -98,6 +102,81 @@ def display_signature(
 
     except Exception as e:
         st.error(f"Error generating word cloud: {e}")
+
+
+def display_signatures_tfidf_vs_tf(
+        signatures_tfidf: dict,
+        signatures_tf: dict,
+        selected_country: str,
+        top_n_to_display: int):
+    """Displays an interactive scatter plot (TF vs TF-IDF) for the selected country.
+
+    Args:
+        signatures_tfidf (dict): Dictionary of TF-IDF scores by country ({country: {term: score}}).
+        signatures_tf (dict): Dictionary of TF scores by country.
+        selected_country (str): The country to use for the display.
+        top_n_to_display (int): The number of top terms to display.
+    """
+
+    if selected_country not in signatures_tfidf or not signatures_tfidf[selected_country]:
+        st.warning(f"No scores found for '{selected_country}'.")
+        return
+
+    # 1. --- DATA PREPARATION ---
+    # Convert data for the selected country into a DataFrame
+
+    # Terms sorted by TF-IDF for the country
+    country_tfidf = signatures_tfidf[selected_country]
+
+    # Sort by descending TF-IDF
+    sorted_terms = sorted(country_tfidf.items(),
+                          key=lambda item: item[1], reverse=True)
+
+    # Select the Top N terms
+    top_scores_tfidf = dict(sorted_terms[:top_n_to_display])
+    top_terms = top_scores_tfidf.keys()
+
+    # Create data lists for the DataFrame
+    data = {
+        'Term': list(top_terms),
+        'TFIDF': [float(top_scores_tfidf[term]) for term in top_terms],
+        # Retrieve the corresponding TF scores
+        'TF': [float(signatures_tf[selected_country].get(term, 0)) for term in top_terms]
+    }
+
+    df_plot = pd.DataFrame(data)
+
+    # 2. --- TITLE DISPLAY AND CHECK ---
+    st.subheader(
+        f"TF vs TF-IDF Analysis for Top {top_n_to_display} Terms in **{selected_country.title()}**"
+    )
+
+    if df_plot.empty:
+        st.info("No terms to display for the selected Top N value.")
+        return
+
+    # 3. --- PLOTLY GRAPH GENERATION ---
+    try:
+        fig = px.scatter(
+            df_plot,
+            x='TF',
+            y='TFIDF',
+            hover_name='Term',  # Label points on hover
+            size='TFIDF',       # Point size based on TF-IDF
+            color='TFIDF',      # Color based on TF-IDF
+            log_x=False,
+            labels={
+                'TF': 'Term Frequency (TF)', 'TFIDF': 'Importance (TF-IDF)'}
+        )
+
+        fig.update_traces(textposition='top center')
+
+        # 4. --- STREAMLIT DISPLAY ---
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error generating Plotly chart: {e}")
+
 
 def app():
     use_global_ui(
@@ -115,10 +194,12 @@ def app():
     if 'df_country' in st.session_state:
         df_country = st.session_state['df_country']
     else:
-        df_country = fetch_country_animation(recipes_eda_svc, recipes_df[:50])
+        df_country = fetch_country_animation(
+            recipes_eda_svc, recipes_df[:50000])
         st.session_state['df_country'] = df_country
 
-    countries_list = df_country["country"].dropna().sort_values().unique().tolist()
+    countries_list = df_country["country"].dropna(
+    ).sort_values().unique().tolist()
 
     if "signatures" in st.session_state:
         signatures = st.session_state["signatures"]
@@ -134,12 +215,12 @@ def app():
         formatted = format_time(start, time.time())
         st.session_state["signatures"] = signatures
         st.toast(
-            f"Signatures computed ({formatted})", 
-            icon=":material/thumb_up:", 
+            f"Signatures computed ({formatted})",
+            icon=":material/thumb_up:",
             duration=5)
 
-    assert all(country in countries_list for country in list(signatures.keys())), \
-        "Signatures list of countries does not match the list of countries in the dataset"
+    assert all(country in countries_list for country in list(signatures[0].keys())), (
+        "Signatures list of countries does not match the list of countries in the dataset")
 
     # UI
     st.title("🧑‍🍳 Recipes and Ingredients Signatures Analyzer")
@@ -158,20 +239,24 @@ def app():
     st.header("Signature Ingredients by Country")
 
     # Country selection dropdown
-    selected_country = st.selectbox(
+    selected_country = st.sidebar.selectbox(
         "Select a country",
         options=countries_list,
         index=None,
-        placeholder="Select a country...", 
+        placeholder="Select a country...",
         label_visibility='hidden'
     )
 
     # Display results if a country is selected
     if selected_country:
-        display_signature(
-            signatures[selected_country], 
-            selected_country, 
-            top_n_to_display)
+        left, right = st.columns(2, gap="large")
+        with left:
+            display_signature(
+                signatures[0][selected_country], selected_country, top_n_to_display)
+        with right:
+            display_signatures_tfidf_vs_tf(
+                signatures[0], signatures[1], selected_country, top_n_to_display)
+
 
 if __name__ == "__main__":
     app()

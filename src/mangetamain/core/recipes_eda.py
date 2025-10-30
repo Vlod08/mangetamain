@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Dict
 from collections import Counter
 
 import numpy as np
@@ -15,6 +15,7 @@ from abc import ABC, abstractmethod
 from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
 from mangetamain.core.utils.string_utils import extract_classes
 from mangetamain.core.handlers.country_handler import CountryHandler
+
 
 @dataclass
 class EDAService(ABC):
@@ -58,12 +59,13 @@ class EDAService(ABC):
         else:
             nan_counts = self.ds.issues['nan']
         return pd.Series(nan_counts).sort_values(ascending=False)
-    
+
     @abstractmethod
     def duplicates(self) -> dict:
         """Get the duplicate rows in the dataset."""
-        raise NotImplementedError("Subclasses must implement the duplicates method.")
-    
+        raise NotImplementedError(
+            "Subclasses must implement the duplicates method.")
+
     def numeric_desc(self) -> pd.DataFrame:
         return self.ds.df.select_dtypes("number").describe().T
 
@@ -81,6 +83,7 @@ class EDAService(ABC):
         """Export a minimal clean DataFrame."""
         self.ds.export(path=path)
 
+
 @dataclass
 class RecipesEDAService(EDAService):
 
@@ -88,7 +91,7 @@ class RecipesEDAService(EDAService):
     country_handler: CountryHandler = field(
         default_factory=lambda: CountryHandler(
             ref_path=COUNTRIES_FILE_PATH
-    ))
+        ))
 
     def duplicates(self) -> dict:
         """
@@ -104,7 +107,8 @@ class RecipesEDAService(EDAService):
         id_duplicates = int(self.ds.df['id'].duplicated().sum())
         if id_duplicates > 0:
             return_duplicates["id"] = id_duplicates
-            id_name_duplicates = int(sum(self.ds.df.duplicated(['id', 'name'])))
+            id_name_duplicates = int(
+                sum(self.ds.df.duplicated(['id', 'name'])))
             if id_name_duplicates > 0:
                 return_duplicates["id_name"] = id_name_duplicates
                 # Hashable view for duplicate detection
@@ -137,7 +141,7 @@ class RecipesEDAService(EDAService):
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
-        return df_country[df_country["country"]!='']
+        return df_country[df_country["country"] != '']
 
     # ---------- Explorer helpers ----------
     def nutrition(self) -> pd.DataFrame:
@@ -145,9 +149,10 @@ class RecipesEDAService(EDAService):
         if "nutrition" in self.ds.df.columns:
             df = self.ds.df.copy()
             cols = [
-                "calories", "total_fat", "sugar", "sodium", 
+                "calories", "total_fat", "sugar", "sodium",
                 "protein", "saturated_fat", "carbohydrates"]
-            nut = pd.DataFrame(df["nutrition"].tolist(), columns=cols, index=df.index)
+            nut = pd.DataFrame(df["nutrition"].tolist(),
+                               columns=cols, index=df.index)
             df = pd.concat([df.drop(columns=["nutrition"]), nut], axis=1)
             return df
         return pd.DataFrame()
@@ -196,7 +201,7 @@ class RecipesEDAService(EDAService):
             cols = [c for c in cols if c != "tags"]
         if not include_ings:
             cols = [c for c in cols if c != "ingredients"]
-        
+
         if minutes and "minutes" in cols:
             lo, hi = minutes
             df = df[(df["minutes"] >= lo) & (df["minutes"] <= hi)]
@@ -217,33 +222,78 @@ class RecipesEDAService(EDAService):
             if isinstance(row, list):
                 cnt.update([str(x).lower().strip() for x in row if x])
         return pd.DataFrame(cnt.most_common(k), columns=["ingredient", "count"])
-    
-    # Analyze signature ingredients per country
-    @staticmethod
-    def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
-       
 
-        # Aggregate all ingredient lists per country into a single list per country
+    # Analyze signature ingredients per country
+    # @staticmethod
+    # def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
+
+    #     # Aggregate all ingredient lists per country into a single list per country
+    #     country_docs_lists = df.groupby('country')['ingredients'].sum()
+
+    #     # Configure vectorizer to accept pre-tokenized input (lists)
+    #     vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
+    #                                  lowercase=False, max_df=0.5, max_features=14000)
+
+    #     # Fit TF-IDF on the per-country documents (each document is a list of tokens)
+    #     tfidf_matrix = vectorizer.fit_transform(country_docs_lists)
+
+    #     ingredients = vectorizer.get_feature_names_out()
+
+    #     # Build a convenient DataFrame: rows=countries, cols=ingredients, values=tf-idf
+    #     df_tfidf = pd.DataFrame(
+    #         tfidf_matrix.toarray(), index=country_docs_lists.index, columns=ingredients
+    #     )
+
+    #     signatures = {}
+    #     for country in df_tfidf.index:
+    #         # Pick the "top_n" highest-scoring ingredients for this country
+    #         top_scores_series = df_tfidf.loc[country].nlargest(top_n)
+    #         signatures[country] = top_scores_series.to_dict()
+
+    #     return signatures
+
+    @staticmethod
+    def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> Dict[str, Dict[str, dict]]:
+        """
+        Retourne { country: { term: {'tf': float, 'tfidf': float}, ... }, ... }
+        Les 'top_n' termes sont sélectionnés par score TF-IDF décroissant.
+        """
+        # 1) Agréger : chaque pays -> une liste de tokens
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
-        # Configure vectorizer to accept pre-tokenized input (lists)
-        vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
-                                     lowercase=False, max_df=0.5, max_features=14000)
-
-        # Fit TF-IDF on the per-country documents (each document is a list of tokens)
-        tfidf_matrix = vectorizer.fit_transform(country_docs_lists)
-
-        ingredients = vectorizer.get_feature_names_out()
-
-        # Build a convenient DataFrame: rows=countries, cols=ingredients, values=tf-idf
-        df_tfidf = pd.DataFrame(
-            tfidf_matrix.toarray(), index=country_docs_lists.index, columns=ingredients
+        # 2) Vectorizer de base (pré-tokenisé)
+        base_params = dict(
+            preprocessor=lambda x: x,
+            tokenizer=lambda x: x,
+            lowercase=False,
+            max_df=0.5,
+            max_features=14000
         )
 
-        signatures = {}
-        for country in df_tfidf.index:
-            # Pick the "top_n" highest-scoring ingredients for this country
-            top_scores_series = df_tfidf.loc[country].nlargest(top_n)
-            signatures[country] = top_scores_series.to_dict()
+        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        tfidf_vec = TfidfVectorizer(**base_params)
+        tfidf_matrix = tfidf_vec.fit_transform(country_docs_lists)
+        features = tfidf_vec.get_feature_names_out()
 
-        return signatures
+        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        tf_vec = TfidfVectorizer(
+            **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
+        tf_matrix = tf_vec.fit_transform(country_docs_lists)
+
+        # 5) DataFrames pratiques
+        countries = country_docs_lists.index
+        df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
+                                index=countries, columns=features)
+        df_tf = pd.DataFrame(tf_matrix.toarray(),
+                             index=countries, columns=features)
+
+        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        signatures_tfidf, signatures_tf = {}, {}
+        for country in df_tfidf.index:
+            top_terms = df_tfidf.loc[country].nlargest(top_n).index
+            signatures_tfidf[country] = {term: float(
+                df_tfidf.at[country, term]) for term in top_terms}
+            signatures_tf[country] = {term: float(
+                df_tf.at[country, term]) for term in top_terms}
+
+        return signatures_tfidf, signatures_tf
