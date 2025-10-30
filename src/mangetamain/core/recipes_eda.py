@@ -302,12 +302,8 @@ class RecipesEDAService(EDAService):
         # Aggregate all ingredient lists per country into a single list per country
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
-        # Configure vectorizer to accept pre-tokenized input (lists)
-        vectorizer = TfidfVectorizer(
-            preprocessor=lambda x: x, tokenizer=lambda x: x,
-            lowercase=False, max_df=0.5, max_features=14000,
-            token_pattern=None
-        )
+        base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
 
         # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
         tfidf_vec = TfidfVectorizer(**base_params)
