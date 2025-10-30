@@ -1,4 +1,5 @@
-mangetamain documentation
+
+Mangetamain documentation
 =========================
 
 .. figure:: _static/main_logo.jpg
@@ -8,7 +9,7 @@ mangetamain documentation
    :align: center
 
 
-Welcome to the official documentation for the **mangetamain** project — a data analysis and visualization toolkit built as part of the *Kit Big Data* program.  
+Welcome to the official documentation for the **Mangetamain** project — a data analysis and visualization toolkit built as part of the *Kit Big Data* program.  
 This project explores food recipes and user interactions from the `Food.com dataset <https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions>`_, providing insights into recipe popularity, user behavior, and contributor influence.  
 
 Inside this documentation, you’ll find:
@@ -22,5 +23,9 @@ Use the navigation below to explore the available sections.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+ 
+   overview
+   installation
+   usage
+   architecture
    modules
