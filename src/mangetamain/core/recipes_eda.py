@@ -21,6 +21,7 @@ class EDAService(ABC):
     """Base class for EDA services."""
 
     ds: DatasetLoader = field(default_factory=DatasetLoader)
+    label: str = ""
 
     def __post_init__(self):
         """Initialize the EDA service."""
@@ -35,13 +36,23 @@ class EDAService(ABC):
         Returns:
             pd.DataFrame: Loaded DataFrame.
         """
+        # If a DataFrame is provided, use it directly
         if df is not None and not df.empty:
+            # Update the dataset in the service
             if preprocess:
                 df = self.ds.preprocess(df)
-            self.ds.df = df
-        else:
-            df = self.ds.load(preprocess=preprocess)
-        st.session_state["issues"] = self.ds.issues
+                st.session_state["issues"][self.label] = self.ds.issues
+                return df
+            else:
+                # Load issues from session state if available
+                self.ds.df = df
+                if self.label in st.session_state.get("issues", {}):
+                    self.ds.issues = st.session_state["issues"][self.label]
+                return df
+        # Otherwise, load from the default path
+        df = self.ds.load(preprocess=preprocess)
+        if preprocess:
+            st.session_state["issues"][self.label] = self.ds.issues
         return df
 
     # ---------- Data Quality ----------
@@ -49,15 +60,41 @@ class EDAService(ABC):
         """Get the schema of the dataset."""
         return self.ds.schema
 
+    def na_counts(self) -> pd.Series:
+        """Get the NA counts of each column."""
+        # Check if issues are stored in the dataset or in session state
+        if self.ds.issues and 'nan' in self.ds.issues:
+            nan_counts = self.ds.issues['nan']
+        # Check if issues are stored in session state
+        else:
+            if self.label not in st.session_state.get("issues", {}):
+                return pd.Series(dtype=int)
+            nan_counts = st.session_state["issues"][self.label].get("nan", {})
+        
+        nan_series = pd.Series(nan_counts)
+        nan_series = nan_series.sort_values(ascending=False)
+        nan_series = nan_series.rename("Na count")
+        return nan_series
+
     def na_rate(self) -> pd.Series:
         """Get the NA rate of each column."""
-        if 'nan' not in self.ds.issues:
-            if 'nan' not in st.session_state.get("issues", {}):
-                return pd.Series(dtype=float)
-            nan_counts = st.session_state["issues"]["nan"]
-        else:
+        # Check if issues are stored in the dataset or in session state
+        if self.ds.issues and 'nan' in self.ds.issues:
             nan_counts = self.ds.issues['nan']
-        return pd.Series(nan_counts).sort_values(ascending=False)
+        # Check if issues are stored in session state
+        else:
+            if self.label not in st.session_state.get("issues", {}):
+                return pd.Series(dtype=float)
+            nan_counts = st.session_state["issues"][self.label].get("nan", {})
+        
+        nan_rate = pd.Series(
+            {col: count / len(self.ds.df) for col, count in nan_counts.items()}
+        )
+
+        nan_rate_percent = nan_rate * 100
+        nan_rate_percent = nan_rate_percent.sort_values(ascending=False)
+        nan_rate_percent = nan_rate_percent.rename("Na rate (%)")
+        return nan_rate_percent
     
     @abstractmethod
     def duplicates(self) -> dict:
@@ -71,11 +108,13 @@ class EDAService(ABC):
         """Get the cardinality of each categorical column."""
         # convert only object-like columns; numeric/datetime are fine as-is
         obj_cols = self.ds.df.select_dtypes(include=["object"]).columns
-        df_copy = self.ds.df.copy()
+        df_copy = self.ds.df[obj_cols].copy()
         for c in obj_cols:
             df_copy[c] = df_copy[c].map(DatasetLoader.to_hashable)
 
-        return df_copy.nunique(dropna=True).sort_values(ascending=False)
+        cards = df_copy.nunique(dropna=True).sort_values(ascending=False)
+        cards = cards.rename("cardinality")
+        return cards
 
     def export_clean_min(self, path: Path = None) -> pd.DataFrame:
         """Export a minimal clean DataFrame."""
@@ -85,6 +124,7 @@ class EDAService(ABC):
 class RecipesEDAService(EDAService):
 
     ds: RecipesDataset = field(default_factory=RecipesDataset)
+    label: str = "recipes"
     country_handler: CountryHandler = field(
         default_factory=lambda: CountryHandler(
             ref_path=COUNTRIES_FILE_PATH
@@ -182,8 +222,6 @@ class RecipesEDAService(EDAService):
         self,
         minutes: tuple[int, int] | None = None,
         steps: tuple[int, int] | None = None,
-        include_tags: list[str] | None = None,
-        include_ings: list[str] | None = None,
     ) -> pd.DataFrame:
         """
         Apply various filters to the recipes dataset.
@@ -192,10 +230,6 @@ class RecipesEDAService(EDAService):
         # Make a copy to avoid modifying the original DataFrame
         df = self.ds.df.copy()
         cols = df.columns.tolist()
-        if not include_tags:
-            cols = [c for c in cols if c != "tags"]
-        if not include_ings:
-            cols = [c for c in cols if c != "ingredients"]
         
         if minutes and "minutes" in cols:
             lo, hi = minutes
@@ -221,14 +255,25 @@ class RecipesEDAService(EDAService):
     # Analyze signature ingredients per country
     @staticmethod
     def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
-       
-
+        """Compute signature ingredients per country using TF-IDF.
+        Args:
+            df (pd.DataFrame): DataFrame containing 'country' and 'ingredients' columns.
+            top_n (int): Number of top ingredients to include in the signature.
+        Returns:
+            dict: A dictionary mapping each country to its signature ingredients and their TF-IDF scores.
+        """
+        if 'country' not in df.columns or 'ingredients' not in df.columns:
+            raise ValueError("DataFrame must contain 'country' and 'ingredients' columns.")
+        
         # Aggregate all ingredient lists per country into a single list per country
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
         # Configure vectorizer to accept pre-tokenized input (lists)
-        vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
-                                     lowercase=False, max_df=0.5, max_features=14000)
+        vectorizer = TfidfVectorizer(
+            preprocessor=lambda x: x, tokenizer=lambda x: x,
+            lowercase=False, max_df=0.5, max_features=14000, 
+            token_pattern=None
+        )
 
         # Fit TF-IDF on the per-country documents (each document is a list of tokens)
         tfidf_matrix = vectorizer.fit_transform(country_docs_lists)

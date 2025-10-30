@@ -20,6 +20,8 @@ class InteractionsEDAService(EDAService):
 
     uploaded_file: Optional[IO[bytes]] = None  # st.file_uploader returns this
     ds: InteractionsDataset = field(default_factory=InteractionsDataset)
+    text_features: pd.DataFrame = field(default_factory=pd.DataFrame)
+    label: str = "interactions"
     
     def _load_from_file(file) -> pd.DataFrame:
         """Load a DataFrame from an uploaded file."""
@@ -31,19 +33,22 @@ class InteractionsEDAService(EDAService):
         except Exception:
             return pd.read_csv(file)
 
-    def load(self) -> None:
-        """Load the dataset."""
-        if self.uploaded_file is not None:
-            self.logger.info("Loading reviews from uploaded file...")
-            # Load from uploaded file
-            # and set to ds.df
-            self.ds.df = self._load_from_file(self.uploaded_file)
-        else:
-            self.ds.load()
-
+    def load(self, df: pd.DataFrame = None, preprocess: bool = True) -> pd.DataFrame:
+        df = super().load(df, preprocess)
+        self.text_features = self.compute_text_features(self.ds.df["review"])
+        return df
+    # def load(self) -> None:
+    #     """Load the dataset."""
+    #     if self.uploaded_file is not None:
+    #         self.logger.info("Loading reviews from uploaded file...")
+    #         # Load from uploaded file
+    #         # and set to ds.df
+    #         self.ds.df = self._load_from_file(self.uploaded_file)
+    #     else:
+    #         self.ds.load()
+    #     self.text_features = self.compute_text_features(self.ds.df["review"])
+        
     # ---------- Metadata ----------
-
-    @st.cache_data(show_spinner=False)
     def duplicates(self) -> dict:
         """Get duplicate interactions.
         Returns a dict with counts of duplicates by type, or None if none found.
@@ -60,54 +65,70 @@ class InteractionsEDAService(EDAService):
         return return_duplicates
 
     # ---------- Features ----------
+    @staticmethod
     @st.cache_data(show_spinner=False)
-    def with_text_features(self) -> pd.DataFrame:
+    def compute_text_features(col: pd.Series) -> pd.DataFrame:
         """Return DataFrame with basic text features extracted from reviews."""
-        df = self.ds.df.copy()
-        if "review" in df.columns:
-            df["review_len"]      = df["review"].str.len()
-            df["review_words"]    = df["review"].str.split().map(len)
-            df["exclamations"]    = df["review"].str.count("!")
-            df["question_marks"]  = df["review"].str.count(r"\?")
-            df["has_caps"]        = df["review"].str.contains(r"[A-Z]{3,}", regex=True)
-            df["mentions_thanks"] = df["review"].str.contains(r"\bthank(s| you)?\b", case=False, regex=True)
-        return df
+        df_result = pd.DataFrame()
+        col_name = col.name if col.name else "review"
+        df_result[f"{col_name}_len"]      = col.str.len()
+        df_result[f"{col_name}_words"]    = col.str.split().map(len)
+        df_result[f"{col_name}_exclamations"]    = col.str.count("!")
+        df_result[f"{col_name}_question_marks"]  = col.str.count(r"\?")
+        df_result[f"{col_name}_has_caps"]        = col.str.contains(r"[A-Z]{3,}", regex=True)
+        df_result[f"{col_name}_mentions_thanks"] = col.str.contains(r"\bthank(s| you)?\b", case=False, regex=True)
+        return df_result
+    
+    def with_text_features(self) -> pd.DataFrame:
+        """Return the dataset's DataFrame with basic text features extracted from reviews."""
+        if self.text_features.empty:
+            self.text_features = InteractionsEDAService.compute_text_features(self.ds.df["review"])
+        return pd.concat([self.ds.df, self.text_features], axis=1)
 
-    @st.cache_data(show_spinner=False)
     def desc_numeric(self) -> pd.DataFrame:
         """Return descriptive statistics for numeric features."""
         df = self.with_text_features()
         return df.select_dtypes(include="number").describe().T
 
+    # ---------- Reviews ----------
+    def rating_range(self) -> tuple[float, float] | None:
+        """Return the range of ratings in the dataset."""
+        df = self.ds.df
+        if "rating" not in df.columns:
+            return None
+        return float(df["rating"].min()), float(df["rating"].max())
+    
+    def review_len_range(self) -> tuple[int, int] | None:
+        """Return the range of review lengths in the dataset."""
+        if "review_len" not in self.text_features.columns:
+            return None
+        return int(self.text_features["review_len"].min()), int(self.text_features["review_len"].max())
+
     # ---------- Aggregations ----------
-    @st.cache_data(show_spinner=False)
     def agg_by_user(self, user_col: str = "user_id", rating_col: str = "rating") -> pd.DataFrame:
         """Aggregate reviews by user."""
         df = self.with_text_features()
         if not {user_col, rating_col}.issubset(df.columns): 
             return pd.DataFrame()
-        return (df.groupby(user_col)
-                .agg(n_reviews=(rating_col,"size"),
-                     mean_rating=(rating_col,"mean"),
-                     median_rating=(rating_col,"median"),
-                     p95_len=("review_len", lambda s: s.quantile(0.95) if s is not None else np.nan))
-                .sort_values("n_reviews", ascending=False))
+        return df.groupby(user_col, dropna=False).agg(
+            n_reviews=(rating_col,"size"), 
+            mean_rating=(rating_col,"mean"), 
+            median_rating=(rating_col,"median"),
+            p95_len=("review_len", lambda s: s.dropna().quantile(0.95))
+            ).sort_values("n_reviews", ascending=False)
 
-    @st.cache_data(show_spinner=False)
     def agg_by_recipe(self, recipe_col: str = "recipe_id", rating_col: str = "rating") -> pd.DataFrame:
         """Aggregate reviews by recipe."""
         df = self.with_text_features()
         if not {recipe_col, rating_col}.issubset(df.columns): 
             return pd.DataFrame()
-        return (df.groupby(recipe_col)
-                .agg(n_reviews=(rating_col,"size"),
-                     mean_rating=(rating_col,"mean"),
-                     median_rating=(rating_col,"median"),
-                     p95_len=("review_len", lambda s: s.quantile(0.95) if s is not None else np.nan))
-                .sort_values("n_reviews", ascending=False))
+        return df.groupby(recipe_col).agg(n_reviews=(rating_col,"size"),
+                                             mean_rating=(rating_col,"mean"),
+                                             median_rating=(rating_col,"median"),
+                                             p95_len=("review_len", lambda s: s.quantile(0.95)))\
+                                                .sort_values("n_reviews", ascending=False)
 
     # ---------- Distributions ----------
-    @st.cache_data(show_spinner=False)
     def hist_rating(self) -> pd.DataFrame:
         """Return histogram of ratings."""
         df = self.ds.df
@@ -117,7 +138,6 @@ class InteractionsEDAService(EDAService):
         counts, edges = np.histogram(df["rating"], bins=edges)
         return pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts})
 
-    @st.cache_data(show_spinner=False)
     def hist_review_len(self, bins: int = 50) -> pd.DataFrame:
         """Return histogram of review lengths."""
         df = self.with_text_features()
@@ -127,7 +147,6 @@ class InteractionsEDAService(EDAService):
         return pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts})
 
     # ---------- Temporal Analysis ----------
-    @st.cache_data(show_spinner=False)
     def by_month(self) -> pd.DataFrame:
         """Return DataFrame with reviews aggregated by month."""
         df = self.ds.df
@@ -142,7 +161,6 @@ class InteractionsEDAService(EDAService):
                .sort_values("month"))
         return agg
 
-    @st.cache_data(show_spinner=False)
     def seasonal_profile(self) -> pd.DataFrame:
         """Return DataFrame with seasonal profile of reviews."""
         m = self.by_month()
@@ -154,7 +172,6 @@ class InteractionsEDAService(EDAService):
                 .reset_index()
                 .rename(columns={"mon":"month", "n":"n_mean"}))
 
-    @st.cache_data(show_spinner=False)
     def year_range(self) -> tuple[int, int] | None:
         """Return the range of years for which reviews are available."""
         m = self.by_month()
@@ -163,7 +180,6 @@ class InteractionsEDAService(EDAService):
         ys = m["month"].dt.year
         return int(ys.min()), int(ys.max())
 
-    @st.cache_data(show_spinner=False)
     def one_year(self, year: int) -> pd.DataFrame:
         """Return DataFrame with reviews for a specific year."""
         m = self.by_month()
@@ -172,29 +188,28 @@ class InteractionsEDAService(EDAService):
         return m[m["month"].dt.year == year].copy()
 
     # ---------- Filters ----------
-    @st.cache_data(show_spinner=False)
     def apply_filters(self,
                       rating_range: tuple[float,float] | None = None,
-                      min_len: int = 0,
-                      year: int | None = None) -> pd.DataFrame:
+                      review_len_range: tuple[int,int] | None = None,
+                      year_range: tuple[int,int] | None = None) -> pd.DataFrame:
         """Apply filters to the reviews DataFrame."""
+        orig_columns = self.ds.df.columns.values
         df = self.with_text_features().copy()
 
         if rating_range and "rating" in df.columns:
             lo, hi = rating_range
-            df = df[(df["rating"] >= lo) & (df["rating"] <= hi)]
+            df = df[df["rating"].between(lo, hi)]
 
-        if min_len and "review_len" in df.columns:
-            df = df[df["review_len"] >= int(min_len)]
+        if review_len_range and "review_len" in df.columns:
+            df = df[df["review_len"].between(*review_len_range)]
 
-        if year and "date" in df.columns:
+        if year_range and "date" in df.columns:
             y = df["date"].dt.year
-            df = df[y == int(year)]
+            df = df[y.between(*year_range)]
 
-        return df
+        return df[orig_columns]
 
     # ---------- Advanced Analysis ----------
-    @st.cache_data(show_spinner=False)
     def corr_numeric(self) -> pd.DataFrame:
         """Return correlation matrix for numeric features."""
         d = self.ds.df.select_dtypes(include="number")
@@ -202,7 +217,6 @@ class InteractionsEDAService(EDAService):
             return pd.DataFrame()
         return d.corr(numeric_only=True)
 
-    @st.cache_data(show_spinner=False)
     def rating_vs_length(self) -> pd.DataFrame:
         """Return DataFrame with rating vs review length."""
         d = self.ds.df
@@ -214,7 +228,6 @@ class InteractionsEDAService(EDAService):
         }).dropna()
         return out
 
-    @st.cache_data(show_spinner=False)
     def user_bias(self) -> pd.DataFrame:
         """Return DataFrame with user bias information."""
         d = self.ds.df
@@ -226,7 +239,6 @@ class InteractionsEDAService(EDAService):
                .sort_values("n", ascending=False))
         return g
 
-    @st.cache_data(show_spinner=False)
     def tokens_by_rating(self, k: int = 20) -> pd.DataFrame:
         """Return top k tokens by rounded rating."""
         d = self.ds.df
@@ -248,7 +260,6 @@ class InteractionsEDAService(EDAService):
                   .sort_values(["rating","count"], ascending=[True, False]))
 
     # ---------- Exports ----------
-    @st.cache_data(show_spinner=False)
     def export_clean_min(self) -> pd.DataFrame:
         """Export minimal clean DataFrame with key columns and types."""
         df = self.with_text_features()
