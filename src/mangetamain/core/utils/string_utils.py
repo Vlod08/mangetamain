@@ -1,5 +1,4 @@
-
-from typing import Iterable, List, Tuple, Dict, Union
+from typing import Iterable, List, Union
 import numpy as np
 import pandas as pd
 import ast
@@ -7,8 +6,6 @@ from rapidfuzz import fuzz, process
 from sklearn.preprocessing import MultiLabelBinarizer
 import re
 
-from nltk.corpus import stopwords
-import nltk
 # nltk.download('stopwords', quiet=True)
 # STOP_WORDS_EN = set(stopwords.words('english'))
 
@@ -26,6 +23,7 @@ def is_list_string(s: str) -> bool:
     except Exception:
         return False
 
+
 def is_list_floats_string(s: str) -> bool:
     """Check if a string is a list of floats representation."""
     if not isinstance(s, str):
@@ -39,32 +37,36 @@ def is_list_floats_string(s: str) -> bool:
     except Exception:
         return False
 
+
 def extract_list_strings(str_l: str) -> List[str]:
     """Extracts a list of strings from a string representation of a list.
 
     Returns:
         list: A list of strings extracted from the input string.
     """
-    if pd.isna(str_l) or str_l == '':
+    if pd.isna(str_l) or str_l == "":
         return []
     try:
         list_strings = ast.literal_eval(str_l)
         if not isinstance(list_strings, list):
             return []
         # Remove empty or whitespace-only strings
-        cleaned = [x.strip() for x in list_strings if isinstance(x, str) and x.strip() != '']
+        cleaned = [
+            x.strip() for x in list_strings if isinstance(x, str) and x.strip() != ""
+        ]
         return cleaned
     except (ValueError, SyntaxError):
         # If literal_eval fails, return empty list
         return []
-    
+
+
 def extract_list_floats(str_l: str) -> List[float]:
     """Extracts a list of floats from a string representation of a list.
 
     Returns:
         list: A list of floats extracted from the input string.
     """
-    if pd.isna(str_l) or str_l == '':
+    if pd.isna(str_l) or str_l == "":
         return []
     try:
         list_floats = ast.literal_eval(str_l)
@@ -81,6 +83,7 @@ def extract_list_floats(str_l: str) -> List[float]:
     except (ValueError, SyntaxError):
         # If literal_eval fails, return empty list
         return []
+
 
 # Covers ISO, European, US, textual, and timestamp-like formats
 DATETIME_PATTERN = re.compile(
@@ -99,6 +102,7 @@ DATETIME_PATTERN = re.compile(
     re.VERBOSE,
 )
 
+
 def looks_like_datetime(s: str) -> bool:
     """Check if a string has potential to represent a date or datetime."""
     if s.startswith("[") and s.endswith("]"):
@@ -107,10 +111,9 @@ def looks_like_datetime(s: str) -> bool:
         return False
     return bool(DATETIME_PATTERN.search(s))
 
+
 def fuzzy_fetch(
-    queries: Union[str, List[str]],
-    list_ref_names: List[List[str]],
-    threshold: int = 80
+    queries: Union[str, List[str]], list_ref_names: List[List[str]], threshold: int = 80
 ) -> str:
     """
     Fetch the best-matching reference name across several semantically related groups
@@ -146,14 +149,18 @@ def fuzzy_fetch(
     """
     # ---- 1. Input normalization ----
     if not queries:
-        return ''
+        return ""
     if isinstance(queries, str):
         queries = [queries]
 
     # Validate groups
     num_groups = len(list_ref_names)
-    if num_groups == 0 or any(len(lst) != len(list_ref_names[0]) for lst in list_ref_names):
-        raise ValueError("All groups in list_ref_names must have the same length and be non-empty.")
+    if num_groups == 0 or any(
+        len(lst) != len(list_ref_names[0]) for lst in list_ref_names
+    ):
+        raise ValueError(
+            "All groups in list_ref_names must have the same length and be non-empty."
+        )
 
     n_refs = len(list_ref_names[0])
 
@@ -162,12 +169,7 @@ def fuzzy_fetch(
 
     # ---- 3. Compute similarity scores ----
     # Shape before reshape: (len(queries), num_groups * n_refs)
-    scores = process.cdist(
-        queries,
-        flat_refs,
-        scorer=fuzz.ratio,
-        workers=-1
-    )
+    scores = process.cdist(queries, flat_refs, scorer=fuzz.ratio, workers=-1)
 
     # ---- 4. Reshape to (num_groups, len(queries), n_refs) ----
     scores = np.reshape(scores, (len(queries), num_groups, n_refs))
@@ -187,17 +189,19 @@ def fuzzy_fetch(
 
     # ---- 7. Threshold filtering ----
     if global_best_score < threshold:
-        return ''
+        return ""
 
     # ---- 8. Always return from the first group ----
     return list_ref_names[0][global_best_idx]
+
 
 def contains_any(values: Iterable[str], items: Iterable[str]) -> bool:
     """Check if any of the items are present in the values."""
     s = set(v.strip().lower() for v in values if v)
     return any(t in s for t in items)
 
-def extract_classes(list_strings: List[str|List[str]]) -> List[str]:
+
+def extract_classes(list_strings: List[str | List[str]]) -> List[str]:
     """Extracts unique classes from a list of strings or list of strings.
     Args:
         list_strings (List[str|List[str]]): A list containing strings or lists of strings.

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from mangetamain.core.handlers.recipes_handler import RecipesHandler
 
+
 @dataclass
 class CountryHandler(RecipesHandler):
     """Class for handling country-related data processing.
@@ -50,17 +51,34 @@ class CountryHandler(RecipesHandler):
             ref_demonyms.append(demonym.lower())
             ref_regions.add(region.lower())
 
-            ref_dataset.append([
-                common_name.lower(), common_name, official_name, region, subregion, demonym, flag
-            ])
-        
+            ref_dataset.append(
+                [
+                    common_name.lower(),
+                    common_name,
+                    official_name,
+                    region,
+                    subregion,
+                    demonym,
+                    flag,
+                ]
+            )
+
         # Set the values of class attributes
-        self.ref_dataset = pd.DataFrame(ref_dataset, columns=[
-            "name", "common_name", "official_name", "region", "subregion", "demonym", "flag"
-        ])
+        self.ref_dataset = pd.DataFrame(
+            ref_dataset,
+            columns=[
+                "name",
+                "common_name",
+                "official_name",
+                "region",
+                "subregion",
+                "demonym",
+                "flag",
+            ],
+        )
         self.ref_names = {
             "country": [ref_countries, ref_demonyms],
-            "region": [list(ref_regions)]
+            "region": [list(ref_regions)],
         }
         self.logger.info("Reference countries and regions extracted.")
 
@@ -96,20 +114,23 @@ class CountryHandler(RecipesHandler):
         if self.ref_dataset is None:
             self.logger.warning("Countries dataset is not loaded.")
             return pd.Series(dtype=str)
-    
-        # Infer regions from countries if region is still missing
-        missing_regions = df['region'] == ''
-        if missing_regions.any():
-            self.logger.info("Inferring regions from country names for missing regions...")
-            country_to_region = dict(zip(
-                self.ref_dataset['name'], 
-                self.ref_dataset['region']
-            ))
 
-            df.loc[missing_regions, 'region'] = df.loc[missing_regions, 'country'].map(country_to_region).fillna('')
+        # Infer regions from countries if region is still missing
+        missing_regions = df["region"] == ""
+        if missing_regions.any():
+            self.logger.info(
+                "Inferring regions from country names for missing regions..."
+            )
+            country_to_region = dict(
+                zip(self.ref_dataset["name"], self.ref_dataset["region"])
+            )
+
+            df.loc[missing_regions, "region"] = (
+                df.loc[missing_regions, "country"].map(country_to_region).fillna("")
+            )
 
         return df
-    
+
     def fetch(self, df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
         """Fetch country names from the specified columns in the DataFrame.
         Args:

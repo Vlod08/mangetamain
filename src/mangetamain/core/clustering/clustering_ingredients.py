@@ -9,6 +9,7 @@ Provided functions
 - find_similar_by_ingredients(sim_df, recipe_id, top_n=25) -> pd.Series
 - compute_similarity_from_dataset(anchor, sample_n=None, random_state=42) -> pd.DataFrame
 """
+
 from __future__ import annotations
 from typing import Optional
 import ast
@@ -35,11 +36,15 @@ def _ings_to_plaintext(ings: object) -> str:
             if isinstance(v, (list, tuple)):
                 return " ".join([str(t).strip().lower() for t in v if t])
         except Exception:
-            return " ".join([tok.strip().lower() for tok in ings.split() if tok.strip()])
+            return " ".join(
+                [tok.strip().lower() for tok in ings.split() if tok.strip()]
+            )
     return str(ings).strip().lower()
 
 
-def build_ingredient_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def build_ingredient_similarity(
+    df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42
+) -> pd.DataFrame:
     """Compute cosine similarity DataFrame using only the ingredients text.
 
     Parameters
@@ -56,7 +61,9 @@ def build_ingredient_similarity(df: pd.DataFrame, sample_n: Optional[int] = None
     if "id" not in src.columns:
         src = src.reset_index().rename(columns={"index": "id"})
 
-    src["_ings_text"] = src.get("ingredients", pd.Series([""] * len(src))).apply(_ings_to_plaintext)
+    src["_ings_text"] = src.get("ingredients", pd.Series([""] * len(src))).apply(
+        _ings_to_plaintext
+    )
     if src["_ings_text"].astype(bool).sum() == 0:
         return pd.DataFrame()
 
@@ -67,18 +74,26 @@ def build_ingredient_similarity(df: pd.DataFrame, sample_n: Optional[int] = None
     return simdf
 
 
-def find_similar_by_ingredients(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> pd.Series:
+def find_similar_by_ingredients(
+    sim_df: pd.DataFrame, recipe_id, top_n: int = 25
+) -> pd.Series:
     """Return top-N similar recipes (scores) from an ingredient-only similarity DataFrame."""
     if sim_df.empty:
         return pd.Series(dtype=float)
     if recipe_id not in sim_df.index:
-        raise KeyError(f"Recipe id {recipe_id} not found in ingredient similarity matrix")
+        raise KeyError(
+            f"Recipe id {recipe_id} not found in ingredient similarity matrix"
+        )
     s = sim_df[recipe_id].sort_values(ascending=False)
     s = s.drop(labels=recipe_id, errors="ignore")
     return s.head(top_n)
 
 
-def compute_similarity_from_dataset(anchor: str | pd.PathLike | None = None, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def compute_similarity_from_dataset(
+    anchor: str | pd.PathLike | None = None,
+    sample_n: Optional[int] = None,
+    random_state: int = 42,
+) -> pd.DataFrame:
     """Load recipes via RecipesDataset and compute ingredient similarity.
 
     anchor: Path to use when instantiating RecipesDataset (defaults to module file path)
@@ -87,4 +102,3 @@ def compute_similarity_from_dataset(anchor: str | pd.PathLike | None = None, sam
     ds = RecipesDataset(anchor=anchor_path)
     df = ds.load()
     return build_ingredient_similarity(df, sample_n=sample_n, random_state=random_state)
-
