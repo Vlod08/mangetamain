@@ -12,8 +12,10 @@ def app():
     use_global_ui(
         page_title="Mangetamain — Recipes Exploratory Data Analysis",
         subtitle="Explore and analyze the Food.com recipes dataset",
-        logo="assets/mangetamain-logo.jpg", 
-        logo_size_px=90, round_logo=True, wide=True,
+        logo="assets/mangetamain-logo.jpg",
+        logo_size_px=90,
+        round_logo=True,
+        wide=True,
     )
 
     # ======== Data Loading =========
@@ -21,7 +23,7 @@ def app():
     recipes_df = st.session_state["recipes"]
     recipes_eda_svc = RecipesEDAService()
     recipes_eda_svc.load(recipes_df, preprocess=False)
-        
+
     # # ========= Overview =========
     # st.subheader("Quick Overview")
     # st.plotly_chart(hist_minutes(recipes_df), width='stretch')
@@ -43,13 +45,20 @@ def app():
         m_lo, m_hi = 0, int(recipes_df["minutes"].max(skipna=True) or 240)
         s_lo, s_hi = 0, int(recipes_df["n_steps"].max(skipna=True) or 20)
         minutes = st.slider("Minutes", m_lo, m_hi, (0, min(120, m_hi)))
-        steps   = st.slider("Steps",  s_lo, s_hi, (0, min(12, s_hi)))
-        inc_tags = [t.strip() for t in st.text_input("Include tags ( , )", "").split(",") if t.strip()]
-        inc_ings = [t.strip() for t in st.text_input("Contains ingredients ( , )", "").split(",") if t.strip()]
+        steps = st.slider("Steps", s_lo, s_hi, (0, min(12, s_hi)))
+        inc_tags = [
+            t.strip()
+            for t in st.text_input("Include tags ( , )", "").split(",")
+            if t.strip()
+        ]
+        inc_ings = [
+            t.strip()
+            for t in st.text_input("Contains ingredients ( , )", "").split(",")
+            if t.strip()
+        ]
 
     df_filtered = recipes_eda_svc.apply_filters(
-        minutes=minutes, steps=steps, 
-        include_tags=inc_tags, include_ings=inc_ings
+        minutes=minutes, steps=steps, include_tags=inc_tags, include_ings=inc_ings
     )
     df_columns = df_filtered.columns.tolist()
     recipes_eda_svc.ds.df = df_filtered  # Update EDA service dataset
@@ -62,10 +71,7 @@ def app():
     if inc_ings:
         nb_cols += 1
         unique_ings = recipes_eda_svc.get_unique("ingredients")
-    cols= st.columns(
-        spec=nb_cols, 
-        gap="small", 
-        border=True)
+    cols = st.columns(spec=nb_cols, gap="small", border=True)
     cols[0].metric("Recipes", f"{len(df_filtered):,}")
     cols[1].metric("Columns", f"{len(df_columns)}")
     for col in cols[2:]:
@@ -93,21 +99,22 @@ def app():
     # Period
     date_min = df_filtered["submitted"].min()
     date_max = df_filtered["submitted"].max()
-    st.metric(
-        "Period", 
-        f"{date_min} → {date_max}", 
-        border=True)
+    st.metric("Period", f"{date_min} → {date_max}", border=True)
 
     # --------- Tabs ----------
-    tab1, tab2, tab3 = st.tabs([":broom: Quality", ":bar_chart: Exploration", ":page_facing_up: Table"])
+    tab1, tab2, tab3 = st.tabs(
+        [":broom: Quality", ":bar_chart: Exploration", ":page_facing_up: Table"]
+    )
 
     # ---- Quality ----
     with tab1:
         st.subheader("Schema & Completeness")
         with st.expander("👀 Preview / Schema"):
-            st.dataframe(df_filtered.head(20), width='stretch')
-            buf = io.StringIO(); df_filtered.info(buf=buf); st.text(buf.getvalue())
-            st.dataframe(recipes_eda_svc.schema(), width='stretch')
+            st.dataframe(df_filtered.head(20), width="stretch")
+            buf = io.StringIO()
+            df_filtered.info(buf=buf)
+            st.text(buf.getvalue())
+            st.dataframe(recipes_eda_svc.schema(), width="stretch")
 
         st.subheader("Missing Values (Top 10)")
         miss = recipes_eda_svc.na_rate().head(10) * 100
@@ -120,47 +127,63 @@ def app():
                 st.write(f"Duplicates on {key.split('_')} : **{val}**")
             else:
                 st.write(f"Duplicates (all columns) : **{val}**")
-            
+
         st.subheader("Descriptive Statistics & Cardinalities")
-        st.dataframe(recipes_eda_svc.numeric_desc().head(20), width='stretch')
-        st.dataframe(recipes_eda_svc.cardinalities().head(30), width='stretch')
+        st.dataframe(recipes_eda_svc.numeric_desc().head(20), width="stretch")
+        st.dataframe(recipes_eda_svc.cardinalities().head(30), width="stretch")
 
     # ---- Exploration ----
     with tab2:
-        fdf = recipes_eda_svc.apply_filters(minutes=minutes, steps=steps,
-                                include_tags=inc_tags, include_ings=inc_ings)
+        fdf = recipes_eda_svc.apply_filters(
+            minutes=minutes, steps=steps, include_tags=inc_tags, include_ings=inc_ings
+        )
         st.caption(f"{len(fdf):,} recipes after applying filters.")
 
         c1, c2 = st.columns(2)
         hmin = recipes_eda_svc.minutes_hist()
         if not hmin.empty:
-            c1.plotly_chart(px.bar(hmin, x="left", y="count", title="Distribution of Minutes"),
-                            width='stretch')
+            c1.plotly_chart(
+                px.bar(hmin, x="left", y="count", title="Distribution of Minutes"),
+                width="stretch",
+            )
         hstp = recipes_eda_svc.steps_hist()
         if not hstp.empty:
-            c2.plotly_chart(px.bar(hstp, x="left", y="count", title="Distribution of Steps"),
-                            width='stretch')
+            c2.plotly_chart(
+                px.bar(hstp, x="left", y="count", title="Distribution of Steps"),
+                width="stretch",
+            )
 
         byy = recipes_eda_svc.by_year()
         if not byy.empty:
-            st.plotly_chart(px.line(byy, x="year", y="n", title="Recipes by Year"), width='stretch')
+            st.plotly_chart(
+                px.line(byy, x="year", y="n", title="Recipes by Year"), width="stretch"
+            )
 
         top_ing = recipes_eda_svc.top_ingredients(30)
         if not top_ing.empty:
             st.subheader("Top Ingredients")
-            st.plotly_chart(px.bar(top_ing.head(20), x="ingredient", y="count"), width='stretch')
+            st.plotly_chart(
+                px.bar(top_ing.head(20), x="ingredient", y="count"), width="stretch"
+            )
 
     # ---- Table ----
     with tab3:
-        cols = [c for c in [
-            "name", "minutes", "n_steps", "n_ingredients", "tags"
-            ] if c in df_filtered.columns]
-        view = recipes_eda_svc.apply_filters(minutes=minutes, steps=steps,
-                                include_tags=inc_tags, 
-                                include_ings=inc_ings)
-        st.dataframe(view[cols].head(1000), width='stretch', hide_index=True)
-        st.download_button(":arrow_down: Export CSV (filtres)", view.to_csv(index=False).encode("utf-8"),
-                        "recipes_filtered.csv", "text/csv")
+        cols = [
+            c
+            for c in ["name", "minutes", "n_steps", "n_ingredients", "tags"]
+            if c in df_filtered.columns
+        ]
+        view = recipes_eda_svc.apply_filters(
+            minutes=minutes, steps=steps, include_tags=inc_tags, include_ings=inc_ings
+        )
+        st.dataframe(view[cols].head(1000), width="stretch", hide_index=True)
+        st.download_button(
+            ":arrow_down: Export CSV (filtres)",
+            view.to_csv(index=False).encode("utf-8"),
+            "recipes_filtered.csv",
+            "text/csv",
+        )
+
 
 if __name__ == "__main__":
     app()

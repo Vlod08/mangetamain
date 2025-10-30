@@ -1,26 +1,23 @@
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # mangetamain/preprocessing/EDA_reviews.py
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
-
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Imports
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
-from __future__ import annotations # Enable postponed evaluation of annotations
+from __future__ import annotations  # Enable postponed evaluation of annotations
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
-import io
+from typing import Iterable, Optional
 import json
-import re
-import numpy as np
 import pandas as pd
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # ReviewsPreprocessor
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 @dataclass
 class ReviewsPreprocessor:
     """
@@ -51,6 +48,7 @@ class ReviewsPreprocessor:
     out_dir : str | Path
         Output directory for artifacts and exports.
     """
+
     # Default parameters
     path: Path = Path("../../data/RAW_interactions.csv")
     text_column: str = "review"
@@ -59,17 +57,51 @@ class ReviewsPreprocessor:
     item_col: str = "recipe_id"
     rating_col: str = "rating"
     # a small set of common English stopwords because the stopwords of nltk are too restrictive
-    stopwords: Iterable[str] = field(default_factory=lambda: {  
-        "the","a","an","and","or","is","it","to","for","of","on","in","with",
-        "this","that","these","those","very","really","so","just","i","we","you",
-        "he","she","they","was","were","be","been","are","am","thanks","thank",
-        "recipe"
-    })
+    stopwords: Iterable[str] = field(
+        default_factory=lambda: {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "is",
+            "it",
+            "to",
+            "for",
+            "of",
+            "on",
+            "in",
+            "with",
+            "this",
+            "that",
+            "these",
+            "those",
+            "very",
+            "really",
+            "so",
+            "just",
+            "i",
+            "we",
+            "you",
+            "he",
+            "she",
+            "they",
+            "was",
+            "were",
+            "be",
+            "been",
+            "are",
+            "am",
+            "thanks",
+            "thank",
+            "recipe",
+        }
+    )
     out_dir: Path = Path("../../data/")
-#------------------------------------------------------------------------------
-# ReviewsPreprocessor Methods (External)
-#------------------------------------------------------------------------------
-    
+    # ------------------------------------------------------------------------------
+    # ReviewsPreprocessor Methods (External)
+    # ------------------------------------------------------------------------------
+
     def load_dataset(self, path: Optional[Path] = None) -> pd.DataFrame:
         """Load CSV/Parquet into a DataFrame.
 
@@ -86,7 +118,7 @@ class ReviewsPreprocessor:
             return pd.read_csv(p, engine="pyarrow")  # more quick and robust
         except Exception:
             return pd.read_csv(p)
-        
+
     def save_csv(self, df: pd.DataFrame, path: Path) -> None:
         """Save DataFrame to CSV."""
         path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
@@ -102,9 +134,9 @@ class ReviewsPreprocessor:
         path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
         path.write_text(json.dumps(obj, indent=2))
 
-#------------------------------------------------------------------------------
-# ReviewsPreprocessor Methods (Internal)
-#------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
+    # ReviewsPreprocessor Methods (Internal)
+    # ------------------------------------------------------------------------------
 
     def _normalize_column_names(self, df: pd.DataFrame) -> None:
         """Normalize column names to lowercase stripped strings."""
@@ -122,8 +154,7 @@ class ReviewsPreprocessor:
         """Basic text cleaning for reviews: normalize whitespace and strip."""
         df[self.text_column] = (
             df[self.text_column]
-              .astype("string")
-              .str.replace(r"\s+", " ", regex=True)
-              .str.strip()
+            .astype("string")
+            .str.replace(r"\s+", " ", regex=True)
+            .str.strip()
         )
-

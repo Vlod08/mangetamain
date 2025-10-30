@@ -2,7 +2,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List
 from collections import Counter
 
 import numpy as np
@@ -15,6 +14,7 @@ from abc import ABC, abstractmethod
 from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
 from mangetamain.core.utils.string_utils import extract_classes
 from mangetamain.core.handlers.country_handler import CountryHandler
+
 
 @dataclass
 class EDAService(ABC):
@@ -51,19 +51,19 @@ class EDAService(ABC):
 
     def na_rate(self) -> pd.Series:
         """Get the NA rate of each column."""
-        if 'nan' not in self.ds.issues:
-            if 'nan' not in st.session_state.get("issues", {}):
+        if "nan" not in self.ds.issues:
+            if "nan" not in st.session_state.get("issues", {}):
                 return pd.Series(dtype=float)
             nan_counts = st.session_state["issues"]["nan"]
         else:
-            nan_counts = self.ds.issues['nan']
+            nan_counts = self.ds.issues["nan"]
         return pd.Series(nan_counts).sort_values(ascending=False)
-    
+
     @abstractmethod
     def duplicates(self) -> dict:
         """Get the duplicate rows in the dataset."""
         raise NotImplementedError("Subclasses must implement the duplicates method.")
-    
+
     def numeric_desc(self) -> pd.DataFrame:
         return self.ds.df.select_dtypes("number").describe().T
 
@@ -81,14 +81,14 @@ class EDAService(ABC):
         """Export a minimal clean DataFrame."""
         self.ds.export(path=path)
 
+
 @dataclass
 class RecipesEDAService(EDAService):
 
     ds: RecipesDataset = field(default_factory=RecipesDataset)
     country_handler: CountryHandler = field(
-        default_factory=lambda: CountryHandler(
-            ref_path=COUNTRIES_FILE_PATH
-    ))
+        default_factory=lambda: CountryHandler(ref_path=COUNTRIES_FILE_PATH)
+    )
 
     def duplicates(self) -> dict:
         """
@@ -101,10 +101,10 @@ class RecipesEDAService(EDAService):
         """
 
         return_duplicates = {}
-        id_duplicates = int(self.ds.df['id'].duplicated().sum())
+        id_duplicates = int(self.ds.df["id"].duplicated().sum())
         if id_duplicates > 0:
             return_duplicates["id"] = id_duplicates
-            id_name_duplicates = int(sum(self.ds.df.duplicated(['id', 'name'])))
+            id_name_duplicates = int(sum(self.ds.df.duplicated(["id", "name"])))
             if id_name_duplicates > 0:
                 return_duplicates["id_name"] = id_name_duplicates
                 # Hashable view for duplicate detection
@@ -132,12 +132,11 @@ class RecipesEDAService(EDAService):
             pd.DataFrame: DataFrame containing recipes with country information.
         """
         self.country_handler.build_ref()
-        df_country = self.country_handler.fetch(
-            df, ["tags", "name", "description"])
+        df_country = self.country_handler.fetch(df, ["tags", "name", "description"])
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
-        return df_country[df_country["country"]!='']
+        return df_country[df_country["country"] != ""]
 
     # ---------- Explorer helpers ----------
     def nutrition(self) -> pd.DataFrame:
@@ -145,8 +144,14 @@ class RecipesEDAService(EDAService):
         if "nutrition" in self.ds.df.columns:
             df = self.ds.df.copy()
             cols = [
-                "calories", "total_fat", "sugar", "sodium", 
-                "protein", "saturated_fat", "carbohydrates"]
+                "calories",
+                "total_fat",
+                "sugar",
+                "sodium",
+                "protein",
+                "saturated_fat",
+                "carbohydrates",
+            ]
             nut = pd.DataFrame(df["nutrition"].tolist(), columns=cols, index=df.index)
             df = pd.concat([df.drop(columns=["nutrition"]), nut], axis=1)
             return df
@@ -174,8 +179,10 @@ class RecipesEDAService(EDAService):
         df["year"] = df["submitted"].dt.year
         return (
             df.dropna(subset=["year"])
-              .groupby("year").size().reset_index(name="n")
-              .sort_values("year")
+            .groupby("year")
+            .size()
+            .reset_index(name="n")
+            .sort_values("year")
         )
 
     def apply_filters(
@@ -196,7 +203,7 @@ class RecipesEDAService(EDAService):
             cols = [c for c in cols if c != "tags"]
         if not include_ings:
             cols = [c for c in cols if c != "ingredients"]
-        
+
         if minutes and "minutes" in cols:
             lo, hi = minutes
             df = df[(df["minutes"] >= lo) & (df["minutes"] <= hi)]
@@ -217,18 +224,22 @@ class RecipesEDAService(EDAService):
             if isinstance(row, list):
                 cnt.update([str(x).lower().strip() for x in row if x])
         return pd.DataFrame(cnt.most_common(k), columns=["ingredient", "count"])
-    
+
     # Analyze signature ingredients per country
     @staticmethod
     def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
-       
 
         # Aggregate all ingredient lists per country into a single list per country
-        country_docs_lists = df.groupby('country')['ingredients'].sum()
+        country_docs_lists = df.groupby("country")["ingredients"].sum()
 
         # Configure vectorizer to accept pre-tokenized input (lists)
-        vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
-                                     lowercase=False, max_df=0.5, max_features=14000)
+        vectorizer = TfidfVectorizer(
+            preprocessor=lambda x: x,
+            tokenizer=lambda x: x,
+            lowercase=False,
+            max_df=0.5,
+            max_features=14000,
+        )
 
         # Fit TF-IDF on the per-country documents (each document is a list of tokens)
         tfidf_matrix = vectorizer.fit_transform(country_docs_lists)

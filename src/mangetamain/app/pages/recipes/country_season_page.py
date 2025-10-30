@@ -15,12 +15,14 @@ from mangetamain.core.utils.utils import load_lottie
 MIN_TOP_N = 5
 MAX_TOP_N = 20
 
+
 def format_time(start_time: float, end_time: float) -> str:
     elapsed = end_time - start_time
     minutes, seconds = divmod(elapsed, 60)
     if minutes == 0:
         return f"{seconds:.2f} sec"
     return f"{int(minutes)} min {seconds:.2f} sec"
+
 
 def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
     # Placeholders
@@ -40,16 +42,13 @@ def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame
     # --- Replace loading elements with success message ---
     lottie_placeholder.empty()
     st.toast(
-        f"Country column added ({formatted})", 
-        icon=":material/thumb_up:", 
-        duration=5)
-    
+        f"Country column added ({formatted})", icon=":material/thumb_up:", duration=5
+    )
+
     return df_country
 
-def display_signature(
-        signature: dict, 
-        selected_country: str, 
-        top_n_to_display: int):
+
+def display_signature(signature: dict, selected_country: str, top_n_to_display: int):
     """Displays the signature of the selected country as a word cloud
     Args:
         signature (dict): The signature of the country containing ingredient frequencies.
@@ -83,15 +82,15 @@ def display_signature(
         wc = WordCloud(
             width=width,
             height=height,
-            background_color='white',
-            colormap='viridis',
+            background_color="white",
+            colormap="viridis",
             prefer_horizontal=0.9,
-            random_state=42
+            random_state=42,
         ).generate_from_frequencies(scores_to_display)
 
         # --- DISPLAY WITH RESPONSIVE FIGURE SIZE ---
         fig, ax = plt.subplots(figsize=(width / 100, height / 100))
-        ax.imshow(wc, interpolation='bilinear')
+        ax.imshow(wc, interpolation="bilinear")
         ax.axis("off")
 
         st.pyplot(fig, use_container_width=True)
@@ -99,12 +98,15 @@ def display_signature(
     except Exception as e:
         st.error(f"Error generating word cloud: {e}")
 
+
 def app():
     use_global_ui(
         "Mangetamain —  Country & Seasonality",
         logo="assets/mangetamain-logo.jpg",
         logo_size_px=90,
-        round_logo=True, subtitle=None, wide=True
+        round_logo=True,
+        subtitle=None,
+        wide=True,
     )
 
     # Recipes dataset already uploaded in app entrypoint (main.py)
@@ -112,11 +114,11 @@ def app():
     recipes_eda_svc = RecipesEDAService()
     recipes_eda_svc.load(recipes_df, preprocess=False)
 
-    if 'df_country' in st.session_state:
-        df_country = st.session_state['df_country']
+    if "df_country" in st.session_state:
+        df_country = st.session_state["df_country"]
     else:
         df_country = fetch_country_animation(recipes_eda_svc, recipes_df[:50])
-        st.session_state['df_country'] = df_country
+        st.session_state["df_country"] = df_country
 
     countries_list = df_country["country"].dropna().sort_values().unique().tolist()
 
@@ -125,7 +127,8 @@ def app():
     else:
         start = time.time()
         signatures = RecipesEDAService.get_signatures_countries(
-            df_country, top_n=MAX_TOP_N)
+            df_country, top_n=MAX_TOP_N
+        )
         if not signatures:
             st.error("Could not compute country signatures !")
             return
@@ -134,12 +137,12 @@ def app():
         formatted = format_time(start, time.time())
         st.session_state["signatures"] = signatures
         st.toast(
-            f"Signatures computed ({formatted})", 
-            icon=":material/thumb_up:", 
-            duration=5)
+            f"Signatures computed ({formatted})", icon=":material/thumb_up:", duration=5
+        )
 
-    assert all(country in countries_list for country in list(signatures.keys())), \
-        "Signatures list of countries does not match the list of countries in the dataset"
+    assert all(
+        country in countries_list for country in list(signatures.keys())
+    ), "Signatures list of countries does not match the list of countries in the dataset"
 
     # UI
     st.title("🧑‍🍳 Recipes and Ingredients Signatures Analyzer")
@@ -151,7 +154,7 @@ def app():
         "Display Top N Ingredients:",
         min_value=MIN_TOP_N,
         max_value=MAX_TOP_N,
-        value=MAX_TOP_N
+        value=MAX_TOP_N,
     )
 
     # --- Main Section: Country Signatures ---
@@ -162,16 +165,16 @@ def app():
         "Select a country",
         options=countries_list,
         index=None,
-        placeholder="Select a country...", 
-        label_visibility='hidden'
+        placeholder="Select a country...",
+        label_visibility="hidden",
     )
 
     # Display results if a country is selected
     if selected_country:
         display_signature(
-            signatures[selected_country], 
-            selected_country, 
-            top_n_to_display)
+            signatures[selected_country], selected_country, top_n_to_display
+        )
+
 
 if __name__ == "__main__":
     app()
