@@ -2618,6 +2618,21 @@ snowflake = ["snowflake-connector-python (>=3.3.0) ; python_version < \"3.12\"",
 sql = ["SQLAlchemy (>=2.0.0)"]
 
 [[package]]
+name = "streamlit-charts"
+version = "0.1.1"
+description = "Render Ant Design Charts in Streamlit"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "streamlit-charts-0.1.1.tar.gz", hash = "sha256:c174ab2b98d86a829c4cd33b7927c496ffa2d55c17efc18b82c9b22ef3db495e"},
+    {file = "streamlit_charts-0.1.1-py3-none-any.whl", hash = "sha256:cf8fb19344604b84f15b2a29a10f6c2cb328e562e30f76bd89341fd1448eafbd"},
+]
+
+[package.dependencies]
+streamlit = ">=0.63"
+
+[[package]]
 name = "streamlit-lottie"
 version = "0.0.5"
 description = "A Streamlit custom component to load Lottie animations"
@@ -2892,4 +2907,4 @@ pillow = "*"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.12"
-content-hash = "1729f7e6c0f217b875c999d66535fc8378b72fc5dd07d051d4f29c89bc37497f"
+content-hash = "cce3e3654fce51bc9cd2e70b58dfeba92bdda078641dd13d595addb7eeea43ba"

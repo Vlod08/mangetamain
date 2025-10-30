@@ -9,6 +9,7 @@ from mangetamain.config import ROOT_DIR
 from mangetamain.core.dataset import DatasetLoaderThread, RecipesDataset, InteractionsDataset
 from mangetamain.core.utils.utils import load_lottie
 
+
 def pages():
 
     # --- Pages ---
@@ -76,19 +77,20 @@ def pages():
 def load_data(name: str = None) -> None:
     """Simulate loading and preprocessing with progress."""
     
-    if name is None:
-        st.markdown("#### Recipes & Interactions Data Loading")
-    elif "recipe" in name.lower():
-        st.markdown("#### Recipes Data Loading")
-    elif "interaction" in name.lower():
-        st.markdown("#### Interactions Data Loading")
-    else:
-        st.markdown("#### Recipes & Interactions Data Loading")
-
     # Placeholders
+    header_placeholder = st.empty()
     lottie_placeholder = st.empty()
     progress_placeholder = st.empty()
     text_placeholder = st.empty()
+
+    if name is None:
+        header_placeholder.header("Recipes & Interactions Data Loading")
+    elif "recipe" in name.lower():
+        header_placeholder.header("Recipes Data Loading")
+    elif "interaction" in name.lower():
+        header_placeholder.header("Interactions Data Loading")
+    else:
+        header_placeholder.header("Recipes & Interactions Data Loading")
 
     # Load and display Lottie animation
     lottie = load_lottie()
@@ -122,6 +124,9 @@ def load_data(name: str = None) -> None:
         for i, thread in enumerate(threads):
             if thread_lives[i] and not thread.is_alive():
                 st.session_state[thread.label] = thread.return_value
+                if "issues" not in st.session_state:
+                    st.session_state["issues"] = {}
+                st.session_state["issues"][thread.label] = thread.issues
                 thread_lives[i] = False
                 progress_bar.progress(100 - sum(thread_lives) * 50)
                 text_placeholder.text(f"{thread.label.capitalize()} dataset loaded.")
@@ -132,6 +137,7 @@ def load_data(name: str = None) -> None:
         thread.join()
 
     # --- Replace loading elements with success message ---
+    header_placeholder.empty()
     lottie_placeholder.empty()
     progress_placeholder.empty()
     text_placeholder.empty()
@@ -143,17 +149,22 @@ def load_data(name: str = None) -> None:
 
     # Cool success animation
     # st_lottie(load_lottie("success_check.json"), height=150, speed=0.7, loop=False)
+    success_placeholder = st.empty()
     if name is None:
-        st.success("All datasets loaded successfully!")
+        with success_placeholder:
+            st.success("All datasets loaded successfully!")
     elif "recipe" in name.lower():
-        st.success("Recipes dataset loaded successfully!")
+        with success_placeholder:
+            st.success("Recipes dataset loaded successfully!")
     elif "interaction" in name.lower():
-        st.success("Interactions dataset loaded successfully!")
+        with success_placeholder:
+            st.success("Interactions dataset loaded successfully!")
     else:
-        st.success("All datasets loaded successfully!")
+        with success_placeholder:
+            st.success("All datasets loaded successfully!")
     st.balloons()
     time.sleep(2)
-
+    success_placeholder.empty()
 
 def app():
     pg = pages()
@@ -174,7 +185,29 @@ def app():
             load_data("interactions")
     # otherwise, load both datasets
     else:
-        load_data()
+        recipes_loaded = True
+        interactions_loaded = True
+        if "recipes" not in st.session_state \
+            or (st.session_state["recipes"] is None) \
+                or (st.session_state["recipes"].empty):
+            recipes_loaded = False
+        if "interactions" not in st.session_state \
+            or (st.session_state["interactions"] is None) \
+                or (st.session_state["interactions"].empty):
+            interactions_loaded = False
+        
+        placeholders = st.empty()
+        if (not recipes_loaded) and (not interactions_loaded):
+            load_data()
+        elif not recipes_loaded:
+            with placeholders:
+                st.success("Interactions dataset already loaded in memory!")
+            load_data("recipes")
+        elif not interactions_loaded:
+            with placeholders:
+                st.success("Recipes dataset already loaded in memory!")
+            load_data("interactions")
+        placeholders.empty()
     pg.run()
 
 if __name__ == "__main__":

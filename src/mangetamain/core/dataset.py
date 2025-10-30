@@ -32,9 +32,11 @@ class DatasetLoaderThread(Thread):
         # self.target = target
         self.label = label
         self.return_value = pd.DataFrame()
+        self.issues = {}
 
     def run(self):
-        self.return_value = self.dataset_loader.load()
+        self.return_value = self.dataset_loader.load(preprocess=True)
+        self.issues = self.dataset_loader.issues
 
 @dataclass
 class DatasetLoader(ABC):
@@ -63,7 +65,7 @@ class DatasetLoader(ABC):
                 raise ValueError("df must be a pandas DataFrame.")
             self._df = value
             # Automatically compute schema
-            self._schema = self.compute_schema()
+            self._schema = DatasetLoader.compute_schema(self._df)
             # Automatically preprocess
             # self._df = self.preprocess(self._df)
         else:
@@ -79,13 +81,14 @@ class DatasetLoader(ABC):
             raise ValueError("Schema not available. Dataset not loaded.")
         return self._schema
     
-    def compute_schema(self) -> pd.DataFrame:
+    @staticmethod
+    def compute_schema(df: pd.DataFrame) -> pd.DataFrame:
         """Compute and return schema information about the dataset."""
-        if self._df is None:
+        if df is None:
             raise ValueError("Dataset not loaded. Call load() first.")
         schema_df = pd.DataFrame({
-            "col": self._df.columns,
-            "dtype": self._df.dtypes.astype(str)
+            "col": df.columns,
+            "dtype": df.dtypes.astype(str)
         })
         return schema_df
 

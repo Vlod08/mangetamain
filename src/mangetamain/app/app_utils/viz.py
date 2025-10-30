@@ -2,6 +2,7 @@
 import plotly.express as px
 import pandas as pd
 
+
 def scatter_time_steps(df: pd.DataFrame):
     return px.scatter(df, x="minutes", y="n_steps", hover_name="name",
                       size="n_ingredients", opacity=0.6)

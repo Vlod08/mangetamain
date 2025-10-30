@@ -98,7 +98,7 @@ def display_signature(
         ax.imshow(wc, interpolation='bilinear')
         ax.axis("off")
 
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig, width='stretch')
 
     except Exception as e:
         st.error(f"Error generating word cloud: {e}")

@@ -45,10 +45,10 @@ def app():
     df_clust["x"], df_clust["y"] = XY[:, 0], XY[:, 1]
 
     fig = px.scatter(df_clust.sample(min(4000, len(df_clust))), x="x", y="y", color="cluster", hover_name="name", opacity=0.7)
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, config={"width": 'stretch'})
 
     st.subheader("Top mots par cluster")
-    st.dataframe(cr.top_terms_per_cluster(km, tfidf, topn=8), width='stretch', hide_index=True)
+    st.dataframe(cr.top_terms_per_cluster(km, tfidf, topn=8), hide_index=True)
 
 
     # visual separator
@@ -115,7 +115,7 @@ def app():
             display_cols = [c for c in ["id", "name", "minutes", "n_steps", "ingredients"] if c in neigh_df.columns]
             neigh_df = neigh_df[["id", "score"] + [c for c in display_cols if c not in ("id")]]
             st.subheader(f"Top {len(neigh_df)} similar recipes (ingredients)")
-            st.dataframe(neigh_df.fillna("—"), width='stretch')
+            st.dataframe(neigh_df.fillna("—"))
 
             if not neigh_df.empty:
                 inspect_id = st.selectbox("Inspect neighbour", neigh_df["id"].astype(str), key="ing_inspect")
@@ -193,7 +193,7 @@ def app():
             display_cols_t = [c for c in ["id", "name", "minutes", "n_steps", "tags"] if c in neigh_df_t.columns]
             neigh_df_t = neigh_df_t[["id", "score"] + [c for c in display_cols_t if c not in ("id")]]
             st.subheader(f"Top {len(neigh_df_t)} similar recipes (time tags)")
-            st.dataframe(neigh_df_t.fillna("—"), width='stretch')
+            st.dataframe(neigh_df_t.fillna("—"))
 
             # Optional: allow to inspect one of the neighbours
             if not neigh_df_t.empty:
@@ -272,7 +272,7 @@ def app():
             display_cols_n = [c for c in ["id", "name", "minutes", "n_steps"] + nutri_cols if c in neigh_df_n.columns]
             neigh_df_n = neigh_df_n[["id", "score"] + [c for c in display_cols_n if c not in ("id")]]
             st.subheader(f"Top {len(neigh_df_n)} similar recipes (nutrients)")
-            st.dataframe(neigh_df_n.fillna("—"), width='stretch')
+            st.dataframe(neigh_df_n.fillna("—"))
 
             if not neigh_df_n.empty:
                 inspect_id_n = st.selectbox("Inspect similar recipe (nutrients)", neigh_df_n["id"].astype(str), key="nutri_inspect")

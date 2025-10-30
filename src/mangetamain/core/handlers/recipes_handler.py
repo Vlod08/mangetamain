@@ -117,11 +117,10 @@ class RecipesHandler(ABC):
                     indexes_to_update = df[df[ref_col] == ''].index
                 else:
                     indexes_to_update = df.index
-                df.loc[indexes_to_update, ref_col] = df_copy.loc[indexes_to_update, col].map(
+                df_copy.loc[indexes_to_update, ref_col] = df_copy.loc[indexes_to_update, col].map(
                     lambda x: fuzzy_fetch(x, self.ref_names[ref_col])
                 )
 
         # Infer missing values after fetching
-        df = self.infer(df)
-
+        df = self.infer(df_copy)
         return df
