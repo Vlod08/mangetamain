@@ -403,47 +403,67 @@ columns=["country", "lat", "lon"])
         """
         Load/cached Natural Earth polygons:
         - Try GeoPandas legacy dataset, then geodatasets admin_0_countries.
-        - As last resort, remote GeoJSON (no 'continent' column).
+        - If GDAL HTTP fails, fetch via requests and build GDF from features.
+        - Last resort: return empty GDF with expected columns (so callers don't crash).
         """
         if self._world_gdf is not None:
             return self._world_gdf
 
-        try:
-            if gpd is None:
-                raise RuntimeError("geopandas not available")
+        if gpd is None:
+            # Can't build a GeoDataFrame at all; caller will use folium remote + centroid fallback.
+            self._world_gdf = None
+            return None
 
-            # Try legacy bundled dataset
+        try:
+            # 1) Legacy bundled dataset
             try:
                 path = gpd.datasets.get_path("naturalearth_lowres")
                 gdf = gpd.read_file(path)
             except Exception:
-                # Try geodatasets (preferred new way)
+                # 2) geodatasets
                 if gds is not None:
                     path = gds.get_path("naturalearth.cultural.admin_0_countries")
                     gdf = gpd.read_file(path)
                 else:
-                    # Last fallback: remote (no continent)
-                    url = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
-                    gdf = gpd.read_file(url)
+                    raise RuntimeError("No local Natural Earth dataset")
 
             keep = [c for c in ["name", "name_long", "name_en", "continent", "geometry"] if c in gdf.columns]
             gdf = gdf[keep].copy()
 
-            # English display name
-            if "name_en" in gdf.columns and gdf["name_en"].notna().any():
-                gdf["display_name"] = gdf["name_en"]
-            elif "name_long" in gdf.columns:
-                gdf["display_name"] = gdf["name_long"]
-            else:
-                gdf["display_name"] = gdf["name"]
+        except Exception as e_local:
+            # 3) HTTP fetch via requests → build GDF from features (no GDAL HTTP needed)
+            try:
+                import requests, json
+                url = "https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json"
+                resp = requests.get(url, timeout=20)
+                resp.raise_for_status()
+                data = resp.json()
+                # Properties usually have "name"
+                gdf = gpd.GeoDataFrame.from_features(data["features"], crs="EPSG:4326")
+                # Keep uniform columns if present
+                keep = [c for c in ["name", "name_long", "name_en", "continent", "geometry"] if c in gdf.columns]
+                if not keep:
+                    keep = ["name", "geometry"]
+                gdf = gdf[keep].copy()
+            except Exception as e_http:
+                # 4) Last resort: empty GDF so callers don't get None
+                gdf = gpd.GeoDataFrame(columns=["name", "name_long", "name_en", "continent", "geometry"], geometry="geometry", crs="EPSG:4326")
 
-            gdf["name_norm"] = gdf["display_name"].astype(str).str.strip().str.casefold()
+        # English display name
+        if "name_en" in gdf.columns and gdf["name_en"].notna().any():
+            gdf["display_name"] = gdf["name_en"]
+        elif "name_long" in gdf.columns and gdf["name_long"].notna().any():
+            gdf["display_name"] = gdf["name_long"]
+        else:
+            # fall back to name if present, else any available name-like col
+            base = "name" if "name" in gdf.columns else (gdf.columns.intersection(["admin","NAME","NAME_LONG"]).tolist() or ["name"])[0]
+            gdf["display_name"] = gdf[base]
 
-            self._world_gdf = gdf
-            return gdf
-        except Exception:
-            self._world_gdf = None
-            return None
+        gdf["name_norm"] = gdf["display_name"].astype(str).str.strip().str.casefold()
+
+        self._world_gdf = gdf
+        return gdf
+
 
     # map builder
     def build_map(

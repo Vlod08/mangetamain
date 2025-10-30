@@ -13,10 +13,6 @@ from mangetamain.core.recipes_eda import RecipesEDAService
 from mangetamain.core.map_builder.map import BubbleMapFolium
 
 MAX_TOP_N = 20
-def logstate(s):
-    print('#'*4, s)
-    print("country_choice:", st.session_state.get("country_choice", "Not set yet"))
-    print("__pending_country_choice:", st.session_state.get("__pending_country_choice", "Not set yet"),'\n')
 
 def app():
     use_global_ui(
@@ -37,7 +33,8 @@ def app():
             st.write(
                 f'Dataset loaded and preprocessed ({(time.time()-start)/60} min)')
             start = time.time()
-            df = recipes_eda_svc.fetch_country(df[:60])
+            df = recipes_eda_svc.fetch_country(df)
+            df.rename(columns={"region": "continent"}, inplace=True)
             st.write(f'column Country added ({(time.time()-start)/60} min)')
             st.session_state['df_country'] = df
 
@@ -50,7 +47,7 @@ def app():
         st.write(f'Signatures computed ({(time.time()-start)/60} min)')
 
     # -----------------------------------------------------------------
-    # ÉTAPE 2 : L'INTERFACE UTILISATEUR (L'AFFICHAGE)
+    # ÉTAPE 2 : L'INTERFACE UTILISATEUR AVEC STREAMLIT
     # -----------------------------------------------------------------
 
     st.set_page_config(layout="wide")
@@ -71,16 +68,14 @@ def app():
 
     # APPLY PENDING CLICK BEFORE WIDGETS 
     # If a previous click stored a pending choice, apply it now (before selectbox exists)
-    logstate(1)
 
     if "__pending_country_choice" in st.session_state:
         st.session_state["country_choice"] = st.session_state.pop("__pending_country_choice")
-    logstate(2)
+
     # Init state if first run
     if "country_choice" not in st.session_state:
         st.session_state["country_choice"] = "select"
     
-    logstate(3)
 
     # LEVEL SELECTION
     level = st.radio("View", ["country", "continent"], horizontal=True)
@@ -94,19 +89,27 @@ def app():
     # COUNTRY SELECTION WIDGET
     selected_country = None
     country_list = sorted(list(signatures.keys()))
-    print("level", level)
     if level == "country":
         country_list = counts["country"].dropna().astype(str).sort_values().unique().tolist()
-        options = ["Select"] + country_list
+        options = ["select"] + country_list
+        # Create a case-insensitive mapping for country names
+        name_map = {c.casefold(): c for c in country_list}
+        if "__pending_country_choice" in st.session_state:
+            pending = st.session_state.pop("__pending_country_choice")
+            canonical = name_map.get(str(pending).casefold())
+            if canonical:
+                st.session_state["country_choice"] = canonical
+        st.session_state.setdefault("country_choice", "select")
+
         # index comes from session state
         try:
             idx = options.index(st.session_state["country_choice"])
         except ValueError:
             idx = 0
-
-    # Bind the selectbox to the same key we control via session_state
-    st.selectbox("Select a country", options, index=idx, key="country_choice")
-    logstate(4)
+        
+        # Bind the selectbox to the same key we control via session_state
+        st.selectbox("Select a country", options, index=idx, key="country_choice")
+    
     selected_country = None if st.session_state["country_choice"] == "select" else st.session_state["country_choice"]
 
     # Build map
@@ -126,13 +129,13 @@ def app():
 
     # Show map
     result = st_folium(m, height=640, width=None, key="map_widget")
-    
+
     if level == "country":
         if signatures:
             # Get country list for the dropdown
 
             # Display results if a country is selected
-            if selected_country:
+            if selected_country!="select" and selected_country is not None:
                 # Get the sorted score dictionary for the selected country (up to Top 20)
                 scores_dict_top20_sorted = signatures[selected_country]
 
@@ -178,7 +181,6 @@ def app():
     
     # CLICK HANDLER (COUNTRY SELECTION)
     if level == "country":
-        print("Handling click...")
         clicked_popup = (result or {}).get("last_object_clicked_popup")
         if clicked_popup:
             raw = str(clicked_popup).strip()
@@ -189,13 +191,9 @@ def app():
                 country_clicked = raw[start:end].strip().casefold()
             else:
                 country_clicked = raw.split("<br")[0].strip().casefold()
-            print("Country clicked:", country_clicked)
-            print("country_list:", country_list)
-            print("Current country_choice:", st.session_state.get("country_choice"))
-            if country_clicked in country_list and country_clicked != st.session_state.get("country_choice"):
-                # Store as pending and rerun; next run will set country_choice before widget creation
-                st.session_state["__pending_country_choice"] = country_clicked
-                logstate(5)
+            clicked = (country_clicked or "").casefold()
+            if clicked in name_map:
+                st.session_state["__pending_country_choice"] = name_map[clicked]
                 st.rerun()
 
 
