@@ -4,10 +4,8 @@ import io
 import plotly.express as px
 import streamlit as st
 
-from app.app_utils.ui import use_global_ui
-from core.recipes_eda import RecipesEDAService
-from app.app_utils.viz import hist_minutes
-from core.dataset import RecipesDataset
+from mangetamain.app.app_utils.ui import use_global_ui
+from mangetamain.core.recipes_eda import RecipesEDAService
 
 
 def app():
@@ -19,18 +17,11 @@ def app():
     )
 
     # ======== Data Loading =========
-    recipes_df = st.session_state.get("recipes", None)
+    # Recipes dataset already uploaded in app entrypoint (main.py)
+    recipes_df = st.session_state["recipes"]
     recipes_eda_svc = RecipesEDAService()
-    if recipes_df is None:
-        with st.spinner("Loading and preprocessing Recipes dataset..."):
-            recipes_eda_svc.load(preprocess=True)
-            st.session_state["recipes"] = recipes_eda_svc.ds.df
-        st.success("Recipes Dataset ready!")
-        recipes_df = recipes_eda_svc.ds.df
-    else:
-        st.toast("Recipes Dataset already loaded!")
-        recipes_eda_svc.load(recipes_df, preprocess=False)
-
+    recipes_eda_svc.load(recipes_df, preprocess=False)
+        
     # # ========= Overview =========
     # st.subheader("Quick Overview")
     # st.plotly_chart(hist_minutes(recipes_df), width='stretch')

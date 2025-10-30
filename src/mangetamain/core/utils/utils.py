@@ -1,6 +1,9 @@
 import logging
 import os
-from datetime import datetime
+import streamlit as st
+import json
+
+from mangetamain.config import ROOT_DIR
 
 def setup_logging(log_dir: str = "logs", log_level: int = logging.INFO):
     """Configure global logging."""
@@ -23,3 +26,10 @@ def setup_logging(log_dir: str = "logs", log_level: int = logging.INFO):
     )
 
     return log_file
+
+@st.cache_data(show_spinner=False)
+def load_lottie():
+    """Load Lottie animation JSON."""
+    filepath = ROOT_DIR / "assets" / "prepare_food.json"
+    with open(filepath, "r") as f:
+        return json.load(f)
