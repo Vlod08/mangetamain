@@ -1,7 +1,7 @@
 name: Build and Publish Docker Image to Docker Hub
 on:
   push:
-    branches: ["main"]
+    branches: ["setup/docker_build_push"]
   workflow_dispatch: {}
 
 jobs:
