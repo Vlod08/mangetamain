@@ -32,11 +32,16 @@ def format_time(start_time: float, end_time: float) -> str:
 def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
     # Placeholders
     lottie_placeholder = st.empty()
+    text_placeholder = st.empty()
+    progress_placeholder = st.empty()
 
     lottie = load_lottie()
     with lottie_placeholder:
-        st.write("Fetching country and season columns...")
         st_lottie(lottie, height=200, speed=1, loop=True)
+
+
+    text_placeholder.text("Fetching country and season columns...")
+    progress_placeholder.progress(0)
 
     start_time = time.time()
     df_country_season = recipes_eda_svc.fetch_country_season(df)
@@ -44,10 +49,14 @@ def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.Da
         st.session_state["country_handler"] = recipes_eda_svc.country_handler
     end_time = time.time()
 
+    progress_placeholder.progress(100)
+
     formatted = format_time(start_time, end_time)
 
     # --- Replace loading elements with success message ---
     lottie_placeholder.empty()
+    text_placeholder.empty()
+    progress_placeholder.empty()
     st.toast(
         f"Country and season columns added ({formatted})",
         icon=":material/thumb_up:",
@@ -56,14 +65,6 @@ def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.Da
     return df_country_season
 
 def compute_country_signatures_animation(df: pd.DataFrame):
-    # Placeholders
-    lottie_placeholder = st.empty()
-
-    lottie = load_lottie()
-    with lottie_placeholder:
-        st.write("Computing country signatures...")
-        st_lottie(lottie, height=200, speed=1, loop=True)
-
     start_time = time.time()
     signatures_country = RecipesEDAService.get_signatures_countries(
         df, top_n=MAX_TOP_N)
@@ -72,7 +73,6 @@ def compute_country_signatures_animation(df: pd.DataFrame):
     formatted = format_time(start_time, end_time)
 
     # --- Replace loading elements with success message ---
-    lottie_placeholder.empty()
     st.toast(
         f"Country signatures computed ({formatted})",
         icon=":material/thumb_up:",
@@ -81,13 +81,6 @@ def compute_country_signatures_animation(df: pd.DataFrame):
     return signatures_country
 
 def compute_season_signatures_animation(df: pd.DataFrame):
-    # Placeholders
-    lottie_placeholder = st.empty()
-
-    lottie = load_lottie()
-    with lottie_placeholder:
-        st.write("Computing season signatures...")
-        st_lottie(lottie, height=200, speed=1, loop=True)
 
     start_time = time.time()
     signatures_season = RecipesEDAService.get_signatures_seasons(
@@ -97,7 +90,6 @@ def compute_season_signatures_animation(df: pd.DataFrame):
     formatted = format_time(start_time, end_time)
 
     # --- Replace loading elements with success message ---
-    lottie_placeholder.empty()
     st.toast(
         f"Season signatures computed ({formatted})",
         icon=":material/thumb_up:",
@@ -364,7 +356,7 @@ def app():
         subtitle="Explore Culinary Signatures by Country and Season",
         logo="assets/mangetamain-logo.jpg",
         logo_size_px=90,
-        round_logo=True, subtitle=None, wide=True
+        round_logo=True, wide=True
     )
 
     # Dataset already loaded by the entrypoint
@@ -398,6 +390,16 @@ def app():
     st.session_state.setdefault("country_choice", "Select a country...")
 
     # --------- Signatures (session cache) ----------
+    lottie_placeholder = st.empty()
+    text_placeholder = st.empty()
+    progress_placeholder = st.empty()
+
+    lottie = load_lottie()
+    with lottie_placeholder:
+        st_lottie(lottie, height=200, speed=1, loop=True)
+
+    text_placeholder.text("Computing country signatures...")
+    progress_placeholder.progress(0)
     if "signatures_country" in st.session_state:
         signatures_country = st.session_state["signatures_country"]
     else:
@@ -407,8 +409,12 @@ def app():
             return
         st.session_state["signatures_country"] = signatures_country
 
+    progress_placeholder.progress(50)
+
     assert all(c in countries_list for c in list(signatures_country[0].keys())), \
         "Signatures list of countries does not match the list of countries in the dataset"
+
+    text_placeholder.text("Computing season signatures...")
 
     if "signatures_season" in st.session_state:
         signatures_season = st.session_state["signatures_season"]
@@ -418,6 +424,18 @@ def app():
             st.error("Could not compute season signatures !")
             return
         st.session_state["signatures_season"] = signatures_season
+    
+    progress_placeholder.progress(100)
+    text_placeholder.text("")
+    lottie_placeholder.empty()
+
+    success_placeholder = st.empty()
+    with success_placeholder:
+        st.success("Signatures computed successfully!")
+
+    text_placeholder.empty()
+    progress_placeholder.empty()
+    success_placeholder.empty()
 
     assert all(s in seasons_list for s in list(signatures_season[0].keys())), \
         "Signatures list of seasons does not match the list of seasons in the dataset"
@@ -468,8 +486,14 @@ def app():
     )
 
     df_country_season_filtered = df_country_season.copy()
-    df_country_season_filtered = df_country_season_filtered[df_country_season_filtered["country"] == selected_country] if selected_country != default_country_name else df_country_season_filtered
-    df_country_season_filtered = df_country_season_filtered[df_country_season_filtered["season"] == selected_season] if selected_season != default_season_name else df_country_season_filtered
+    df_country_season_filtered = df_country_season_filtered[
+        df_country_season_filtered["country"] == selected_country] \
+            if selected_country != default_country_name \
+                else df_country_season_filtered
+    df_country_season_filtered = df_country_season_filtered[
+        df_country_season_filtered["season"] == selected_season] \
+            if selected_season != default_season_name \
+                else df_country_season_filtered
     st.dataframe(df_country_season_filtered.head(5))
 
     # Tabs
@@ -477,6 +501,12 @@ def app():
     tab1, tab2 = st.tabs(["Country Analysis", "Season Analysis"])
 
     with tab1:
+
+        # Map is always displayed; clicking will set a pending choice and rerun
+        map(df_country_season, None if selected_country == 
+            default_country_name else selected_country)
+        
+        st.divider()
 
         if selected_country == default_country_name:
             st.info(
@@ -510,12 +540,6 @@ def app():
                     selected_country,
                     top_n_to_display
                 )
-
-        st.divider()
-
-        # Map is always displayed; clicking will set a pending choice and rerun
-        map(df_country_season, None if selected_country ==
-            default_country_name else selected_country)
 
     with tab2:
         if selected_season == default_season_name:
