@@ -178,7 +178,7 @@ class RecipesEDAService(EDAService):
             pd.DataFrame: DataFrame containing recipes with country information.
         """
         self.country_handler.build_ref()
-        columns_to_fetch_in = ["tags"] # + ["name", "description"]
+        columns_to_fetch_in = ["tags"]  # + ["name", "description"]
         df_country = self.country_handler.fetch(
             df, columns_to_fetch_in)
         if "country" not in df_country.columns:
@@ -294,24 +294,24 @@ class RecipesEDAService(EDAService):
                        'lowercase': False, 'max_df': 0.5, 'max_features': 14000,
                        'token_pattern': None}
 
-        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        # 3) TF-IDF (fit) to build the vocabulary and compute TF-IDF scores
         tfidf_vec = TfidfVectorizer(**base_params)
         tfidf_matrix = tfidf_vec.fit_transform(country_docs_lists)
         features = tfidf_vec.get_feature_names_out()
 
-        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        # 4) L1-normalized TF (transform) using the same vocabulary
         tf_vec = TfidfVectorizer(
             **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
         tf_matrix = tf_vec.fit_transform(country_docs_lists)
 
-        # 5) DataFrames pratiques
+        # 5) Build convenient DataFrames for TF-IDF and TF matrices
         countries = country_docs_lists.index
         df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
                                 index=countries, columns=features)
         df_tf = pd.DataFrame(tf_matrix.toarray(),
                              index=countries, columns=features)
 
-        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        # 6) Build output: top_n terms by TF-IDF and include TF values
         signatures_tfidf, signatures_tf = {}, {}
         for country in df_tfidf.index:
             top_terms = df_tfidf.loc[country].nlargest(top_n).index
@@ -339,27 +339,27 @@ class RecipesEDAService(EDAService):
         season_docs_lists = df.groupby('season')['ingredients'].sum()
 
         base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
-                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000, 
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000,
                        'token_pattern': None}
 
-        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        # 3) TF-IDF (fit) to build the vocabulary and compute TF-IDF scores
         tfidf_vec = TfidfVectorizer(**base_params)
         tfidf_matrix = tfidf_vec.fit_transform(season_docs_lists)
         features = tfidf_vec.get_feature_names_out()
 
-        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        # 4) L1-normalized TF (transform) using the same vocabulary
         tf_vec = TfidfVectorizer(
             **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
         tf_matrix = tf_vec.fit_transform(season_docs_lists)
 
-        # 5) DataFrames pratiques
+        # 5) Build convenient DataFrames for TF-IDF and TF matrices
         seasons = season_docs_lists.index
         df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
                                 index=seasons, columns=features)
         df_tf = pd.DataFrame(tf_matrix.toarray(),
                              index=seasons, columns=features)
 
-        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        # 6) Build output: top_n terms by TF-IDF and include TF values
         signatures_tfidf, signatures_tf = {}, {}
         for season in df_tfidf.index:
             top_terms = df_tfidf.loc[season].nlargest(top_n).index
