@@ -15,7 +15,6 @@ from mangetamain.core.clustering import clustering_time_tags as time_tags
 from mangetamain.core.clustering import clustering_nutrivalues as nutrivalues
 
 
-
 @st.cache_resource(show_spinner=True)
 def _load_recipes_df() -> pd.DataFrame:
     ds = RecipesDataset()
@@ -76,7 +75,7 @@ def app() -> None:
             opacity=0.7,
             title="2-D projection of recipe clusters",
         ),
-        config={'width': 'stretch'},
+        config={"width": "stretch"},
     )
 
     st.subheader("Top terms per cluster")
@@ -116,7 +115,10 @@ def app() -> None:
     else:
         options = [
             f"{rid} — {str(name)[:80]}"
-            for rid, name in zip(sampled_ing["id"], sampled_ing.get("name", pd.Series([None] * len(sampled_ing))))
+            for rid, name in zip(
+                sampled_ing["id"],
+                sampled_ing.get("name", pd.Series([None] * len(sampled_ing))),
+            )
         ]
         sel = st.selectbox("Choose a recipe from the sample", options, key="ing_sel")
         selected_id = int(str(sel).split(" — ")[0])
@@ -125,21 +127,31 @@ def app() -> None:
         row = sampled_ing[sampled_ing["id"] == selected_id]
         if not row.empty:
             r = row.iloc[0]
-            st.markdown(f"**{r.get('name', '—')}**  \nminutes: **{r.get('minutes', '—')}**, steps: **{r.get('n_steps', '—')}**")
+            st.markdown(
+                f"**{r.get('name', '—')}**  \nminutes: **{r.get('minutes', '—')}**, steps: **{r.get('n_steps', '—')}**"
+            )
             if "ingredients" in sampled_ing.columns:
                 st.write(r.get("ingredients", "[]"))
 
         try:
-            neigh = ingredients.find_similar_by_ingredients(sim_ing, selected_id, top_n=ing_top_n)
+            neigh = ingredients.find_similar_by_ingredients(
+                sim_ing, selected_id, top_n=ing_top_n
+            )
         except KeyError:
             neigh = pd.Series(dtype=float)
 
         if neigh.empty:
             st.info("No similar recipes found for this one.")
         else:
-            neigh_df = neigh.reset_index().rename(columns={"index": "id", selected_id: "score"})
+            neigh_df = neigh.reset_index().rename(
+                columns={"index": "id", selected_id: "score"}
+            )
             neigh_df = neigh_df.merge(sampled_ing, on="id", how="left")
-            show_cols = [c for c in ["id", "name", "minutes", "n_steps", "ingredients"] if c in neigh_df.columns]
+            show_cols = [
+                c
+                for c in ["id", "name", "minutes", "n_steps", "ingredients"]
+                if c in neigh_df.columns
+            ]
             neigh_df = neigh_df[["id", "score"] + [c for c in show_cols if c != "id"]]
             st.dataframe(neigh_df)
 
@@ -152,7 +164,9 @@ def app() -> None:
 
     tt1, tt2, tt3 = st.columns([2, 1, 1])
     with tt1:
-        tt_sample_n = st.number_input("Sample size (time-tags)", 10, 50000, 15000, step=10)
+        tt_sample_n = st.number_input(
+            "Sample size (time-tags)", 10, 50000, 15000, step=10
+        )
     with tt2:
         tt_seed = st.number_input("Random seed (time-tags)", 0, 9999, 5, step=1)
     with tt3:
@@ -171,23 +185,36 @@ def app() -> None:
     else:
         opts_t = [
             f"{rid} — {str(name)[:80]}"
-            for rid, name in zip(sampled_tt["id"], sampled_tt.get("name", pd.Series([None] * len(sampled_tt))))
+            for rid, name in zip(
+                sampled_tt["id"],
+                sampled_tt.get("name", pd.Series([None] * len(sampled_tt))),
+            )
         ]
         sel_t = st.selectbox("Choose a recipe (time-tags)", opts_t, key="tt_sel")
         selected_id_t = int(str(sel_t).split(" — ")[0])
 
         try:
-            neigh_t = time_tags.get_similar_recipes(sim_time, selected_id_t, top_n=tt_top_n)
+            neigh_t = time_tags.get_similar_recipes(
+                sim_time, selected_id_t, top_n=tt_top_n
+            )
         except KeyError:
             neigh_t = pd.Series(dtype=float)
 
         if neigh_t.empty:
             st.info("No similar recipes found for this one (time-tags).")
         else:
-            neigh_df_t = neigh_t.reset_index().rename(columns={"index": "id", selected_id_t: "score"})
+            neigh_df_t = neigh_t.reset_index().rename(
+                columns={"index": "id", selected_id_t: "score"}
+            )
             neigh_df_t = neigh_df_t.merge(sampled_tt, on="id", how="left")
-            use_cols = [c for c in ["id", "name", "minutes", "n_steps", "tags"] if c in neigh_df_t.columns]
-            neigh_df_t = neigh_df_t[["id", "score"] + [c for c in use_cols if c != "id"]]
+            use_cols = [
+                c
+                for c in ["id", "name", "minutes", "n_steps", "tags"]
+                if c in neigh_df_t.columns
+            ]
+            neigh_df_t = neigh_df_t[
+                ["id", "score"] + [c for c in use_cols if c != "id"]
+            ]
             st.dataframe(neigh_df_t)
 
     st.markdown("---")
@@ -199,14 +226,18 @@ def app() -> None:
 
     nc1, nc2, nc3 = st.columns([2, 1, 1])
     with nc1:
-        nut_sample_n = st.number_input("Sample size (nutrition)", 10, 50000, 10000, step=10)
+        nut_sample_n = st.number_input(
+            "Sample size (nutrition)", 10, 50000, 10000, step=10
+        )
     with nc2:
         nut_seed = st.number_input("Random seed (nutrition)", 0, 9999, 5, step=1)
     with nc3:
         nut_top_n = st.slider("Top N similar (nutrition)", 1, 50, 10)
 
     df_nut = _sample_df(int(nut_sample_n), int(nut_seed))
-    df_nut_norm, nut_info = nutrivalues.normalize_nutrition_columns(df_nut, try_parse_nut_column=True)
+    df_nut_norm, nut_info = nutrivalues.normalize_nutrition_columns(
+        df_nut, try_parse_nut_column=True
+    )
 
     @st.cache_data(show_spinner=True)
     def _build_nut_sim(d: pd.DataFrame, seed: int) -> pd.DataFrame:
@@ -220,23 +251,36 @@ def app() -> None:
     else:
         opts_n = [
             f"{rid} — {str(name)[:80]}"
-            for rid, name in zip(df_nut_norm["id"], df_nut_norm.get("name", pd.Series([None] * len(df_nut_norm))))
+            for rid, name in zip(
+                df_nut_norm["id"],
+                df_nut_norm.get("name", pd.Series([None] * len(df_nut_norm))),
+            )
         ]
         sel_n = st.selectbox("Choose a recipe (nutrition)", opts_n, key="nut_sel")
         selected_id_n = int(str(sel_n).split(" — ")[0])
 
         try:
-            neigh_n = nutrivalues.find_similar_by_nutri(sim_nut, selected_id_n, top_n=nut_top_n)
+            neigh_n = nutrivalues.find_similar_by_nutri(
+                sim_nut, selected_id_n, top_n=nut_top_n
+            )
         except KeyError:
             neigh_n = pd.Series(dtype=float)
 
         if neigh_n.empty:
             st.info("No similar recipes found for this one (nutrition).")
         else:
-            neigh_df_n = neigh_n.reset_index().rename(columns={"index": "id", selected_id_n: "score"})
+            neigh_df_n = neigh_n.reset_index().rename(
+                columns={"index": "id", selected_id_n: "score"}
+            )
             neigh_df_n = neigh_df_n.merge(df_nut_norm, on="id", how="left")
-            show_cols_n = [c for c in ["id", "name", "minutes", "n_steps"] + nutrivalues.NUTRI_COLS if c in neigh_df_n.columns]
-            neigh_df_n = neigh_df_n[["id", "score"] + [c for c in show_cols_n if c != "id"]]
+            show_cols_n = [
+                c
+                for c in ["id", "name", "minutes", "n_steps"] + nutrivalues.NUTRI_COLS
+                if c in neigh_df_n.columns
+            ]
+            neigh_df_n = neigh_df_n[
+                ["id", "score"] + [c for c in show_cols_n if c != "id"]
+            ]
             st.dataframe(neigh_df_n.fillna("—"))
 
 

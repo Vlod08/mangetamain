@@ -1,7 +1,5 @@
 # app/pages/interactions/interactions_explorer_page.py
 from __future__ import annotations
-from pathlib import Path
-import io
 import streamlit as st
 import seaborn as sns
 import plotly.express as px
@@ -49,7 +47,7 @@ def app():
         #     st.info("Using default dataset (Food.com reviews). You can upload your own CSV/Parquet file.")
         # else:
         #     st.success(f"File uploaded: {Path(uploaded_file.name).name}")
-    
+
         # st.header("⚙️ Artefact")
         # if st.button("🧹 Regenerate Clean Artefact"):
         #     with st.spinner("Preprocessing…"):
@@ -57,9 +55,15 @@ def app():
         #     st.success(f"Artefact regenerated successfully.")
         #     st.rerun()  # Refresh to load new artifact
         st.header("Filters")
-        rating_range = st.slider("Rating", min_rating, max_rating, value=(min_rating, max_rating), step=0.5)
-        review_len_range = st.slider("Review length", min_len, max_len, value=(min_len, max_len))
-        year_range = st.slider("Year range", min_year, max_year, value=(min_year, max_year))
+        rating_range = st.slider(
+            "Rating", min_rating, max_rating, value=(min_rating, max_rating), step=0.5
+        )
+        review_len_range = st.slider(
+            "Review length", min_len, max_len, value=(min_len, max_len)
+        )
+        year_range = st.slider(
+            "Year range", min_year, max_year, value=(min_year, max_year)
+        )
 
     df_filtered = interactions_eda_svc.apply_filters(
         rating_range=rating_range,
@@ -135,7 +139,6 @@ def app():
         with c2:
             st.dataframe(interactions_eda_svc.cardinalities())
 
-
     # =========================
     # 📊 Exploration
     # =========================
@@ -144,24 +147,36 @@ def app():
         with colA:
             h = interactions_eda_svc.hist_rating()
             if not h.empty:
-                st.plotly_chart(px.bar(h, x="left", y="count", title="Ratings distribution"))
+                st.plotly_chart(
+                    px.bar(h, x="left", y="count", title="Ratings distribution")
+                )
         with colB:
             h2 = interactions_eda_svc.hist_review_len()
             if not h2.empty:
-                st.plotly_chart(px.bar(h2, x="left", y="count", title="Review length (characters)"))
+                st.plotly_chart(
+                    px.bar(h2, x="left", y="count", title="Review length (characters)")
+                )
 
         bm = interactions_eda_svc.by_month()
         if not bm.empty:
             st.subheader("Trend over time")
             c1, c2 = st.columns(2)
             with c1:
-                st.plotly_chart(px.line(bm, x="month", y="n", title="Reviews per month"))
+                st.plotly_chart(
+                    px.line(bm, x="month", y="n", title="Reviews per month")
+                )
             with c2:
-                st.plotly_chart(px.line(bm, x="month", y="mean_rating", title="Average rating per month"))
+                st.plotly_chart(
+                    px.line(
+                        bm, x="month", y="mean_rating", title="Average rating per month"
+                    )
+                )
 
             yr = interactions_eda_svc.year_range()
             if yr:
-                y = st.slider("Year (zoom)", yr[0], yr[1], value=int((yr[0]+yr[1])//2))
+                y = st.slider(
+                    "Year (zoom)", yr[0], yr[1], value=int((yr[0] + yr[1]) // 2)
+                )
                 oy = interactions_eda_svc.one_year(y)
                 c3, c4 = st.columns(2)
                 with c3:
@@ -193,7 +208,11 @@ def app():
     # 📄 Table (with filters)
     # =========================
     with tabs[2]:
-        cols = [c for c in ["user_id", "recipe_id", "date", "rating", "review"] if c in df_filtered.columns]
+        cols = [
+            c
+            for c in ["user_id", "recipe_id", "date", "rating", "review"]
+            if c in df_filtered.columns
+        ]
         st.dataframe(df_filtered.head(1000)[cols], hide_index=True)
 
         st.download_button(
@@ -202,6 +221,7 @@ def app():
             "reviews_filtered.csv",
             "text/csv",
         )
+
 
 if __name__ == "__main__":
     app()

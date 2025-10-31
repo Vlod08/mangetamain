@@ -14,9 +14,11 @@ use_global_ui(
 # =========================
 # Config
 # =========================
-REPO_URL   = "https://github.com/Vlod08/mangetamain"          
-DOCS_URL   = "https://vlod08.github.io/mangetamain/"                    
-KAGGLE_URL = "https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions"
+REPO_URL = "https://github.com/Vlod08/mangetamain"
+DOCS_URL = "https://vlod08.github.io/mangetamain/"
+KAGGLE_URL = (
+    "https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions"
+)
 
 TEAM = [
     {
