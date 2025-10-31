@@ -116,13 +116,17 @@ def normalize_nutrition_columns(
             return None
 
         parsed = out["nutrition"].map(_try_parse)
-        ok_mask = parsed.map(lambda x: isinstance(x, list) and len(x) >= len(NUTRI_COLS))
+        ok_mask = parsed.map(
+            lambda x: isinstance(x, list) and len(x) >= len(NUTRI_COLS)
+        )
 
         if ok_mask.any():
             info["parsed_nut_column"] = True
             for i, col in enumerate(NUTRI_COLS):
                 out[col] = pd.NA
-                out.loc[ok_mask, col] = parsed[ok_mask].map(lambda lst, idx=i: lst[idx] if idx < len(lst) else pd.NA)
+                out.loc[ok_mask, col] = parsed[ok_mask].map(
+                    lambda lst, idx=i: lst[idx] if idx < len(lst) else pd.NA
+                )
 
             for c in NUTRI_COLS:
                 out[c] = pd.to_numeric(out[c], errors="coerce")
@@ -142,7 +146,9 @@ def build_nutri_similarity_from_raw(
     return sim, info
 
 
-def find_similar_by_nutri(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> pd.Series:
+def find_similar_by_nutri(
+    sim_df: pd.DataFrame, recipe_id, top_n: int = 25
+) -> pd.Series:
     if sim_df.empty:
         return pd.Series(dtype=float)
     if recipe_id not in sim_df.index:

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 import streamlit as st
 from streamlit_lottie import st_lottie
