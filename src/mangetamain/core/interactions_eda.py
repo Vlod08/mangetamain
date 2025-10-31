@@ -165,7 +165,6 @@ class InteractionsEDAService(EDAService):
         counts, edges = np.histogram(df["review_len"], bins=bins)
         return pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts})
 
-   
     def seasonal_profile(self) -> pd.DataFrame:
         """Return DataFrame with seasonal profile of reviews."""
         m = self.by_month()
