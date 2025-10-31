@@ -9,6 +9,7 @@ LOG_DIR = ROOT_DIR / "logs"
 APP_LOG = LOG_DIR / "app.log"
 ERR_LOG = LOG_DIR / "error.log"
 
+
 def setup_logging() -> None:
     """
     Configure global logging:

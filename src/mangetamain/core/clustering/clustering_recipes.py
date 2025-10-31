@@ -1,7 +1,6 @@
 # src/mangetamain/core/clustering/recipes_text.py
 from __future__ import annotations
 
-from typing import Optional, Tuple
 
 import pandas as pd
 import numpy as np
@@ -24,7 +23,9 @@ def build_tfidf_kmeans(
     return km, tfidf
 
 
-def assign_clusters(df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_col: str = "text") -> pd.DataFrame:
+def assign_clusters(
+    df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_col: str = "text"
+) -> pd.DataFrame:
     out = df.copy()
     if text_col not in out.columns:
         out[text_col] = ""
@@ -33,13 +34,20 @@ def assign_clusters(df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_c
     return out
 
 
-def compute_2d(tfidf: TfidfVectorizer, texts: pd.Series, n_components: int = 2, random_state: int = 42) -> np.ndarray:
+def compute_2d(
+    tfidf: TfidfVectorizer,
+    texts: pd.Series,
+    n_components: int = 2,
+    random_state: int = 42,
+) -> np.ndarray:
     X = tfidf.transform(texts.astype(str))
     svd = TruncatedSVD(n_components=n_components, random_state=random_state)
     return svd.fit_transform(X)
 
 
-def top_terms_per_cluster(km: KMeans, tfidf: TfidfVectorizer, topn: int = 8) -> pd.DataFrame:
+def top_terms_per_cluster(
+    km: KMeans, tfidf: TfidfVectorizer, topn: int = 8
+) -> pd.DataFrame:
     terms = tfidf.get_feature_names_out()
     order = km.cluster_centers_.argsort()[:, ::-1]
     rows = []
@@ -66,5 +74,7 @@ def compute_clustering_from_dataset(
         + df.get("description", pd.Series([""] * len(df))).fillna("")
     ).str.lower()
 
-    km, tfidf = build_tfidf_kmeans(df["text"], k=k, maxf=maxf, random_state=random_state)
+    km, tfidf = build_tfidf_kmeans(
+        df["text"], k=k, maxf=maxf, random_state=random_state
+    )
     return df, km, tfidf

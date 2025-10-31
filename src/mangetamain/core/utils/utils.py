@@ -5,6 +5,7 @@ import json
 
 from mangetamain.config import ROOT_DIR
 
+
 def setup_logging(log_dir: str = "logs", log_level: int = logging.INFO):
     """Configure global logging."""
     os.makedirs(log_dir, exist_ok=True)
@@ -20,12 +21,13 @@ def setup_logging(log_dir: str = "logs", log_level: int = logging.INFO):
         level=log_level,
         format=log_format,
         handlers=[
-            logging.FileHandler(log_file, mode='w', encoding='utf-8'),
+            logging.FileHandler(log_file, mode="w", encoding="utf-8"),
             # no StreamHandler → stdout stays clean
         ],
     )
 
     return log_file
+
 
 @st.cache_data(show_spinner=False)
 def load_lottie():

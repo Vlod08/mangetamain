@@ -13,8 +13,11 @@ from threading import Thread
 
 from mangetamain.config import ROOT_DIR
 from mangetamain.core.utils.string_utils import (
-    extract_list_strings, extract_list_floats, 
-    looks_like_datetime, is_list_string, is_list_floats_string
+    extract_list_strings,
+    extract_list_floats,
+    looks_like_datetime,
+    is_list_string,
+    is_list_floats_string,
 )
 from mangetamain.core.app_logging import get_logger
 
@@ -26,8 +29,11 @@ INTERACTIONS_RAW_DATA_PATH: Path = DATA_DIR / "RAW_interactions.csv"
 INTERACTIONS_PARQUET_DATA_PATH: Path = DATA_DIR / "processed" / "interactions.parquet"
 COUNTRIES_FILE_PATH: Path = DATA_DIR / "countries.json"
 
+
 class DatasetLoaderThread(Thread):
-    def __init__(self, dataset_loader: DatasetLoader, label: str = ""):# , target = None):
+    def __init__(
+        self, dataset_loader: DatasetLoader, label: str = ""
+    ):  # , target = None):
         super().__init__()
         self.dataset_loader = dataset_loader
         # self.target = target
@@ -38,6 +44,7 @@ class DatasetLoaderThread(Thread):
     def run(self):
         self.return_value = self.dataset_loader.load(preprocess=True)
         self.issues = self.dataset_loader.issues
+
 
 @dataclass
 class DatasetLoader(ABC):
@@ -81,16 +88,13 @@ class DatasetLoader(ABC):
         if self._schema is None:
             raise ValueError("Schema not available. Dataset not loaded.")
         return self._schema
-    
+
     @staticmethod
     def compute_schema(df: pd.DataFrame) -> pd.DataFrame:
         """Compute and return schema information about the dataset."""
         if df is None:
             raise ValueError("Dataset not loaded. Call load() first.")
-        schema_df = pd.DataFrame({
-            "col": df.columns,
-            "dtype": df.dtypes.astype(str)
-        })
+        schema_df = pd.DataFrame({"col": df.columns, "dtype": df.dtypes.astype(str)})
         return schema_df
 
     # (No setter for schema — it's derived automatically from df)
@@ -117,7 +121,9 @@ class DatasetLoader(ABC):
             _logger.info(f"Loading {data_name} from {raw_path}...")
             return pd.read_csv(raw_path)
 
-        _logger.error(f"Failed to load {data_name}: {parquet_path} or {raw_path} not found")
+        _logger.error(
+            f"Failed to load {data_name}: {parquet_path} or {raw_path} not found"
+        )
         raise FileNotFoundError(f"Not found: {parquet_path} or {raw_path}")
 
     @staticmethod
@@ -135,7 +141,7 @@ class DatasetLoader(ABC):
             _logger.error(f"Failed to load {data_name} dataset from DB: {e}")
             return None
 
-    # we tell Streamlit not to hash this argument by adding a 
+    # we tell Streamlit not to hash this argument by adding a
     # leading underscore to the argument's name in the function signature
     @st.cache_data(show_spinner=False)
     @staticmethod
@@ -186,11 +192,13 @@ class DatasetLoader(ABC):
             raise ValueError("Dataset not loaded. Call load() first.")
         df_copy = df.copy()
         self.logger.info(f"Preprocessing {self.__class__.__name__} dataset...")
-        self.issues = {'nan': {}}
+        self.issues = {"nan": {}}
 
-        numeric_cols = df_copy.select_dtypes(include=['number']).columns.tolist()
-        date_cols = df_copy.select_dtypes(include=['datetime', 'datetimetz']).columns.tolist()
-        object_cols = df_copy.select_dtypes(include=['object']).columns.tolist()
+        numeric_cols = df_copy.select_dtypes(include=["number"]).columns.tolist()
+        date_cols = df_copy.select_dtypes(
+            include=["datetime", "datetimetz"]
+        ).columns.tolist()
+        object_cols = df_copy.select_dtypes(include=["object"]).columns.tolist()
 
         for col in numeric_cols:
             df_copy[col] = self._preprocess_numeric_column(df_copy[col])
@@ -216,10 +224,7 @@ class DatasetLoader(ABC):
         # df_copy = DatasetLoader.make_dataframe_hashable(df_copy)
         return df_copy
 
-    def _preprocess_list_strings_column(
-        self,
-        column: pd.Series
-    ) -> pd.Series:
+    def _preprocess_list_strings_column(self, column: pd.Series) -> pd.Series:
         """
         Preprocess a column containing string representations of lists.
 
@@ -228,21 +233,20 @@ class DatasetLoader(ABC):
         Returns:
             pd.Series: The processed column as a Series of lists of strings.
         """
-        self.issues['nan'][column.name] = column.isnull().sum()
-        processed_column = column.fillna('[]')
+        self.issues["nan"][column.name] = column.isnull().sum()
+        processed_column = column.fillna("[]")
         processed_column = processed_column.astype(str)
         processed_column = processed_column.str.lower().str.strip()
         processed_column = processed_column.apply(
-            lambda s: re.sub(r'[^a-z0-9\s\'\"\[\]\,-]', '', s))
+            lambda s: re.sub(r"[^a-z0-9\s\'\"\[\]\,-]", "", s)
+        )
         processed_column = processed_column.apply(
-            lambda s: s if not re.search(r"less_than|greater_than|sql", s) else None)
+            lambda s: s if not re.search(r"less_than|greater_than|sql", s) else None
+        )
         processed_column = processed_column.apply(extract_list_strings)
         return processed_column
 
-    def _process_list_floats_column(
-        self,
-        column: pd.Series
-    ) -> pd.Series:
+    def _process_list_floats_column(self, column: pd.Series) -> pd.Series:
         """
         Preprocess a column containing string representations of lists of floats.
 
@@ -251,16 +255,13 @@ class DatasetLoader(ABC):
         Returns:
             pd.Series: The processed column as a Series of lists of floats.
         """
-        self.issues['nan'][column.name] = column.isnull().sum()
-        processed_column = column.fillna('[]')
+        self.issues["nan"][column.name] = column.isnull().sum()
+        processed_column = column.fillna("[]")
         processed_column = processed_column.astype(str)
         processed_column = processed_column.apply(extract_list_floats)
         return processed_column
 
-    def _preprocess_string_column(
-        self,
-        column: pd.Series
-    ) -> pd.Series:
+    def _preprocess_string_column(self, column: pd.Series) -> pd.Series:
         """
         Preprocess a string column in the recipes.
         Args:
@@ -268,16 +269,13 @@ class DatasetLoader(ABC):
         Returns:
             pd.Series: The processed string column.
         """
-        self.issues['nan'][column.name] = column.isnull().sum()
-        processed_column = column.fillna('')
+        self.issues["nan"][column.name] = column.isnull().sum()
+        processed_column = column.fillna("")
         processed_column = processed_column.astype(str)
         processed_column = processed_column.str.lower().str.strip()
         return processed_column
 
-    def _preprocess_numeric_column(
-        self,
-        column: pd.Series
-    ) -> pd.Series:
+    def _preprocess_numeric_column(self, column: pd.Series) -> pd.Series:
         """
         Preprocess a numeric column in the recipes.
         Args:
@@ -285,14 +283,11 @@ class DatasetLoader(ABC):
         Returns:
             pd.Series: The processed numeric column.
         """
-        processed_column = pd.to_numeric(column, errors='coerce')
-        self.issues['nan'][column.name] = column.isnull().sum()
+        processed_column = pd.to_numeric(column, errors="coerce")
+        self.issues["nan"][column.name] = column.isnull().sum()
         return processed_column
 
-    def _preprocess_date_column(
-        self,
-        column: pd.Series
-    ) -> pd.Series:
+    def _preprocess_date_column(self, column: pd.Series) -> pd.Series:
         """
         Preprocess a date column in the recipes.
         Args:
@@ -301,8 +296,8 @@ class DatasetLoader(ABC):
             pd.Series: The processed date column.
         """
         # Convert to datetime, extract date, handle errors
-        processed_column = pd.to_datetime(column, errors='coerce')
-        self.issues['nan'][column.name] = column.isnull().sum()
+        processed_column = pd.to_datetime(column, errors="coerce")
+        self.issues["nan"][column.name] = column.isnull().sum()
         # processed_column = processed_column.dt.date
         processed_column = processed_column.fillna(pd.NaT)
         return processed_column
@@ -378,7 +373,9 @@ class DatasetLoader(ABC):
     @staticmethod
     def is_non_hashable_column(series: pd.Series) -> bool:
         """Check if a column contains unhashable types."""
-        return series.apply(lambda x: not isinstance(x, (int, float, str, bool, type(None), np.generic))).any()
+        return series.apply(
+            lambda x: not isinstance(x, (int, float, str, bool, type(None), np.generic))
+        ).any()
 
     @staticmethod
     def to_hashable(x, _depth=0):
@@ -390,12 +387,17 @@ class DatasetLoader(ABC):
         if isinstance(x, (list, tuple, set)):
             return tuple(DatasetLoader.to_hashable(v, _depth + 1) for v in x)
         if isinstance(x, dict):
-            return tuple((k, DatasetLoader.to_hashable(v, _depth + 1)) for k, v in sorted(x.items()))
+            return tuple(
+                (k, DatasetLoader.to_hashable(v, _depth + 1))
+                for k, v in sorted(x.items())
+            )
         return x
+
 
 @dataclass
 class RecipesDataset(DatasetLoader):
     table: str = "recipes"
+
 
 @dataclass
 class InteractionsDataset(DatasetLoader):

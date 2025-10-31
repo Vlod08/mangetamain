@@ -1,7 +1,5 @@
 # app/pages/interactions/interactions_explorer_page.py
 from __future__ import annotations
-from pathlib import Path
-import io
 import streamlit as st
 import seaborn as sns
 import plotly.express as px
@@ -11,6 +9,7 @@ import matplotlib.dates as mdates
 from mangetamain.app.app_utils.ui import use_global_ui
 from mangetamain.core.interactions_eda import InteractionsEDAService
 from mangetamain.core.dataset import DatasetLoader
+
 
 def app():
     use_global_ui(
@@ -41,9 +40,15 @@ def app():
     # ---- Sidebar filters ----
     with st.sidebar:
         st.header("Filters")
-        rating_range = st.slider("Rating", min_rating, max_rating, value=(min_rating, max_rating), step=0.5)
-        review_len_range = st.slider("Review length", min_len, max_len, value=(min_len, max_len))
-        year_range = st.slider("Year range", min_year, max_year, value=(min_year, max_year))
+        rating_range = st.slider(
+            "Rating", min_rating, max_rating, value=(min_rating, max_rating), step=0.5
+        )
+        review_len_range = st.slider(
+            "Review length", min_len, max_len, value=(min_len, max_len)
+        )
+        year_range = st.slider(
+            "Year range", min_year, max_year, value=(min_year, max_year)
+        )
 
     df_filtered = interactions_eda_svc.apply_filters(
         rating_range=rating_range,
@@ -63,7 +68,7 @@ def app():
 
     # Preview
     with st.expander("👀 Preview"):
-        st.dataframe(df_filtered.head(20), width='stretch')
+        st.dataframe(df_filtered.head(20), width="stretch")
 
     tabs = st.tabs(["🧹 Quality", "📊 Exploration", "📄 Table"])
 
@@ -72,7 +77,7 @@ def app():
     # =========================
     with tabs[0]:
         st.subheader("Schema")
-        st.dataframe(DatasetLoader.compute_schema(df_filtered), width='stretch')
+        st.dataframe(DatasetLoader.compute_schema(df_filtered), width="stretch")
 
         st.subheader("NaN overview (counters)")
         nan_counts = df_filtered.isna().sum().sort_values(ascending=False)
@@ -93,13 +98,15 @@ def app():
                 .reset_index()
                 .rename(columns={"index": "column"})
             )
-            st.dataframe(miss_df, width='stretch')
+            st.dataframe(miss_df, width="stretch")
             st.bar_chart(miss_df.set_index("column")["n_na"])
         else:
             st.write("—")
 
         st.subheader("Duplicates")
-        dups = interactions_eda_svc.duplicates()  # computed on filtered df thanks to .load() above
+        dups = (
+            interactions_eda_svc.duplicates()
+        )  # computed on filtered df thanks to .load() above
         if not dups:
             st.write("No duplicates found in the filtered dataset.")
         else:
@@ -110,9 +117,9 @@ def app():
         st.subheader("Descriptive Statistics & Cardinalities")
         c1, c2 = st.columns(2)
         with c1:
-            st.dataframe(interactions_eda_svc.desc_numeric(), width='stretch')
+            st.dataframe(interactions_eda_svc.desc_numeric(), width="stretch")
         with c2:
-            st.dataframe(interactions_eda_svc.cardinalities(), width='stretch')
+            st.dataframe(interactions_eda_svc.cardinalities(), width="stretch")
 
     # =========================
     # 📊 Exploration
@@ -123,14 +130,16 @@ def app():
             h = interactions_eda_svc.hist_rating()
             if not h.empty:
                 st.plotly_chart(
-                    px.bar(h, x="left", y="count", title="Ratings distribution"), 
-                    config={'width': 'stretch'})
+                    px.bar(h, x="left", y="count", title="Ratings distribution"),
+                    config={"width": "stretch"},
+                )
         with colB:
             h2 = interactions_eda_svc.hist_review_len()
             if not h2.empty:
                 st.plotly_chart(
-                    px.bar(h2, x="left", y="count", title="Review length (characters)"), 
-                    config={'width': 'stretch'})
+                    px.bar(h2, x="left", y="count", title="Review length (characters)"),
+                    config={"width": "stretch"},
+                )
 
         bm = interactions_eda_svc.by_month()
         if not bm.empty:
@@ -139,15 +148,21 @@ def app():
             with c1:
                 st.plotly_chart(
                     px.line(bm, x="month", y="n", title="Reviews per month"),
-                    config={'width': 'stretch'})
+                    config={"width": "stretch"},
+                )
             with c2:
                 st.plotly_chart(
-                    px.line(bm, x="month", y="mean_rating", title="Average rating per month"),
-                    config={'width': 'stretch'})
+                    px.line(
+                        bm, x="month", y="mean_rating", title="Average rating per month"
+                    ),
+                    config={"width": "stretch"},
+                )
 
             yr = interactions_eda_svc.year_range()
             if yr:
-                y = st.slider("Year (zoom)", yr[0], yr[1], value=int((yr[0] + yr[1]) // 2))
+                y = st.slider(
+                    "Year (zoom)", yr[0], yr[1], value=int((yr[0] + yr[1]) // 2)
+                )
                 oy = interactions_eda_svc.one_year(y)
                 c3, c4 = st.columns(2)
                 with c3:
@@ -169,18 +184,22 @@ def app():
         au = interactions_eda_svc.agg_by_user()
         if not au.empty:
             st.write("Top users (by #reviews):")
-            st.dataframe(au.head(10), width='stretch')
+            st.dataframe(au.head(10), width="stretch")
         ar = interactions_eda_svc.agg_by_recipe()
         if not ar.empty:
             st.write("Top recipes (by #reviews):")
-            st.dataframe(ar.head(10), width='stretch')
+            st.dataframe(ar.head(10), width="stretch")
 
     # =========================
     # 📄 Table (with filters)
     # =========================
     with tabs[2]:
-        cols = [c for c in ["user_id", "recipe_id", "date", "rating", "review"] if c in df_filtered.columns]
-        st.dataframe(df_filtered.head(1000)[cols], hide_index=True, width='stretch')
+        cols = [
+            c
+            for c in ["user_id", "recipe_id", "date", "rating", "review"]
+            if c in df_filtered.columns
+        ]
+        st.dataframe(df_filtered.head(1000)[cols], hide_index=True, width="stretch")
 
         st.download_button(
             "⬇️ Export CSV (filters)",
@@ -188,6 +207,7 @@ def app():
             "reviews_filtered.csv",
             "text/csv",
         )
+
 
 if __name__ == "__main__":
     app()

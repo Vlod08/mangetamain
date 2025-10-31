@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 import streamlit as st
 from streamlit_lottie import st_lottie
@@ -62,9 +61,13 @@ It lets you explore recipes and more than **1M** user interactions (ratings, com
     pandas_markdown_link = f'<a href="{pandas_link}" target="_blank">pandas</a>'
     numpy_markdown_link = f'<a href="{numpy_link}" target="_blank">numpy</a>'
     plotly_markdown_link = f'<a href="{plotly_link}" target="_blank">plotly</a>'
-    matplotlib_markdown_link = f'<a href="{matplotlib_link}" target="_blank">matplotlib</a>'
+    matplotlib_markdown_link = (
+        f'<a href="{matplotlib_link}" target="_blank">matplotlib</a>'
+    )
     seaborn_markdown_link = f'<a href="{seaborn_link}" target="_blank">seaborn</a>'
-    streamlit_markdown_link = f'<a href="{streamlit_link}" target="_blank">streamlit</a>'
+    streamlit_markdown_link = (
+        f'<a href="{streamlit_link}" target="_blank">streamlit</a>'
+    )
     st.markdown(
         """
         - Modular Python architecture  
@@ -83,9 +86,8 @@ It lets you explore recipes and more than **1M** user interactions (ratings, com
         + seaborn_markdown_link
         + " and "
         + streamlit_markdown_link,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
-    
 
     st.markdown("## Expected outcomes")
     st.write(
@@ -115,17 +117,17 @@ The idea is to show that even “everyday” data like recipes and reviews can r
     with col1:
         st.page_link(
             "app/pages/recipes/recipes_explorer_page.py",
-            label="Recipes", 
-            width='stretch', 
-            icon="🧑‍🍳"
+            label="Recipes",
+            width="stretch",
+            icon="🧑‍🍳",
         )
         st.info("Use the **Recipes** menu (top) to explore the recipe dataset.")
     with col2:
         st.page_link(
             "app/pages/interactions/interactions_explorer_page.py",
             label="Interactions",
-            width='stretch',
-            icon="💬"
+            width="stretch",
+            icon="💬",
         )
         st.info("Use the **Interactions** menu (top) to explore reviews / ratings.")
 
@@ -218,7 +220,7 @@ def app() -> None:
     # Optional little toolbox (collapsed) to let you reload everything.
     with st.expander("🧰 Maintenance", expanded=False):
         st.caption("Use this only if you need to refresh the in-memory datasets.")
-        if st.button("🔄 Reload datasets", width='stretch'):
+        if st.button("🔄 Reload datasets", width="stretch"):
             st.cache_data.clear()
             st.cache_resource.clear()
             for k in ("recipes", "interactions", "data_ready", "issues"):
