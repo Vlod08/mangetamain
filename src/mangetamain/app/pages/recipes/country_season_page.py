@@ -36,6 +36,8 @@ def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame
 
     start_time = time.time()
     df_country = recipes_eda_svc.fetch_country(df)
+    if "country_handler" not in st.session_state:
+        st.session_state["country_handler"] = recipes_eda_svc.country_handler
     end_time = time.time()
 
     formatted = format_time(start_time, end_time)
@@ -197,6 +199,7 @@ def app():
         df_country = fetch_country_animation(
             recipes_eda_svc, recipes_df[:50000])
         st.session_state['df_country'] = df_country
+    st.dataframe(df_country.head(5))
 
     countries_list = df_country["country"].dropna(
     ).sort_values().unique().tolist()

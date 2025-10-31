@@ -7,6 +7,7 @@ from typing import List, Dict
 from abc import ABC, abstractmethod
 from functools import wraps
 import streamlit as st
+import numpy as np
 
 from mangetamain.core.utils.string_utils import fuzzy_fetch
 
@@ -81,46 +82,63 @@ class RecipesHandler(ABC):
 
     def fetch(self, df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
         """Fetch values from the reference dataset based on the specified columns.
-
         Args:
             df (pd.DataFrame): The DataFrame to process.
             columns (List[str]): List of column names to search for matching.
-
         Raises:
             ValueError: If a specified column is not found in the DataFrame.
-
         Returns:
             pd.DataFrame: The updated DataFrame with fetched values.
         """
         # Get the reference columns from the reference names
         ref_cols = list(self.ref_names.keys())
-
         # Create a copy of the DataFrame to avoid modifying the original during mapping
         df_copy = df.copy()
 
-        # Iterate over each specified column
         for col_idx, col in enumerate(columns, start=1):
             if col not in df.columns:
                 raise ValueError(f"Column '{col}' not found in DataFrame.")
             
-            # If the column is a string, split it into a list of tokens
-            if len(df) > 0 and isinstance(df_copy[col][0], str):
-                df_copy[col] = df_copy[col].str.split(expand=False)
-            
-            # Iterate over each reference column
+            # Tokenize strings once
+            if len(df) > 0 and isinstance(df[col].iloc[0], str):
+                df_copy[col] = df[col].str.split()
+
+            # Unique tokens for efficiency
+            unique_values = df_copy[col].explode().dropna().unique()
+
             for ref_idx, ref_col in enumerate(ref_cols, start=1):
-                self.logger.info(f"[{col_idx}/{len(columns)}] ({ref_idx}/{len(ref_cols)})" \
-                                 + f" Processing column: {col} for {ref_col} matching...")
+                self.logger.info(f"[{col_idx}/{len(columns)}] ({ref_idx}/{len(ref_cols)}) "
+                                f"Processing column: {col} for {ref_col} matching...")
 
-                # Only update rows where the reference name is empty
                 if ref_col in df.columns:
-                    indexes_to_update = df[df[ref_col] == ''].index
+                    mask = df[ref_col] == ''
                 else:
-                    indexes_to_update = df.index
-                df_copy.loc[indexes_to_update, ref_col] = df_copy.loc[indexes_to_update, col].map(
-                    lambda x: fuzzy_fetch(x, self.ref_names[ref_col])
-                )
+                    mask = pd.Series(True, index=df.index)
 
-        # Infer missing values after fetching
+                # Build lookup once per ref_col
+                lookup = {
+                    val: fuzzy_fetch(val, self.ref_names[ref_col])
+                    for val in unique_values
+                }
+
+                def get_ref_from_list(list_tokens):
+                    best_matches = []
+                    scores = []
+                    for token in list_tokens:
+                        if isinstance(token, str):
+                            best_match, score = lookup.get(token, ('', 0))
+                            if best_match != '':
+                                # return best_match
+                                if score == 100:
+                                    return best_match
+                                best_matches.append(best_match)
+                                scores.append(score)
+                    if len(best_matches) > 0:
+                        idx = np.argmax(scores)
+                        return best_matches[idx]
+                    return ''
+                        
+                df_copy.loc[mask, ref_col] = df_copy.loc[mask, col].map(get_ref_from_list)
+
         df = self.infer(df_copy)
         return df

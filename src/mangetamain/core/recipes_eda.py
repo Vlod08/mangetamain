@@ -176,8 +176,9 @@ class RecipesEDAService(EDAService):
             pd.DataFrame: DataFrame containing recipes with country information.
         """
         self.country_handler.build_ref()
+        columns_to_fetch_in = ["tags"] # + ["name", "description"]
         df_country = self.country_handler.fetch(
-            df, ["tags", "name", "description"])
+            df, columns_to_fetch_in)
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
@@ -257,35 +258,6 @@ class RecipesEDAService(EDAService):
                 cnt.update([str(x).lower().strip() for x in row if x])
         return pd.DataFrame(cnt.most_common(k), columns=["ingredient", "count"])
 
-    # Analyze signature ingredients per country
-    # @staticmethod
-    # def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
-
-    #     # Aggregate all ingredient lists per country into a single list per country
-    #     country_docs_lists = df.groupby('country')['ingredients'].sum()
-
-    #     # Configure vectorizer to accept pre-tokenized input (lists)
-    #     vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
-    #                                  lowercase=False, max_df=0.5, max_features=14000)
-
-    #     # Fit TF-IDF on the per-country documents (each document is a list of tokens)
-    #     tfidf_matrix = vectorizer.fit_transform(country_docs_lists)
-
-    #     ingredients = vectorizer.get_feature_names_out()
-
-    #     # Build a convenient DataFrame: rows=countries, cols=ingredients, values=tf-idf
-    #     df_tfidf = pd.DataFrame(
-    #         tfidf_matrix.toarray(), index=country_docs_lists.index, columns=ingredients
-    #     )
-
-    #     signatures = {}
-    #     for country in df_tfidf.index:
-    #         # Pick the "top_n" highest-scoring ingredients for this country
-    #         top_scores_series = df_tfidf.loc[country].nlargest(top_n)
-    #         signatures[country] = top_scores_series.to_dict()
-
-    #     return signatures
-
     @staticmethod
     def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
         """Compute signature ingredients per country using TF-IDF.
@@ -303,7 +275,8 @@ class RecipesEDAService(EDAService):
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
         base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
-                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000,
+                       'token_pattern': None}
 
         # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
         tfidf_vec = TfidfVectorizer(**base_params)

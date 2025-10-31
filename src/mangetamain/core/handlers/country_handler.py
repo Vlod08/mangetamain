@@ -4,6 +4,7 @@ import json
 from typing import List
 import pandas as pd
 from dataclasses import dataclass
+import streamlit as st
 
 from mangetamain.core.handlers.recipes_handler import RecipesHandler
 
@@ -64,6 +65,19 @@ class CountryHandler(RecipesHandler):
         }
         self.logger.info("Reference countries and regions extracted.")
 
+    @staticmethod
+    @st.cache_data(show_spinner=False)
+    def load_ref_countries(path: str = None) -> list[dict]:
+        """Load the reference countries from a JSON file.
+        Args:
+            path (str): Path to the JSON file containing country names.
+        Returns:
+            list: List of country dictionaries loaded from the JSON file.
+        """
+        with open(path, "r", encoding="utf-8") as f:
+            countries_dataset = json.load(f)
+        return countries_dataset
+
     def build_ref(self, path: str = None):
         """Build the reference dataset from the JSON file.
 
@@ -77,12 +91,12 @@ class CountryHandler(RecipesHandler):
                 raise ValueError("Path to countries JSON file must be provided.")
         try:
             self.logger.info(f"Loading countries from {path}...")
-            countries_dataset = json.load(open(path, "r", encoding="utf-8"))
+            countries_dataset = CountryHandler.load_ref_countries(path)
             self.logger.info(f"Loaded {len(countries_dataset)} countries.")
             self.extract_ref_countries(countries_dataset)
         except Exception as e:
             self.logger.error(f"Error loading countries: {e}")
-            return []
+            raise ValueError(f"Error loading countries: {e}")
 
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         """Infer region names from country names in the DataFrame.

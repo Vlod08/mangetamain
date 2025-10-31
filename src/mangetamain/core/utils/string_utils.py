@@ -6,9 +6,10 @@ import ast
 from rapidfuzz import fuzz, process
 from sklearn.preprocessing import MultiLabelBinarizer
 import re
+from functools import lru_cache
 
-from nltk.corpus import stopwords
-import nltk
+# from nltk.corpus import stopwords
+# import nltk
 # nltk.download('stopwords', quiet=True)
 # STOP_WORDS_EN = set(stopwords.words('english'))
 
@@ -107,11 +108,13 @@ def looks_like_datetime(s: str) -> bool:
         return False
     return bool(DATETIME_PATTERN.search(s))
 
-def fuzzy_fetch(
-    queries: Union[str, List[str]],
-    list_ref_names: List[List[str]],
-    threshold: int = 80
-) -> str:
+def mean_token_scorer(s1, s2, **kwargs):
+    """Custom scorer = mean of token_set_ratio and token_sort_ratio."""
+    score1 = fuzz.token_set_ratio(s1, s2)
+    score2 = fuzz.token_sort_ratio(s1, s2)
+    return (score1 + score2) / 2
+
+def fuzzy_fetch(query: str, list_ref_names: List[List[str]], threshold: int = 80):
     """
     Fetch the best-matching reference name across several semantically related groups
     (e.g., countries and demonyms), using fuzzy string matching.
@@ -121,7 +124,7 @@ def fuzzy_fetch(
     the threshold. Otherwise, it returns an empty string.
 
     Args:
-        queries (Union[str, List[str]]): The input string or list of strings to be matched.
+        queries (str): The input string to be matched.
         list_ref_names (List[List[str]]): A list of groups of reference names.
             Each group is a list of strings of equal length. For example:
                 [
@@ -144,53 +147,28 @@ def fuzzy_fetch(
         >>> fuzzy_fetch(queries, list_ref_names, threshold=80)
         'france'
     """
-    # ---- 1. Input normalization ----
-    if not queries:
+    if not query:
         return ''
-    if isinstance(queries, str):
-        queries = [queries]
+    if isinstance(query, list):
+        query = ' '.join(query)
 
-    # Validate groups
-    num_groups = len(list_ref_names)
-    if num_groups == 0 or any(len(lst) != len(list_ref_names[0]) for lst in list_ref_names):
-        raise ValueError("All groups in list_ref_names must have the same length and be non-empty.")
+    # clean query
+    query_clean = query.replace('-', ' ')
 
-    n_refs = len(list_ref_names[0])
-
-    # ---- 2. Flatten all reference groups for batch fuzzy matching ----
+    # Flatten only once outside in your class
     flat_refs = [ref for group in list_ref_names for ref in group]
+    nb_refs_per_group = len(list_ref_names[0])
 
-    # ---- 3. Compute similarity scores ----
-    # Shape before reshape: (len(queries), num_groups * n_refs)
-    scores = process.cdist(
-        queries,
-        flat_refs,
-        scorer=fuzz.ratio,
-        workers=-1
-    )
+    scores = process.extractOne(query_clean, flat_refs, scorer=mean_token_scorer)
+    if not scores or scores[1] < threshold:
+        return '', scores[1]
 
-    # ---- 4. Reshape to (num_groups, len(queries), n_refs) ----
-    scores = np.reshape(scores, (len(queries), num_groups, n_refs))
-    scores = np.transpose(scores, (1, 0, 2))  # (num_groups, len(queries), n_refs)
-
-    # ---- 5. Get best match per group ----
-    # max across queries → best score per ref name
-    best_score_per_ref = np.max(scores, axis=1)  # (num_groups, n_refs)
-    # then best match within each group
-    best_score_per_group = np.max(best_score_per_ref, axis=1)  # (num_groups,)
-    best_idx_per_group = np.argmax(best_score_per_ref, axis=1)  # (num_groups,)
-
-    # ---- 6. Get global best across groups ----
-    global_group_idx = np.argmax(best_score_per_group)
-    global_best_score = best_score_per_group[global_group_idx]
-    global_best_idx = best_idx_per_group[global_group_idx]
-
-    # ---- 7. Threshold filtering ----
-    if global_best_score < threshold:
-        return ''
-
-    # ---- 8. Always return from the first group ----
-    return list_ref_names[0][global_best_idx]
+    # Find the index of the best match in the first group
+    best_match_idx = scores[2] % nb_refs_per_group
+    # TODO: special case for "american" demonym
+    if scores[0]=="american":
+        return "united states", scores[1]
+    return list_ref_names[0][best_match_idx], scores[1]
 
 def contains_any(values: Iterable[str], items: Iterable[str]) -> bool:
     """Check if any of the items are present in the values."""
