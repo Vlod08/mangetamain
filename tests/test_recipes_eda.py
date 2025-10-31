@@ -95,9 +95,9 @@ def test_by_year(svc):
     assert int(byy.loc[byy["year"] == 2021, "n"].iloc[0]) == 1
 
 def test_apply_filters(svc):
-    filtered = svc.apply_filters(minutes=(0, 15))
+    filtered = svc.apply_filters(minutes_range=(0, 15))
     assert filtered["minutes"].max() <= 15
-    filtered2 = svc.apply_filters(steps=(0, 4))
+    filtered2 = svc.apply_filters(steps_range=(0, 4))
     assert filtered2["n_steps"].max() <= 4
 
 def test_top_ingredients(svc):
