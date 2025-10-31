@@ -203,6 +203,27 @@ class RecipesEDAService(EDAService):
             return pd.DataFrame()
         return df_period[(df_period["season"] != '') | (df_period["event"] != '')]
 
+    def fetch_country_season(self, df) -> pd.DataFrame:
+        """Fetch recipes with both country and season information.
+        Returns:
+            pd.DataFrame: DataFrame containing recipes with country and season information.
+        """
+        # First fetch country
+        df_country = self.fetch_country(df)
+        if df_country.empty:
+            self.logger.warning(
+                "No country information found; cannot fetch country and season.")
+            return pd.DataFrame()
+        # Then fetch season on the country DataFrame
+        df_country_season = self.season_handler.get_periods_all(df_country)
+        if "season" not in df_country_season.columns:
+            self.logger.warning("Column 'season' not found in dataset.")
+            return pd.DataFrame()
+        if "event" not in df_country_season.columns:
+            self.logger.warning("Column 'event' not found in dataset.")
+            return pd.DataFrame()
+        return df_country_season[(df_country_season["season"] != '') | (df_country_season["event"] != '')]
+
     # ---------- Explorer helpers ----------
     def minutes_range(self) -> tuple[int, int]:
         """Get the range of cooking minutes in recipes."""

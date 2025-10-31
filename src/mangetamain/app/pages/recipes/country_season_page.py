@@ -29,17 +29,17 @@ def format_time(start_time: float, end_time: float) -> str:
     return f"{int(minutes)} min {seconds:.2f} sec"
 
 
-def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
+def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
     # Placeholders
     lottie_placeholder = st.empty()
 
     lottie = load_lottie()
     with lottie_placeholder:
-        st.write("Fetching country column...")
+        st.write("Fetching country and season columns...")
         st_lottie(lottie, height=200, speed=1, loop=True)
 
     start_time = time.time()
-    df_country = recipes_eda_svc.fetch_country(df)
+    df_country_season = recipes_eda_svc.fetch_country_season(df)
     if "country_handler" not in st.session_state:
         st.session_state["country_handler"] = recipes_eda_svc.country_handler
     end_time = time.time()
@@ -49,24 +49,24 @@ def fetch_country_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame
     # --- Replace loading elements with success message ---
     lottie_placeholder.empty()
     st.toast(
-        f"Country column added ({formatted})",
+        f"Country and season columns added ({formatted})",
         icon=":material/thumb_up:",
         duration=5)
 
-    return df_country
+    return df_country_season
 
-
-def fetch_period_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
+def compute_country_signatures_animation(df: pd.DataFrame):
     # Placeholders
     lottie_placeholder = st.empty()
 
     lottie = load_lottie()
     with lottie_placeholder:
-        st.write("Fetching saeson column...")
+        st.write("Computing country signatures...")
         st_lottie(lottie, height=200, speed=1, loop=True)
 
     start_time = time.time()
-    df_period = recipes_eda_svc.fetch_period(df)
+    signatures_country = RecipesEDAService.get_signatures_countries(
+        df, top_n=MAX_TOP_N)
     end_time = time.time()
 
     formatted = format_time(start_time, end_time)
@@ -74,11 +74,36 @@ def fetch_period_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame)
     # --- Replace loading elements with success message ---
     lottie_placeholder.empty()
     st.toast(
-        f"Season and Event columns added ({formatted})",
+        f"Country signatures computed ({formatted})",
         icon=":material/thumb_up:",
         duration=5)
 
-    return df_period
+    return signatures_country
+
+def compute_season_signatures_animation(df: pd.DataFrame):
+    # Placeholders
+    lottie_placeholder = st.empty()
+
+    lottie = load_lottie()
+    with lottie_placeholder:
+        st.write("Computing season signatures...")
+        st_lottie(lottie, height=200, speed=1, loop=True)
+
+    start_time = time.time()
+    signatures_season = RecipesEDAService.get_signatures_seasons(
+        df, top_n=MAX_TOP_N)
+    end_time = time.time()
+
+    formatted = format_time(start_time, end_time)
+
+    # --- Replace loading elements with success message ---
+    lottie_placeholder.empty()
+    st.toast(
+        f"Season signatures computed ({formatted})",
+        icon=":material/thumb_up:",
+        duration=5)
+
+    return signatures_season
 
 
 def display_signature(
@@ -335,7 +360,8 @@ def map(df_country: pd.DataFrame, selected_country: str | None = None):
 
 def app():
     use_global_ui(
-        "Mangetamain —  Country & Seasonality",
+        "Mangetamain — Country & Seasonality",
+        subtitle="Explore Culinary Signatures by Country and Season",
         logo="assets/mangetamain-logo.jpg",
         logo_size_px=90,
         round_logo=True, subtitle=None, wide=True
@@ -347,24 +373,23 @@ def app():
     recipes_eda_svc.load(recipes_df, preprocess=False)
 
     # --------- PREP DATA (country / period) ----------
-    if 'df_country' in st.session_state:
-        df_country = st.session_state['df_country']
+    if 'df_country_season' in st.session_state:
+        df_country_season = st.session_state['df_country_season']
     else:
-        df_country = fetch_country_animation(recipes_eda_svc, recipes_df)
-        df_country.rename(columns={"region": "continent"}, inplace=True)
-        st.session_state['df_country'] = df_country
-    st.dataframe(df_country.head(5))
+        df_country_season = fetch_country_season_animation(recipes_eda_svc, recipes_df)
+        df_country_season.rename(columns={"region": "continent"}, inplace=True)
+        st.session_state['df_country_season'] = df_country_season
 
-    if 'df_period' in st.session_state:
-        df_period = st.session_state['df_period']
-    else:
-        df_period = fetch_period_animation(recipes_eda_svc, recipes_df)
-        st.session_state['df_period'] = df_period
-
-    countries_list = df_country["country"].dropna().astype(
+    countries_list = df_country_season["country"].dropna().astype(
         str).sort_values().unique().tolist()
-    seasons_list = df_period["season"].dropna().astype(
+    seasons_list = df_country_season["season"].dropna().astype(
         str).sort_values().unique().tolist()
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Number of countries in dataset", len(countries_list))
+    with col2:
+        st.metric("Number of seasons in dataset", len(seasons_list))
 
     # --------- APPLY PENDING *BEFORE* creating the selectbox ----------
     if "__pending_country_choice" in st.session_state:
@@ -376,17 +401,11 @@ def app():
     if "signatures_country" in st.session_state:
         signatures_country = st.session_state["signatures_country"]
     else:
-        start = time.time()
-        signatures_country = RecipesEDAService.get_signatures_countries(
-            df_country, top_n=MAX_TOP_N)
+        signatures_country = compute_country_signatures_animation(df_country_season)
         if not signatures_country:
             st.error("Could not compute country signatures !")
             return
         st.session_state["signatures_country"] = signatures_country
-        st.toast(
-            f"Signatures_country computed ({format_time(start, time.time())})",
-            icon=":material/thumb_up:", duration=3
-        )
 
     assert all(c in countries_list for c in list(signatures_country[0].keys())), \
         "Signatures list of countries does not match the list of countries in the dataset"
@@ -394,17 +413,11 @@ def app():
     if "signatures_season" in st.session_state:
         signatures_season = st.session_state["signatures_season"]
     else:
-        start = time.time()
-        signatures_season = RecipesEDAService.get_signatures_seasons(
-            df_period, top_n=MAX_TOP_N)
+        signatures_season = compute_season_signatures_animation(df_country_season)
         if not signatures_season:
             st.error("Could not compute season signatures !")
             return
         st.session_state["signatures_season"] = signatures_season
-        st.toast(
-            f"Signatures_season computed ({format_time(start, time.time())})",
-            icon=":material/thumb_up:", duration=3
-        )
 
     assert all(s in seasons_list for s in list(signatures_season[0].keys())), \
         "Signatures list of seasons does not match the list of seasons in the dataset"
@@ -430,7 +443,9 @@ def app():
     except ValueError:
         current_index = 0
 
-    default_season_name = "winter" if "winter" in seasons_list else seasons_list[0]
+    default_season_name = "Select a season..."
+    seasons_list = [default_season_name] + seasons_list
+    # default_season_name = "winter" if "winter" in seasons_list else seasons_list[0]
     default_season_index = seasons_list.index(default_season_name)
 
     selected_country = st.sidebar.selectbox(
@@ -451,6 +466,11 @@ def app():
         label_visibility='hidden',
         format_func=str.title
     )
+
+    df_country_season_filtered = df_country_season.copy()
+    df_country_season_filtered = df_country_season_filtered[df_country_season_filtered["country"] == selected_country] if selected_country != default_country_name else df_country_season_filtered
+    df_country_season_filtered = df_country_season_filtered[df_country_season_filtered["season"] == selected_season] if selected_season != default_season_name else df_country_season_filtered
+    st.dataframe(df_country_season_filtered.head(5))
 
     # Tabs
     st.header("Signature Ingredients")
@@ -494,11 +514,14 @@ def app():
         st.divider()
 
         # Map is always displayed; clicking will set a pending choice and rerun
-        map(df_country, None if selected_country ==
+        map(df_country_season, None if selected_country ==
             default_country_name else selected_country)
 
     with tab2:
-        if selected_season:
+        if selected_season == default_season_name:
+            st.info(
+                "Select a season from the sidebar to view its analysis.")
+        else:
             left, right = st.columns(2, gap="large")
             with left:
                 display_signature(
@@ -509,9 +532,7 @@ def app():
                     season=True
                 )
             with right:
-                display_seasonal_pie(df_period)
-        else:
-            display_seasonal_pie(df_period)
+                display_seasonal_pie(df_country_season)
 
 
 if __name__ == "__main__":
