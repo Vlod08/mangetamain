@@ -68,7 +68,6 @@ def add_filters(recipes_eda_svc: RecipesEDAService):
 
     minutes_stats = recipes_eda_svc.minutes_stats()
     minutes_percentiles_25 = int(minutes_stats["25%"])
-    minutes_percentiles_50 = int(minutes_stats["50%"])
     minutes_percentiles_75 = int(minutes_stats["75%"])
     minutes_percentiles_80 = int(minutes_stats["80%"])
     minutes_percentiles_90 = int(minutes_stats["90%"])
