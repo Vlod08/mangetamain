@@ -5,10 +5,11 @@ import streamlit as st
 from streamlit_lottie import st_lottie
 import time
 
-from mangetamain.core.utils.utils import setup_logging
+# from mangetamain.core.utils.utils import setup_logging
 from mangetamain.config import ROOT_DIR
 from mangetamain.core.dataset import DatasetLoaderThread, RecipesDataset, InteractionsDataset
 from mangetamain.core.utils.utils import load_lottie
+from mangetamain.core.app_logging import setup_logging, get_logger
 
 
 def pages():
@@ -214,7 +215,7 @@ def app():
 if __name__ == "__main__":
     if "logger" not in st.session_state:
         setup_logging()
-        st.session_state["logger"] = logging.getLogger("mangetamain.main")
+        st.session_state["logger"] = get_logger("mangetamain.main")
     else:
         st.session_state["logger"].info("-"*50)
         st.session_state["logger"].info("Application started/restarted.")

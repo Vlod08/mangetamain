@@ -16,6 +16,7 @@ from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, Recipes
 from mangetamain.core.utils.string_utils import extract_classes
 from mangetamain.core.handlers.country_handler import CountryHandler
 from mangetamain.core.handlers.seasonnality_handler import SeasonalityHandler
+from mangetamain.core.app_logging import get_logger
 
 
 @dataclass
@@ -27,7 +28,7 @@ class EDAService(ABC):
 
     def __post_init__(self):
         """Initialize the EDA service."""
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = get_logger(self.__class__.__name__)
         # self.load()
 
     def load(self, df: pd.DataFrame = None, preprocess: bool = True) -> pd.DataFrame:
@@ -44,12 +45,14 @@ class EDAService(ABC):
             if preprocess:
                 df = self.ds.preprocess(df)
                 st.session_state["issues"][self.label] = self.ds.issues
+                self.logger.info("Dataset loaded successfully.")
                 return df
             else:
                 # Load issues from session state if available
                 self.ds.df = df
                 if self.label in st.session_state.get("issues", {}):
                     self.ds.issues = st.session_state["issues"][self.label]
+                self.logger.info("Dataset loaded successfully (without preprocessing)")
                 return df
         # Otherwise, load from the default path
         df = self.ds.load(preprocess=preprocess)
@@ -201,6 +204,28 @@ class RecipesEDAService(EDAService):
         return df_period[(df_period["season"] != '') | (df_period["event"] != '')]
 
     # ---------- Explorer helpers ----------
+    def minutes_range(self) -> tuple[int, int]:
+        """Get the range of cooking minutes in recipes."""
+        if self.ds.df["minutes"].empty:
+            return (0, 0)
+        min_minutes = int(self.ds.df["minutes"].min())
+        max_minutes = int(self.ds.df["minutes"].max())
+        return (min_minutes, max_minutes)
+    
+    def nsteps_range(self) -> tuple[int, int]:
+        """Get the range of number of steps in recipes."""
+        if self.ds.df["n_steps"].empty:
+            return (0, 0)
+        min_n_steps = int(self.ds.df["n_steps"].min())
+        max_n_steps = int(self.ds.df["n_steps"].max())
+        return (min_n_steps, max_n_steps)
+    
+    def minutes_stats(self) -> dict:
+        """Get statistics for cooking minutes in recipes."""
+        return self.ds.df["minutes"].describe(
+            percentiles=[.25, .5, .75, .8, .9, .95]
+            ).to_dict()
+
     def nutrition(self) -> pd.DataFrame:
         """Expand the nutrition column into separate columns."""
         if "nutrition" in self.ds.df.columns:
@@ -242,8 +267,8 @@ class RecipesEDAService(EDAService):
 
     def apply_filters(
         self,
-        minutes: tuple[int, int] | None = None,
-        steps: tuple[int, int] | None = None,
+        minutes_range: tuple[int, int] | None = None,
+        steps_range: tuple[int, int] | None = None,
     ) -> pd.DataFrame:
         """
         Apply various filters to the recipes dataset.
@@ -253,12 +278,12 @@ class RecipesEDAService(EDAService):
         df = self.ds.df.copy()
         cols = df.columns.tolist()
 
-        if minutes and "minutes" in cols:
-            lo, hi = minutes
+        if minutes_range and "minutes" in cols:
+            lo, hi = minutes_range
             df = df[(df["minutes"] >= lo) & (df["minutes"] <= hi)]
 
-        if steps and "n_steps" in cols:
-            lo, hi = steps
+        if steps_range and "n_steps" in cols:
+            lo, hi = steps_range
             df = df[(df["n_steps"] >= lo) & (df["n_steps"] <= hi)]
 
         return df[cols]

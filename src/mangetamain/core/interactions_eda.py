@@ -42,18 +42,9 @@ class InteractionsEDAService(EDAService):
 
     def load(self, df: pd.DataFrame = None, preprocess: bool = True) -> pd.DataFrame:
         df = super().load(df, preprocess)
+        self.logger.info("Computing text features ...")
         self.text_features = self.compute_text_features(self.ds.df["review"])
         return df
-    # def load(self) -> None:
-    #     """Load the dataset."""
-    #     if self.uploaded_file is not None:
-    #         self.logger.info("Loading reviews from uploaded file...")
-    #         # Load from uploaded file
-    #         # and set to ds.df
-    #         self.ds.df = self._load_from_file(self.uploaded_file)
-    #     else:
-    #         self.ds.load()
-    #     self.text_features = self.compute_text_features(self.ds.df["review"])
         
     # ---------- Metadata ----------
     def duplicates(self) -> dict:

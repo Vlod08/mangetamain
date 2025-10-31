@@ -63,7 +63,7 @@ def app():
 
     # Preview
     with st.expander("👀 Preview"):
-        st.dataframe(df_filtered.head(20), use_container_width=True)
+        st.dataframe(df_filtered.head(20), width='stretch')
 
     tabs = st.tabs(["🧹 Quality", "📊 Exploration", "📄 Table"])
 
@@ -72,7 +72,7 @@ def app():
     # =========================
     with tabs[0]:
         st.subheader("Schema")
-        st.dataframe(DatasetLoader.compute_schema(df_filtered), use_container_width=True)
+        st.dataframe(DatasetLoader.compute_schema(df_filtered), width='stretch')
 
         st.subheader("NaN overview (counters)")
         nan_counts = df_filtered.isna().sum().sort_values(ascending=False)
@@ -93,7 +93,7 @@ def app():
                 .reset_index()
                 .rename(columns={"index": "column"})
             )
-            st.dataframe(miss_df, use_container_width=True)
+            st.dataframe(miss_df, width='stretch')
             st.bar_chart(miss_df.set_index("column")["n_na"])
         else:
             st.write("—")
@@ -110,9 +110,9 @@ def app():
         st.subheader("Descriptive Statistics & Cardinalities")
         c1, c2 = st.columns(2)
         with c1:
-            st.dataframe(interactions_eda_svc.desc_numeric(), use_container_width=True)
+            st.dataframe(interactions_eda_svc.desc_numeric(), width='stretch')
         with c2:
-            st.dataframe(interactions_eda_svc.cardinalities(), use_container_width=True)
+            st.dataframe(interactions_eda_svc.cardinalities(), width='stretch')
 
     # =========================
     # 📊 Exploration
@@ -122,24 +122,28 @@ def app():
         with colA:
             h = interactions_eda_svc.hist_rating()
             if not h.empty:
-                st.plotly_chart(px.bar(h, x="left", y="count", title="Ratings distribution"),
-                                use_container_width=True)
+                st.plotly_chart(
+                    px.bar(h, x="left", y="count", title="Ratings distribution"), 
+                    config={'width': 'stretch'})
         with colB:
             h2 = interactions_eda_svc.hist_review_len()
             if not h2.empty:
-                st.plotly_chart(px.bar(h2, x="left", y="count", title="Review length (characters)"),
-                                use_container_width=True)
+                st.plotly_chart(
+                    px.bar(h2, x="left", y="count", title="Review length (characters)"), 
+                    config={'width': 'stretch'})
 
         bm = interactions_eda_svc.by_month()
         if not bm.empty:
             st.subheader("Trend over time")
             c1, c2 = st.columns(2)
             with c1:
-                st.plotly_chart(px.line(bm, x="month", y="n", title="Reviews per month"),
-                                use_container_width=True)
+                st.plotly_chart(
+                    px.line(bm, x="month", y="n", title="Reviews per month"),
+                    config={'width': 'stretch'})
             with c2:
-                st.plotly_chart(px.line(bm, x="month", y="mean_rating", title="Average rating per month"),
-                                use_container_width=True)
+                st.plotly_chart(
+                    px.line(bm, x="month", y="mean_rating", title="Average rating per month"),
+                    config={'width': 'stretch'})
 
             yr = interactions_eda_svc.year_range()
             if yr:
@@ -165,18 +169,18 @@ def app():
         au = interactions_eda_svc.agg_by_user()
         if not au.empty:
             st.write("Top users (by #reviews):")
-            st.dataframe(au.head(10), use_container_width=True)
+            st.dataframe(au.head(10), width='stretch')
         ar = interactions_eda_svc.agg_by_recipe()
         if not ar.empty:
             st.write("Top recipes (by #reviews):")
-            st.dataframe(ar.head(10), use_container_width=True)
+            st.dataframe(ar.head(10), width='stretch')
 
     # =========================
     # 📄 Table (with filters)
     # =========================
     with tabs[2]:
         cols = [c for c in ["user_id", "recipe_id", "date", "rating", "review"] if c in df_filtered.columns]
-        st.dataframe(df_filtered.head(1000)[cols], hide_index=True, use_container_width=True)
+        st.dataframe(df_filtered.head(1000)[cols], hide_index=True, width='stretch')
 
         st.download_button(
             "⬇️ Export CSV (filters)",

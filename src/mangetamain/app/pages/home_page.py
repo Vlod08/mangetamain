@@ -30,11 +30,11 @@ def load_lottie() -> dict:
 def _render_project_intro() -> None:
     """Intro block shown after (or without) the loader."""
     st.markdown("## Project context")
-    st.write(
+    st.markdown(
         """
-**Mangetamain** is a data-science project (Télécom Paris — Big Data kit) built on the
-public **Food.com** dataset. It lets you explore recipes and more than **1M** user
-interactions (ratings, comments, dates).
+**Mangetamain** is a data-science project ([Télécom Paris](https://www.telecom-paris.fr/) — Kit Big Data) built on the
+public **[Food.com](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions)** dataset. 
+It lets you explore recipes and more than **1M** user interactions (ratings, comments, dates).
 """
     )
 
@@ -51,14 +51,41 @@ interactions (ratings, comments, dates).
     )
 
     st.markdown("## Methodology & tools")
-    st.write(
+
+    pandas_link = "https://pandas.pydata.org/"
+    numpy_link = "https://numpy.org/"
+    plotly_link = "https://plotly.com/python/"
+    matplotlib_link = "https://matplotlib.org/"
+    seaborn_link = "https://seaborn.pydata.org/"
+    streamlit_link = "https://streamlit.io/"
+
+    pandas_markdown_link = f'<a href="{pandas_link}" target="_blank">pandas</a>'
+    numpy_markdown_link = f'<a href="{numpy_link}" target="_blank">numpy</a>'
+    plotly_markdown_link = f'<a href="{plotly_link}" target="_blank">plotly</a>'
+    matplotlib_markdown_link = f'<a href="{matplotlib_link}" target="_blank">matplotlib</a>'
+    seaborn_markdown_link = f'<a href="{seaborn_link}" target="_blank">seaborn</a>'
+    streamlit_markdown_link = f'<a href="{streamlit_link}" target="_blank">streamlit</a>'
+    st.markdown(
         """
-- Modular Python architecture  
-- `core/` → data services (`RecipesDataset`, `InteractionsDataset`)  
-- `app/pages/` → Streamlit multipage UI  
-- Main libs: **pandas, numpy, plotly, matplotlib, seaborn, streamlit**
-"""
+        - Modular Python architecture  
+        - `core/` → data services (`RecipesDataset`, `InteractionsDataset`)  
+        - `app/pages/` → Streamlit multipage UI  
+        - Main libs: 
+        """
+        + pandas_markdown_link
+        + ", "
+        + numpy_markdown_link
+        + ", "
+        + plotly_markdown_link
+        + ", "
+        + matplotlib_markdown_link
+        + ", "
+        + seaborn_markdown_link
+        + " and "
+        + streamlit_markdown_link,
+        unsafe_allow_html=True
     )
+    
 
     st.markdown("## Expected outcomes")
     st.write(
@@ -86,8 +113,20 @@ The idea is to show that even “everyday” data like recipes and reviews can r
     st.markdown("### Where to go next?")
     col1, col2 = st.columns(2)
     with col1:
+        st.page_link(
+            "app/pages/recipes/recipes_explorer_page.py",
+            label="Recipes", 
+            width='stretch', 
+            icon="🧑‍🍳"
+        )
         st.info("Use the **Recipes** menu (top) to explore the recipe dataset.")
     with col2:
+        st.page_link(
+            "app/pages/interactions/interactions_explorer_page.py",
+            label="Interactions",
+            width='stretch',
+            icon="💬"
+        )
         st.info("Use the **Interactions** menu (top) to explore reviews / ratings.")
 
 
@@ -179,10 +218,10 @@ def app() -> None:
     # Optional little toolbox (collapsed) to let you reload everything.
     with st.expander("🧰 Maintenance", expanded=False):
         st.caption("Use this only if you need to refresh the in-memory datasets.")
-        if st.button("🔄 Reload datasets", use_container_width=True):
+        if st.button("🔄 Reload datasets", width='stretch'):
             st.cache_data.clear()
             st.cache_resource.clear()
-            for k in ("recipes", "interactions", "data_ready"):
+            for k in ("recipes", "interactions", "data_ready", "issues"):
                 st.session_state.pop(k, None)
             st.rerun()
 

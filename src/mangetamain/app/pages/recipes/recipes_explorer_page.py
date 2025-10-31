@@ -7,6 +7,7 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 
 from mangetamain.app.app_utils.ui import use_global_ui
+from mangetamain.app.app_utils.viz import kde_with_range, kde_plot
 from mangetamain.core.recipes_eda import RecipesEDAService
 from mangetamain.core.dataset import DatasetLoader
 
@@ -34,6 +35,108 @@ def format_period(date_min, date_max):
         return f"{date_min.strftime('%Y-%m-%d')} → {date_max.strftime('%Y-%m-%d')} ({diff_str})"
     else:
         return "N/A"
+    
+def minutes_to_period(minutes: int) -> str:
+    MINUTES_IN_YEAR = 525600
+    MINUTES_IN_MONTH = 43800
+    MINUTES_IN_DAY = 1440
+    MINUTES_IN_HOUR = 60
+
+    years, rem = divmod(minutes, MINUTES_IN_YEAR)
+    months, rem = divmod(rem, MINUTES_IN_MONTH)
+    days, rem = divmod(rem, MINUTES_IN_DAY)
+    hours, mins = divmod(rem, MINUTES_IN_HOUR)
+
+    parts = []
+    if years: parts.append(f"{years}y")
+    if months: parts.append(f"{months}mo")
+    if days: parts.append(f"{days}d")
+    if hours: parts.append(f"{hours}h")
+    if mins or not parts: parts.append(f"{mins}m")
+
+    return " ".join(parts)
+
+def add_filters(recipes_eda_svc: RecipesEDAService):
+    m_lo, m_hi = recipes_eda_svc.minutes_range()
+    s_lo, s_hi = recipes_eda_svc.nsteps_range()
+
+    minutes_stats = recipes_eda_svc.minutes_stats()
+    minutes_percentiles_25 = int(minutes_stats['25%'])
+    minutes_percentiles_50 = int(minutes_stats['50%'])
+    minutes_percentiles_75 = int(minutes_stats['75%'])
+    minutes_percentiles_80 = int(minutes_stats['80%'])
+    minutes_percentiles_90 = int(minutes_stats['90%'])
+    minutes_percentiles_95 = int(minutes_stats['95%'])
+
+    st.title(":gear: Filters")
+
+    # Define your dataset statistics
+    minutes_ranges = {
+        f"All        ({minutes_to_period(m_lo)} - {minutes_to_period(m_hi)})": (m_lo, m_hi),
+        f"Very short ({minutes_to_period(m_lo)} - {minutes_to_period(minutes_percentiles_25)})": (m_lo, minutes_percentiles_25),
+        f"Short      ({minutes_to_period(minutes_percentiles_25)} - {minutes_to_period(minutes_percentiles_75)})": (minutes_percentiles_25, minutes_percentiles_75),
+        f"Medium     ({minutes_to_period(minutes_percentiles_75)} - {minutes_to_period(minutes_percentiles_80)})": (minutes_percentiles_75, minutes_percentiles_80),
+        f"Long       ({minutes_to_period(minutes_percentiles_80)} - {minutes_to_period(minutes_percentiles_90)})": (minutes_percentiles_80, minutes_percentiles_90),
+        f"Very long  ({minutes_to_period(minutes_percentiles_90)} - {minutes_to_period(minutes_percentiles_95)})": (minutes_percentiles_90, minutes_percentiles_95),
+        f"Extra long (> {minutes_to_period(minutes_percentiles_95)})": (minutes_percentiles_95, m_hi), 
+        f"Custom range": None
+    }
+
+    # Show radio buttons
+    selected_label = st.selectbox(
+        "Select recipe duration range",
+        options=list(minutes_ranges.keys()), 
+        placeholder="Select recipe duration range"
+    )
+    # Get the corresponding numeric range
+    # Determine numeric range
+    if selected_label == "Custom range":
+        st.info("Enter your custom range in minutes:")
+        min_minutes = st.number_input("Min minutes", min_value=m_lo, max_value=m_hi, value=m_lo, step=1)
+        max_minutes = st.number_input("Max minutes", min_value=min_minutes, max_value=m_hi, value=minutes_percentiles_90, step=1)
+        if max_minutes < min_minutes:
+            st.error("Max cannot be smaller than Min!")
+            selected_range = None
+        else:
+            selected_range = (min_minutes, max_minutes)
+    else:
+        selected_range = minutes_ranges[selected_label]
+    m_lo, m_hi = selected_range
+
+    df_filtered = recipes_eda_svc.ds.df[recipes_eda_svc.ds.df["minutes"].between(*selected_range)]
+
+    minutes_range = st.slider(
+        "Select Minutes Range",
+        min_value=m_lo, max_value=m_hi,
+        value=(m_lo, m_hi),
+    )
+    df_filtered = df_filtered[df_filtered["minutes"].between(*minutes_range)]
+    st.plotly_chart(
+        kde_plot(df_filtered, "minutes"),
+        config={'width': 'stretch'}
+    )
+    st.write(f"Selected range: {minutes_to_period(minutes_range[0])} → {minutes_to_period(minutes_range[1])}")
+
+    # --- N_STEPS FILTER ---
+    steps_range = st.slider(
+        "Select n_steps Range",
+        min_value=s_lo, max_value=s_hi,
+        value=(s_lo, s_hi)
+    )
+    df_filtered = df_filtered[df_filtered["n_steps"].between(*steps_range)]
+    st.plotly_chart(
+        kde_plot(df_filtered, "n_steps"),
+        config={'width': 'stretch'}
+    )
+    # inc_tags = [t.strip() for t in st.text_input("Include tags ( , )", "").split(",") if t.strip()]
+    # inc_ings = [t.strip() for t in st.text_input("Contains ingredients ( , )", "").split(",") if t.strip()]
+
+    df_filtered = recipes_eda_svc.apply_filters(
+        minutes_range=minutes_range, steps_range=steps_range, 
+        # include_tags=True, include_ings=True
+    )
+
+    return df_filtered
 
 def app():
     use_global_ui(
@@ -48,38 +151,15 @@ def app():
     recipes_df = st.session_state["recipes"]
     recipes_eda_svc = RecipesEDAService()
     recipes_eda_svc.load(recipes_df, preprocess=False)
-        
-    # # ========= Overview =========
-    # st.subheader("Quick Overview")
-    # st.plotly_chart(hist_minutes(recipes_df), config={"width": 'stretch'})
 
-    # --------- Barre latérale : artefact + filtres ----------
-    # with st.sidebar:
-    #     st.header(":inbox_tray: Data Source")
-    #     uploaded = st.file_uploader("Upload CSV/Parquet (optional)", type=["csv","parquet"])
-
+    # Filters
     with st.sidebar:
-        # st.header(":gear: Artefact")
-        # if st.button(":arrows_counterclockwise: Generate Clean Recipes Artifact"):
-        #     with st.spinner("Preprocessing..."):
-        #         recipes_eda_svc.export_clean_min()
-        #     st.success(f":microscope: Artifact regenerated successfully.")
-        #     st.rerun()  # Refresh to load new artifact
+        df_filtered = add_filters(recipes_eda_svc)
 
-        st.header(":gear: Filters")
-        m_lo, m_hi = 0, int(recipes_df["minutes"].max(skipna=True) or 240)
-        s_lo, s_hi = 0, int(recipes_df["n_steps"].max(skipna=True) or 20)
-        minutes = st.slider("Minutes", m_lo, m_hi, (0, min(120, m_hi)))
-        steps   = st.slider("Steps",  s_lo, s_hi, (0, min(12, s_hi)))
-        # inc_tags = [t.strip() for t in st.text_input("Include tags ( , )", "").split(",") if t.strip()]
-        # inc_ings = [t.strip() for t in st.text_input("Contains ingredients ( , )", "").split(",") if t.strip()]
-
-    df_filtered = recipes_eda_svc.apply_filters(
-        minutes=minutes, steps=steps, 
-        # include_tags=True, include_ings=True
-    )
     df_columns = df_filtered.columns.tolist()
-    recipes_eda_svc.ds.df = df_filtered  # Update EDA service dataset
+
+    # Reload the service with filtered data so downstream methods reflect filters
+    recipes_eda_svc.load(df_filtered, preprocess=False)
 
     # ========= KPI Header =========
     unique_tags = recipes_eda_svc.get_unique("tags")

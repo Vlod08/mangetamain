@@ -16,6 +16,7 @@ from mangetamain.core.utils.string_utils import (
     extract_list_strings, extract_list_floats, 
     looks_like_datetime, is_list_string, is_list_floats_string
 )
+from mangetamain.core.app_logging import get_logger
 
 DATA_DIR: Path = ROOT_DIR / "data"
 MANGETAMAIN_DB_PATH: Path = DATA_DIR / "mangetamain.db"
@@ -47,7 +48,7 @@ class DatasetLoader(ABC):
     issues: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = get_logger(self.__class__.__name__)
 
     # ---- DataFrame Property ----
     @property
@@ -148,6 +149,7 @@ class DatasetLoader(ABC):
         """
         if not table:
             raise NotImplementedError("Subclasses must define the table name.")
+        _logger.info("Loading dataset ...")
 
         df = None  # reset
         try:

@@ -1,23 +1,22 @@
 # core/app_logging.py
 from __future__ import annotations
-from pathlib import Path
 import logging
+from mangetamain.config import ROOT_DIR
 
-_LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+_LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s"
 
+LOG_DIR = ROOT_DIR / "logs"
+APP_LOG = LOG_DIR / "app.log"
+ERR_LOG = LOG_DIR / "error.log"
 
-def setup_logging(root: Path) -> None:
+def setup_logging() -> None:
     """
     Configure global logging:
     - logs/app.log (INFO+)
     - logs/error.log (ERROR+)
     - console (INFO+)
     """
-    log_dir = root / "logs"
-    log_dir.mkdir(parents=True, exist_ok=True)
-
-    app_path = log_dir / "app.log"
-    err_path = log_dir / "error.log"
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
 
     # Root logger
     logger = logging.getLogger()
@@ -30,13 +29,13 @@ def setup_logging(root: Path) -> None:
     fmt = logging.Formatter(_LOG_FORMAT)
 
     # File: INFO+
-    fh_info = logging.FileHandler(app_path, encoding="utf-8")
+    fh_info = logging.FileHandler(APP_LOG, encoding="utf-8")
     fh_info.setLevel(logging.INFO)
     fh_info.setFormatter(fmt)
     logger.addHandler(fh_info)
 
     # File: ERROR+
-    fh_err = logging.FileHandler(err_path, encoding="utf-8")
+    fh_err = logging.FileHandler(ERR_LOG, encoding="utf-8")
     fh_err.setLevel(logging.ERROR)
     fh_err.setFormatter(fmt)
     logger.addHandler(fh_err)

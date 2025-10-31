@@ -1,14 +1,12 @@
 # app/pages/06_Admin.py
-from __future__ import annotations  # must stay at the very top
-
-import os
+from __future__ import annotations
 import time
 from pathlib import Path
 import pandas as pd
 import streamlit as st
 
 from app.app_utils.ui import use_global_ui
-from mangetamain.core.app_logging import setup_logging, get_logger  # your logging module
+from mangetamain.core.app_logging import get_logger, APP_LOG, ERR_LOG
 
 # ---------- UI header ----------
 use_global_ui(
@@ -40,15 +38,6 @@ def find_root(anchor: Path) -> Path:
             return cand
     return p
 
-
-ROOT = find_root(Path(__file__))
-# Configure or reconfigure logging on every rerun (creates /logs if missing)
-setup_logging(ROOT)
-
-LOG_DIR = ROOT / "logs"
-APP_LOG = LOG_DIR / "app.log"
-ERR_LOG = LOG_DIR / "error.log"
-
 # ---------- Sidebar / Options ----------
 with st.sidebar:
     st.header("Options")
@@ -63,7 +52,7 @@ with st.sidebar:
             st.session_state[key] = now
             _rerun()
 
-    file_choice = st.radio("Log file", ["app.log", "error.log"])
+    file_choice = st.radio("Log file", [APP_LOG.name, ERR_LOG.name])
     level_filter = st.multiselect(
         "Levels", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default=[]
     )
@@ -135,6 +124,7 @@ with btn_cols[0]:
         file_name=file_choice,
         mime="text/plain; charset=utf-8",
     )
+
 with btn_cols[1]:
     if st.button("🧹 Clear file", type="secondary"):
         cur_log.parent.mkdir(parents=True, exist_ok=True)
@@ -143,6 +133,7 @@ with btn_cols[1]:
         get_logger().warning("Log file cleared: %s", cur_log.name)
         st.success(f"{file_choice} cleared.")
         _rerun()
+    
 with btn_cols[2]:
     if st.button("🧪 Write test log (INFO)"):
         logger = get_logger()
@@ -162,7 +153,7 @@ if len(lines) == 0:
         "No lines to display (file is empty or missing). "
         "Click **Write test log** to ensure logging works."
     )
-st.dataframe(df, use_container_width=True, hide_index=True)
+st.dataframe(df, hide_index=True)
 
 with st.expander("View raw content"):
     st.code("\n".join(lines), language="text")

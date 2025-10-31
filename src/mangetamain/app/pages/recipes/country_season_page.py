@@ -240,7 +240,7 @@ def display_signatures_tfidf_vs_tf(
         fig.update_traces(textposition='top center')
 
         # 4. --- STREAMLIT DISPLAY ---
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, config={'width': 'stretch'})
 
     except Exception as e:
         st.error(f"Error generating Plotly chart: {e}")
@@ -276,7 +276,7 @@ def display_seasonal_pie(df_period: pd.DataFrame):
     )
 
     fig.update_layout(showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, config={'width': 'stretch'})
 
 
 def map(df_country: pd.DataFrame, selected_country: str | None = None):
@@ -385,7 +385,7 @@ def app():
         st.session_state["signatures_country"] = signatures_country
         st.toast(
             f"Signatures_country computed ({format_time(start, time.time())})",
-            icon=":material/thumb_up:", duration=5
+            icon=":material/thumb_up:", duration=3
         )
 
     assert all(c in countries_list for c in list(signatures_country[0].keys())), \
@@ -403,7 +403,7 @@ def app():
         st.session_state["signatures_season"] = signatures_season
         st.toast(
             f"Signatures_season computed ({format_time(start, time.time())})",
-            icon=":material/thumb_up:", duration=5
+            icon=":material/thumb_up:", duration=3
         )
 
     assert all(s in seasons_list for s in list(signatures_season[0].keys())), \
@@ -439,7 +439,8 @@ def app():
         index=current_index,
         placeholder="Select a country...",
         label_visibility='hidden',
-        key="country_choice"
+        key="country_choice", 
+        format_func=str.title
     )
 
     selected_season = st.sidebar.selectbox(
@@ -509,6 +510,8 @@ def app():
                 )
             with right:
                 display_seasonal_pie(df_period)
+        else:
+            display_seasonal_pie(df_period)
 
 
 if __name__ == "__main__":
