@@ -10,22 +10,25 @@ Requirements
 Using Poetry (development / local runs)
 ---------------------------------------
 
-1. Install Poetry (if not installed):
+1. Install Poetry (if not installed). The recommended installer is the
+   official install script:
 
    ```bash
    curl -sSL https://install.python-poetry.org | python -
+   # or install a pinned poetry version via pip for CI parity:
+   python -m pip install --upgrade pip && pip install "poetry==2.2.0"
    ```
 
 2. Install project dependencies:
 
    ```bash
-   poetry install
+   poetry install --no-interaction
    ```
 
-3. Run the Streamlit app locally:
+4. Run the Streamlit app locally (the actual entrypoint is `main.py`):
 
    ```bash
-   poetry run streamlit run src/mangetamain/app/Home.py
+   poetry run streamlit run src/mangetamain/main.py --server.port=8501
    ```
 
 Using Docker (recommended for deployment)
