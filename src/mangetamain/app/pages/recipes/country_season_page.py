@@ -196,7 +196,7 @@ def display_signatures_tfidf_vs_tf(
 
     # Sort by descending TF-IDF
     sorted_terms = sorted(country_tfidf.items(),
-                          key=lambda item: item[1], reverse=True)
+                        key=lambda item: item[1], reverse=True)
 
     # Select the Top N terms
     top_scores_tfidf = dict(sorted_terms[:top_n_to_display])
@@ -321,6 +321,55 @@ def display_seasonal_pie(df_period: pd.DataFrame):
     fig.update_layout(showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
+def map(df_country: pd.DataFrame, selected_country: str | None = None):
+
+    level = st.radio("View", ["country", "continent"], horizontal=True, key="map_view_level")
+
+    mapper = BubbleMapFolium(tiles="OpenStreetMap", auto_centroids=True)
+
+    if level == "country":
+        counts = mapper.counts_by_country(df_country, country_col="country")
+        countries_list = counts["country"].dropna().astype(str).sort_values().unique().tolist()
+        name_map = {c.casefold(): c for c in countries_list}
+    else:
+        counts = mapper.counts_by_continent(df_country, continent_col="continent")
+        name_map = {}
+
+    # On n’utilise la sélection que pour le highlight (pas pour écrire la sidebar)
+    selected_for_map = None if (not selected_country or selected_country == "Select a country...") else selected_country
+
+    m = mapper.build_map(
+        counts,
+        level=level,
+        min_px=6, max_px=6,
+        opacity=0.95,
+        use_sqrt=True,
+        cluster=False,
+        color_polygons=True,
+        selected_country=selected_for_map,
+        zoom_on_selected=True,
+        zoom_mode="country",
+    )
+
+    result = st_folium(m, height=640, width=None, key="map_widget")
+
+    # CLICK HANDLER (sélection d’un pays depuis la carte)
+    if level == "country":
+        clicked_popup = (result or {}).get("last_object_clicked_popup")
+        if clicked_popup:
+            raw = str(clicked_popup).strip()
+            # gère "<b>France</b><br/>…" ou "France"
+            if "<b>" in raw and "</b>" in raw:
+                start = raw.find("<b>") + 3
+                end = raw.find("</b>", start)
+                country_clicked = raw[start:end].strip().casefold()
+            else:
+                country_clicked = raw.split("<br")[0].strip().casefold()
+
+            if country_clicked in name_map:
+                st.session_state["__pending_country_choice"] = name_map[country_clicked]
+                st.rerun()
+
 
 def app():
     use_global_ui(
@@ -330,227 +379,158 @@ def app():
         round_logo=True, subtitle=None, wide=True
     )
 
-    # Recipes dataset already uploaded in app entrypoint (main.py)
+    # Dataset déjà chargé par l’entrypoint
     recipes_df = st.session_state["recipes"]
     recipes_eda_svc = RecipesEDAService()
     recipes_eda_svc.load(recipes_df, preprocess=False)
 
+    # --------- PREP DATA (country / period) ----------
     if 'df_country' in st.session_state:
         df_country = st.session_state['df_country']
     else:
-        df_country = fetch_country_animation(
-            recipes_eda_svc, recipes_df)
+        df_country = fetch_country_animation(recipes_eda_svc, recipes_df)
         df_country.rename(columns={"region": "continent"}, inplace=True)
         st.session_state['df_country'] = df_country
 
     if 'df_period' in st.session_state:
         df_period = st.session_state['df_period']
     else:
-        df_period = fetch_period_animation(
-            recipes_eda_svc, recipes_df)
+        df_period = fetch_period_animation(recipes_eda_svc, recipes_df)
         st.session_state['df_period'] = df_period
 
-    countries_list = df_country["country"].dropna(
-    ).sort_values().unique().tolist()
+    countries_list = df_country["country"].dropna().astype(str).sort_values().unique().tolist()
+    seasons_list = df_period["season"].dropna().astype(str).sort_values().unique().tolist()
 
-    seasons_list = df_period["season"].dropna().sort_values().unique().tolist()
+    # --------- APPLY PENDING *AVANT* de créer le selectbox ----------
+    if "__pending_country_choice" in st.session_state:
+        st.session_state["country_choice"] = st.session_state.pop("__pending_country_choice")
+    st.session_state.setdefault("country_choice", "Select a country...")
 
-    # Signatures by country
+    # --------- Signatures (cache session) ----------
     if "signatures_country" in st.session_state:
         signatures_country = st.session_state["signatures_country"]
     else:
         start = time.time()
-        signatures_country = RecipesEDAService.get_signatures_countries(
-            df_country, top_n=MAX_TOP_N)
+        signatures_country = RecipesEDAService.get_signatures_countries(df_country, top_n=MAX_TOP_N)
         if not signatures_country:
             st.error("Could not compute country signatures !")
             return
-        formatted = format_time(start, time.time())
         st.session_state["signatures_country"] = signatures_country
         st.toast(
-            f"Signatures_country computed ({formatted})",
-            icon=":material/thumb_up:",
-            duration=5)
+            f"Signatures_country computed ({format_time(start, time.time())})",
+            icon=":material/thumb_up:", duration=5
+        )
 
-    assert all(country in countries_list for country in list(signatures_country[0].keys())), (
-        "Signatures list of countries does not match the list of countries in the dataset")
+    assert all(c in countries_list for c in list(signatures_country[0].keys())), \
+        "Signatures list of countries does not match the list of countries in the dataset"
 
-    # Signatures by season
     if "signatures_season" in st.session_state:
         signatures_season = st.session_state["signatures_season"]
     else:
         start = time.time()
-        signatures_season = RecipesEDAService.get_signatures_seasons(
-            df_period, top_n=MAX_TOP_N)
+        signatures_season = RecipesEDAService.get_signatures_seasons(df_period, top_n=MAX_TOP_N)
         if not signatures_season:
             st.error("Could not compute season signatures !")
             return
-        formatted = format_time(start, time.time())
         st.session_state["signatures_season"] = signatures_season
         st.toast(
-            f"Signatures_season computed ({formatted})",
-            icon=":material/thumb_up:",
-            duration=5)
+            f"Signatures_season computed ({format_time(start, time.time())})",
+            icon=":material/thumb_up:", duration=5
+        )
 
-    assert all(season in seasons_list for season in list(signatures_season[0].keys())), (
-        "Signatures list of countries does not match the list of countries in the dataset")
+    assert all(s in seasons_list for s in list(signatures_season[0].keys())), \
+        "Signatures list of seasons does not match the list of seasons in the dataset"
 
-    # UI
+    # -------------------- UI --------------------
     st.title("🧑‍🍳 Recipes and Ingredients Signatures Analyzer")
 
-    # --- Sidebar Controls ---
+    # Sidebar
     st.sidebar.header("Analysis Options")
-    # Slider to select how many of the pre-calculated top ingredients to display
     top_n_to_display = st.sidebar.slider(
         "Display Top N Ingredients:",
-        min_value=MIN_TOP_N,
-        max_value=MAX_TOP_N,
-        value=MAX_TOP_N
+        min_value=MIN_TOP_N, max_value=MAX_TOP_N, value=MAX_TOP_N
     )
 
-    # --- Main Section: Country Signatures ---
-    st.header("Signature Ingredients")
+    # Sélecteurs
+    default_country_name = "Select a country..."
+    options_countries = [default_country_name] + countries_list
+    current_choice = st.session_state.get("country_choice", default_country_name)
+    try:
+        current_index = options_countries.index(current_choice if current_choice in options_countries else default_country_name)
+    except ValueError:
+        current_index = 0
 
-    # Country selection dropdown
-    default_country_name = "france"
-    default_index = 0
-    if default_country_name in countries_list:
-        default_index = countries_list.index(default_country_name)
+    default_season_name = "winter" if "winter" in seasons_list else seasons_list[0]
+    default_season_index = seasons_list.index(default_season_name)
 
     selected_country = st.sidebar.selectbox(
         "Select a country",
-        options=countries_list,
-        index=default_index,
+        options=options_countries,
+        index=current_index,
         placeholder="Select a country...",
-        label_visibility='hidden'
+        label_visibility='hidden',
+        key="country_choice"
     )
 
     selected_season = st.sidebar.selectbox(
         "Select a season",
         options=seasons_list,
-        index=None,
+        index=default_season_index,
         placeholder="Select a season...",
         label_visibility='hidden'
     )
 
-# APPLY PENDING CLICK BEFORE WIDGETS
-    # If a previous click stored a pending choice, apply it now (before selectbox exists)
-
-    if "__pending_country_choice" in st.session_state:
-        st.session_state["country_choice"] = st.session_state.pop(
-            "__pending_country_choice")
-
-    # Init state if first run
-    if "country_choice" not in st.session_state:
-        st.session_state["country_choice"] = "select"
-
-    # LEVEL SELECTION
-    level = st.radio("View", ["country", "continent"], horizontal=True)
-
-    mapper = BubbleMapFolium(tiles="OpenStreetMap", auto_centroids=True)
-    if level == "country":
-        counts = mapper.counts_by_country(df_country, country_col="country")
-    else:
-        counts = mapper.counts_by_continent(
-            df_country, continent_col="continent")
-
-    # COUNTRY SELECTION WIDGET
-    selected_country = None
-    if level == "country":
-        countries_list = counts["country"].dropna().astype(
-            str).sort_values().unique().tolist()
-        options = ["select"] + countries_list
-        # Create a case-insensitive mapping for country names
-        name_map = {c.casefold(): c for c in countries_list}
-        if "__pending_country_choice" in st.session_state:
-            pending = st.session_state.pop("__pending_country_choice")
-            canonical = name_map.get(str(pending).casefold())
-            if canonical:
-                st.session_state["country_choice"] = canonical
-        st.session_state.setdefault("country_choice", "select")
-
-        # index comes from session state
-        try:
-            idx = options.index(st.session_state["country_choice"])
-        except ValueError:
-            idx = 0
-
-        # Bind the selectbox to the same key we control via session_state
-        st.selectbox("Select a country", options,
-                     index=idx, key="country_choice")
-
-    selected_country = None if st.session_state["country_choice"] == "select" else st.session_state["country_choice"]
-
-    # Build map
-    m = mapper.build_map(
-        counts,
-        level=level,
-        min_px=6,
-        max_px=6,
-        opacity=0.95,
-        use_sqrt=True,
-        cluster=False,
-        color_polygons=True,
-        selected_country=selected_country,
-        zoom_on_selected=True,
-        zoom_mode="country",
-    )
-
-    # Show map
-    result = st_folium(m, height=640, width=None, key="map_widget")
-
-    # CLICK HANDLER (COUNTRY SELECTION)
-    if level == "country":
-        clicked_popup = (result or {}).get("last_object_clicked_popup")
-        if clicked_popup:
-            raw = str(clicked_popup).strip()
-            # handle "<b>France</b><br/>…" or plain "France"
-            if "<b>" in raw and "</b>" in raw:
-                start = raw.find("<b>") + 3
-                end = raw.find("</b>", start)
-                country_clicked = raw[start:end].strip().casefold()
-            else:
-                country_clicked = raw.split("<br")[0].strip().casefold()
-            clicked = (country_clicked or "").casefold()
-            if clicked in name_map:
-                st.session_state["__pending_country_choice"] = name_map[clicked]
-                st.rerun()
-
+    # Tabs
+    st.header("Signature Ingredients")
     tab1, tab2 = st.tabs(["Country Analysis", "Season Analysis"])
 
     with tab1:
-        if selected_country:
-            # Top 3
-            top_3_terms = list(
-                signatures_country[0][selected_country].keys())[:3]
 
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("🥇 Top Signature", top_3_terms[0].title() if len(
-                    top_3_terms) > 0 else "N/A")
-            with col2:
-                st.metric("🥈 Second Signature", top_3_terms[1].title() if len(
-                    top_3_terms) > 1 else "N/A")
-            with col3:
-                st.metric("🥉 Third Signature", top_3_terms[2].title() if len(
-                    top_3_terms) > 2 else "N/A")
+        if selected_country == default_country_name:
+            st.info("Click a country on the map or choose one from the sidebar to view its analysis.")
+        else:
+            top_3 = list(signatures_country[0][selected_country].keys())[:3]
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("🥇 Top Signature", top_3[0].title() if len(top_3) > 0 else "N/A")
+            with c2:
+                st.metric("🥈 Second Signature", top_3[1].title() if len(top_3) > 1 else "N/A")
+            with c3:
+                st.metric("🥉 Third Signature", top_3[2].title() if len(top_3) > 2 else "N/A")
 
             st.divider()
-
             left, right = st.columns(2, gap="large")
             with left:
                 display_signature(
-                    signatures_country[0][selected_country], selected_country, top_n_to_display, country=True)
+                    signatures_country[0][selected_country],
+                    selected_country,
+                    top_n_to_display,
+                    country=True
+                )
             with right:
                 display_signatures_tfidf_vs_tf(
-                    signatures_country[0], signatures_country[1], selected_country, top_n_to_display)
+                    signatures_country[0],
+                    signatures_country[1],
+                    selected_country,
+                    top_n_to_display
+                )
+
+        st.divider()
+        
+        # Carte toujours affichée; le clic posera un pending + rerun
+        map(df_country, None if selected_country == default_country_name else selected_country)
 
     with tab2:
         if selected_season:
             left, right = st.columns(2, gap="large")
             with left:
-                display_signature(signatures_season[0][selected_season], selected_season,
-                                  top_n_to_display, country=False, season=True)
+                display_signature(
+                    signatures_season[0][selected_season],
+                    selected_season,
+                    top_n_to_display,
+                    country=False,
+                    season=True
+                )
             with right:
                 display_seasonal_pie(df_period)
 

@@ -299,11 +299,11 @@ columns=["country", "lat", "lon"])
     @staticmethod
     def _seg_color(v: int) -> str:
         """<10: red, 10–39: yellow, 40–60: blue, >60: green"""
-        if v < 5:
+        if v < 10:
             return "#e03131"  # red
-        if v < 15:
+        if v < 30:
             return "#f59f00"  # yellow
-        if v <= 30:
+        if v <= 50:
             return "#1c7ed6"  # blue
         return "#2f9e44"      # green
 
@@ -721,19 +721,19 @@ columns=["country", "lat", "lon"])
           </div>
           <div style="color:#000 !important;">
             <span style="display:inline-block;width:12px;height:12px;background:#e03131;margin-right:6px;"></span>
-            &lt; 4
+            &lt; 9
           </div>
           <div style="color:#000 !important;">
             <span style="display:inline-block;width:12px;height:12px;background:#f59f00;margin-right:6px;"></span>
-            5 – 14
+            10 – 29
           </div>
           <div style="color:#000 !important;">
             <span style="display:inline-block;width:12px;height:12px;background:#1c7ed6;margin-right:6px;"></span>
-            15 – 29
+            30 – 49
           </div>
           <div style="color:#000 !important;">
             <span style="display:inline-block;width:12px;height:12px;background:#2f9e44;margin-right:6px;"></span>
-            &gt; 30
+            &gt; 50
           </div>
         </div>
         {% endmacro %}

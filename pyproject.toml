@@ -33,8 +33,6 @@ geopandas = "^1.1.1"
 geodatasets = "^2024.8.0"
 rapidfuzz = "^3.14.1"
 nltk = "^3.9.2"
-rapidfuzz = "^3.14.1"
-nltk = "^3.9.2"
 streamlit-charts = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
