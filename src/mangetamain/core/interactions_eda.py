@@ -13,6 +13,13 @@ import streamlit as st
 
 from core.dataset import InteractionsDataset, DatasetLoader
 from core.recipes_eda import EDAService
+# Optionnel: statsmodels pour OLS/décomposition
+try:
+    import statsmodels.api as sm  # noqa: F401
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    HAS_SM = True
+except Exception:
+    HAS_SM = False
 
 
 @dataclass
@@ -210,12 +217,12 @@ class InteractionsEDAService(EDAService):
         return df[orig_columns]
 
     # ---------- Advanced Analysis ----------
-    def corr_numeric(self) -> pd.DataFrame:
-        """Return correlation matrix for numeric features."""
-        d = self.ds.df.select_dtypes(include="number")
-        if d.empty:
-            return pd.DataFrame()
-        return d.corr(numeric_only=True)
+    #def corr_numeric(self) -> pd.DataFrame:
+        #"""Return correlation matrix for numeric features."""
+        #d = self.ds.df.select_dtypes(include="number")
+        #if d.empty:
+            #return pd.DataFrame()
+        #return d.corr(numeric_only=True)
 
     def rating_vs_length(self) -> pd.DataFrame:
         """Return DataFrame with rating vs review length."""
@@ -270,3 +277,134 @@ class InteractionsEDAService(EDAService):
         out = df[keep].copy()
         out = out.convert_dtypes(dtype_backend="numpy_nullable")
         return out
+    
+        # ---------- Helpers temporels ----------
+    def _ensure_datetime(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Garantit que la colonne date est en datetime64 (ou NaT)."""
+        if "date" not in df.columns:
+            return df
+        if not np.issubdtype(df["date"].dtype, np.datetime64):
+            df = df.copy()
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        return df
+
+    # ---------- Temporal Analysis (remplace ta méthode by_month existante) ----------
+    def by_month(self) -> pd.DataFrame:
+        """Agrège par mois: n et rating moyen."""
+        df = self._ensure_datetime(self.ds.df)
+        if "date" not in df.columns or df["date"].isna().all():
+            return pd.DataFrame()
+        work = df.dropna(subset=["date"]).copy()
+        work["month"] = work["date"].dt.to_period("M").dt.to_timestamp()
+        g = work.groupby("month", as_index=False)
+        out = g.agg(
+            n=("date", "size"),
+            mean_rating=("rating", "mean") if "rating" in work.columns else ("date", "size")
+        ).sort_values("month")
+        return out
+
+    # ---------- Time Series pour la page ----------
+    def monthly_series(self) -> pd.DataFrame:
+        """Alias by_month avec noms attendus par la page."""
+        return self.by_month()
+
+    def monthly_rolling(self, window: int = 3) -> pd.DataFrame:
+        """Ajoute des colonnes lissées (rolling 3 par défaut)."""
+        bm = self.monthly_series()
+        if bm.empty:
+            return bm
+        out = bm.copy()
+        out["n_roll3"] = out["n"].rolling(window=window, min_periods=1).mean()
+        if "mean_rating" in out.columns:
+            out["mean_rating_roll3"] = out["mean_rating"].rolling(window=window, min_periods=1).mean()
+        return out
+
+    def monthly_yoy(self) -> pd.DataFrame:
+        """Croissance YoY de n (t vs t-12)."""
+        bm = self.monthly_series()
+        if bm.empty:
+            return bm
+        out = bm.copy()
+        out["n_prev12"] = out["n"].shift(12)
+        out["n_yoy"] = (out["n"] / out["n_prev12"] - 1).replace([np.inf, -np.inf], np.nan)
+        return out.drop(columns=["n_prev12"])
+
+    def seasonal_decompose_monthly(self) -> pd.DataFrame:
+        """Décomposition additive (trend/seasonal/resid) sur n mensuel."""
+        if not HAS_SM:
+            return pd.DataFrame()
+        bm = self.monthly_series()
+        if bm.empty or len(bm) < 24:
+            return pd.DataFrame()
+        s = bm.set_index("month")["n"].asfreq("MS")  # série mensuelle
+        s = s.interpolate(limit_direction="both")
+        dec = seasonal_decompose(s, model="additive", period=12, extrapolate_trend="freq")
+        long = (
+            pd.concat(
+                [
+                    dec.observed.rename("observed"),
+                    dec.trend.rename("trend"),
+                    dec.seasonal.rename("seasonal"),
+                    dec.resid.rename("resid"),
+                ],
+                axis=1,
+            )
+            .reset_index()
+            .melt(id_vars="month", var_name="part", value_name="value")
+            .dropna(subset=["value"])
+        )
+        return long
+
+    def monthly_anomalies(self, z_thresh: float = 2.5) -> pd.DataFrame:
+        """Z-score sur n mensuel pour marquer les anomalies."""
+        bm = self.monthly_series()
+        if bm.empty:
+            return bm
+        out = bm.copy()
+        mu = out["n"].mean()
+        sigma = out["n"].std(ddof=0)
+        out["z_n"] = 0.0 if (sigma == 0 or np.isnan(sigma)) else (out["n"] - mu) / sigma
+        out["is_anomaly"] = out["z_n"].abs() >= z_thresh
+        return out
+
+    def weekday_profile(self) -> pd.DataFrame:
+        """Volume par jour de semaine (0=Mon..6=Sun)."""
+        df = self._ensure_datetime(self.ds.df)
+        if "date" not in df.columns or df["date"].isna().all():
+            return pd.DataFrame()
+        wk = (
+            df.dropna(subset=["date"])
+              .assign(wk=lambda d: d["date"].dt.weekday)
+              .groupby("wk").size().rename("n").reset_index()
+              .sort_values("wk")
+        )
+        return wk
+
+    def weekday_hour_heat(self) -> pd.DataFrame:
+        """Matrice heure × jour (heatmap)."""
+        df = self._ensure_datetime(self.ds.df)
+        if "date" not in df.columns or df["date"].isna().all():
+            return pd.DataFrame()
+        mat = (
+            df.dropna(subset=["date"])
+              .assign(wk=lambda d: d["date"].dt.weekday,
+                      h=lambda d: d["date"].dt.hour)
+              .groupby(["wk", "h"]).size().rename("n").reset_index()
+        )
+        return mat
+
+    def cohorts_users(self) -> pd.DataFrame:
+        """Cohortes par 1ère interaction (mois) et âge (mois depuis cohorte)."""
+        df = self._ensure_datetime(self.ds.df)
+        if any(c not in df.columns for c in ["date", "user_id"]) or df["date"].isna().all():
+            return pd.DataFrame()
+        d = df.dropna(subset=["date", "user_id"]).copy()
+        d["month"] = d["date"].dt.to_period("M").dt.to_timestamp()
+        first = d.groupby("user_id")["month"].min().rename("cohort")
+        d = d.join(first, on="user_id")
+        d["age"] = (d["month"].dt.year - d["cohort"].dt.year) * 12 + (d["month"].dt.month - d["cohort"].dt.month)
+        out = (
+            d.groupby(["cohort", "age"]).size().rename("n").reset_index().sort_values(["cohort", "age"])
+        )
+        return out
+
