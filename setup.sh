@@ -55,16 +55,16 @@ else
     exit 1
 fi
 
-echo ""
+# echo ""
 
 # Install dependencies
-echo "Installing project dependencies..."
-if poetry install; then
-    echo "Dependencies installed successfully"
-else
-    echo "ERROR: Failed to install dependencies"
-    exit 1
-fi
+# echo "Installing project dependencies..."
+# if poetry install; then
+#     echo "Dependencies installed successfully"
+# else
+#     echo "ERROR: Failed to install dependencies"
+#     exit 1
+# fi
 
 echo ""
 echo "Setup completed successfully!"

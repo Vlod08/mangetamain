@@ -1,0 +1,45 @@
+name: Run tests with Pytest
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry 2.2.0
+        run: python -m pip install --upgrade pip && pip install "poetry==2.2.0"
+
+      - name: Install doc deps
+        run: poetry install --no-interaction --with test
+
+      - name: Run tests with pytest and write reports
+        run: |
+          # create report dir
+          mkdir -p pytest-report
+          set -o pipefail  # This makes pipes fail if any command fails
+          # run pytest producing JUnit XML and save stdout to a text file for debugging
+          poetry run pytest -v --junitxml=pytest-report/junit.xml 2>&1 | tee pytest-report/pytest.txt
+
+      - name: Show pytest-report contents (for debug)
+        if: always() # Always run this step, even if previous steps failed
+        run: |
+          echo "Contents of pytest-report:"
+          ls -la pytest-report || true
+
+      - name: Upload pytest logs
+        if: always() # Always run this step, even if previous steps failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: pytest-report

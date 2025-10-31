@@ -1,0 +1,16 @@
+[theme]
+base = "light"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f9fc"
+primaryColor = "#2f855a"
+textColor = "#1a202c"
+font = "sans serif"  # "sans serif" | "serif" | "monospace"
+
+[client]
+toolbarMode = "minimal"   # masque le bouton "Deploy"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+pagesDir = "src/mangetamain/app/pages"

@@ -1,0 +1,33 @@
+name: Docs — Build and Deploy Sphinx pages
+on:
+  push:
+    branches: [ dev/app-interface ] # should be changed to main after merge
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install Poetry 2.2.0
+        run: python -m pip install --upgrade pip && pip install "poetry==2.2.0"
+      - name: Install doc deps
+        run: poetry install --no-interaction --with dev
+      - name: Build Sphinx HTML
+        run: |
+          cd docs
+          poetry run sphinx-apidoc -o ./source ../src/mangetamain ../src/mangetamain/app --force --separate --module-first
+          poetry run make html
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sphinx-html
+          path: docs/build/html
+      - name: Import docs to github pages
+        run: | 
+          poetry run ghp-import -n -p -f docs/build/html
