@@ -21,7 +21,7 @@ jobs:
       - name: Build Sphinx HTML
         run: |
           cd docs
-          poetry run sphinx-apidoc -o ./source ../src/mangetamain
+          poetry run sphinx-apidoc -o ./source ../src/mangetamain ../src/mangetamain/app --force --separate --module-first
           poetry run make html
       - name: Upload docs artifact
         uses: actions/upload-artifact@v4
