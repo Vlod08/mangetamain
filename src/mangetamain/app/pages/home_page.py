@@ -2,20 +2,16 @@
 from __future__ import annotations
 
 import streamlit as st
+
 # from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from app.app_utils.ui import use_global_ui
 
 
-
-
 import json
 import time
-from pathlib import Path
 
-import streamlit as st
 from streamlit_lottie import st_lottie
 
-from app.app_utils.ui import use_global_ui
 from core.dataset import (
     DatasetLoaderThread,
     RecipesDataset,
@@ -171,7 +167,6 @@ def app() -> None:
         round_logo=True,
     )
 
-
     # --- Main content ---
     st.markdown("### Welcome to the Mangetamain App!")
     st.markdown("Explore and analyze the Food.com recipes dataset.")
@@ -188,7 +183,6 @@ def app() -> None:
         # already loaded → small banner + intro
         st.success("Data already loaded! 🎉")
         _render_project_intro()
-
 
 
 if __name__ == "__main__":
