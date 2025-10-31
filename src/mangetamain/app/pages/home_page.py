@@ -6,8 +6,6 @@ import streamlit as st
 from app.app_utils.ui import use_global_ui
 
 
-def app():
-    # --- UI
 
 
 import json

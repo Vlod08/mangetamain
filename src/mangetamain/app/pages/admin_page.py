@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from app.app_utils.ui import use_global_ui
-from core.app_logging import setup_logging, get_logger  # your logging module
+from mangetamain.core.app_logging import setup_logging, get_logger  # your logging module
 
 # ---------- UI header ----------
 use_global_ui(
