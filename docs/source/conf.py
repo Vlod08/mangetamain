@@ -16,7 +16,7 @@ import sys
 # -- Path setup --------------------------------------------------------------
 sys.path.insert(0, os.path.abspath('../../src/mangetamain'))
 
-project = 'mangetamain'
+project = 'Mangetamain'
 copyright = '2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY'
 author = 'Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY'
 

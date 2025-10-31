@@ -1,0 +1,26 @@
+name: Build and Publish Docker Image to Docker Hub
+on:
+  push:
+    branches: ["dev/app-interface"]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+    
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.MANGETAMAIN_DOCKERHUB_TOKEN }}
+
+      - name: build image
+        run: |
+          docker build --no-cache -t vlod08/mangetamain:latest .
+      
+      - name: push to Docker Hub
+        run: |
+            docker push vlod08/mangetamain:latest
