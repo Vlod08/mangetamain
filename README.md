@@ -163,7 +163,7 @@ Now, any Python or Streamlit commands you run will use this environment.
 
 *Alternatively*, you can run commands without entering the shell:
 ```
-poetry run python src/mangetamain/app.py
+poetry run python src/mangetamain/main.py
 ```
 
 ### 6. Running Tests
