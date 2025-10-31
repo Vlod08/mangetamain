@@ -165,25 +165,7 @@ class InteractionsEDAService(EDAService):
         counts, edges = np.histogram(df["review_len"], bins=bins)
         return pd.DataFrame({"left": edges[:-1], "right": edges[1:], "count": counts})
 
-    # ---------- Temporal Analysis ----------
-    def by_month(self) -> pd.DataFrame:
-        """Return DataFrame with reviews aggregated by month."""
-        df = self.ds.df
-        if "date" not in df.columns:
-            return pd.DataFrame()
-        work = df.copy()
-        work["month"] = work["date"].dt.to_period("M").dt.to_timestamp()
-        agg = (
-            work.groupby("month")
-            .agg(
-                n=("review", "size") if "review" in work.columns else ("date", "size"),
-                mean_rating=("rating", "mean"),
-            )
-            .reset_index()
-            .sort_values("month")
-        )
-        return agg
-
+   
     def seasonal_profile(self) -> pd.DataFrame:
         """Return DataFrame with seasonal profile of reviews."""
         m = self.by_month()
@@ -325,7 +307,7 @@ class InteractionsEDAService(EDAService):
             df["date"] = pd.to_datetime(df["date"], errors="coerce")
         return df
 
-    # ---------- Temporal Analysis (remplace ta méthode by_month existante) ----------
+    # ---------- Temporal Analysis  ----------
     def by_month(self) -> pd.DataFrame:
         """Agrège par mois: n et rating moyen."""
         df = self._ensure_datetime(self.ds.df)
