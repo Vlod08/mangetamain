@@ -43,7 +43,9 @@ def build_ingredient_similarity(
     if "id" not in src.columns:
         src = src.reset_index().rename(columns={"index": "id"})
 
-    src["_ings_text"] = src.get("ingredients", pd.Series([""] * len(src))).apply(_ings_to_plaintext)
+    src["_ings_text"] = src.get("ingredients", pd.Series([""] * len(src))).apply(
+        _ings_to_plaintext
+    )
     if src["_ings_text"].astype(bool).sum() == 0:
         return pd.DataFrame()
 
@@ -54,17 +56,23 @@ def build_ingredient_similarity(
     return pd.DataFrame(sim, index=src["id"].values, columns=src["id"].values)
 
 
-def find_similar_by_ingredients(sim_df: pd.DataFrame, recipe_id: int | str, top_n: int = 25) -> pd.Series:
+def find_similar_by_ingredients(
+    sim_df: pd.DataFrame, recipe_id: int | str, top_n: int = 25
+) -> pd.Series:
     if sim_df.empty:
         return pd.Series(dtype=float)
     if recipe_id not in sim_df.index:
-        raise KeyError(f"Recipe id {recipe_id} not found in ingredient similarity matrix")
+        raise KeyError(
+            f"Recipe id {recipe_id} not found in ingredient similarity matrix"
+        )
     s = sim_df[recipe_id].sort_values(ascending=False)
     s = s.drop(labels=recipe_id, errors="ignore")
     return s.head(top_n)
 
 
-def compute_similarity_from_dataset(sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def compute_similarity_from_dataset(
+    sample_n: Optional[int] = None, random_state: int = 42
+) -> pd.DataFrame:
     """Load recipes with the app dataset service and compute ingredient similarity."""
     ds = RecipesDataset()
     df = ds.load()

@@ -1,14 +1,16 @@
 # app/pages/06_Admin.py
 from __future__ import annotations  # must stay at the very top
 
-import os
 import time
 from pathlib import Path
 import pandas as pd
 import streamlit as st
 
 from app.app_utils.ui import use_global_ui
-from mangetamain.core.app_logging import setup_logging, get_logger  # your logging module
+from mangetamain.core.app_logging import (
+    setup_logging,
+    get_logger,
+)  # your logging module
 
 # ---------- UI header ----------
 use_global_ui(
@@ -19,6 +21,7 @@ use_global_ui(
     subtitle=None,
     wide=True,
 )
+
 
 # ---------- Helpers ----------
 def _rerun() -> None:
@@ -36,7 +39,11 @@ def find_root(anchor: Path) -> Path:
     """Find the project root by walking up to detect logs/, .git/, or pyproject.toml."""
     p = anchor.resolve()
     for cand in [p, *p.parents]:
-        if (cand / "logs").exists() or (cand / "pyproject.toml").exists() or (cand / ".git").exists():
+        if (
+            (cand / "logs").exists()
+            or (cand / "pyproject.toml").exists()
+            or (cand / ".git").exists()
+        ):
             return cand
     return p
 
@@ -52,7 +59,9 @@ ERR_LOG = LOG_DIR / "error.log"
 # ---------- Sidebar / Options ----------
 with st.sidebar:
     st.header("Options")
-    autorefresh = st.checkbox("Auto-refresh", value=True, help="Refresh every 5 seconds")
+    autorefresh = st.checkbox(
+        "Auto-refresh", value=True, help="Refresh every 5 seconds"
+    )
     if autorefresh:
         INTERVAL_S = 5
         now = time.time()
@@ -68,7 +77,10 @@ with st.sidebar:
         "Levels", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default=[]
     )
     query = st.text_input("Search (contains):", placeholder="keyword, module, etc.")
-    max_lines = st.slider("Last lines", min_value=200, max_value=10000, value=2000, step=200)
+    max_lines = st.slider(
+        "Last lines", min_value=200, max_value=10000, value=2000, step=200
+    )
+
 
 # ---------- I/O utilities ----------
 def read_log_bytes(path: Path) -> bytes:

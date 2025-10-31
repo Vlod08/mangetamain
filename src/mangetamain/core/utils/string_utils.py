@@ -1,12 +1,9 @@
-
-from typing import Iterable, List, Tuple, Dict, Union
-import numpy as np
+from typing import Iterable, List
 import pandas as pd
 import ast
 from rapidfuzz import fuzz, process
 from sklearn.preprocessing import MultiLabelBinarizer
 import re
-from functools import lru_cache
 
 # from nltk.corpus import stopwords
 # import nltk
@@ -27,6 +24,7 @@ def is_list_string(s: str) -> bool:
     except Exception:
         return False
 
+
 def is_list_floats_string(s: str) -> bool:
     """Check if a string is a list of floats representation."""
     if not isinstance(s, str):
@@ -40,32 +38,36 @@ def is_list_floats_string(s: str) -> bool:
     except Exception:
         return False
 
+
 def extract_list_strings(str_l: str) -> List[str]:
     """Extracts a list of strings from a string representation of a list.
 
     Returns:
         list: A list of strings extracted from the input string.
     """
-    if pd.isna(str_l) or str_l == '':
+    if pd.isna(str_l) or str_l == "":
         return []
     try:
         list_strings = ast.literal_eval(str_l)
         if not isinstance(list_strings, list):
             return []
         # Remove empty or whitespace-only strings
-        cleaned = [x.strip() for x in list_strings if isinstance(x, str) and x.strip() != '']
+        cleaned = [
+            x.strip() for x in list_strings if isinstance(x, str) and x.strip() != ""
+        ]
         return cleaned
     except (ValueError, SyntaxError):
         # If literal_eval fails, return empty list
         return []
-    
+
+
 def extract_list_floats(str_l: str) -> List[float]:
     """Extracts a list of floats from a string representation of a list.
 
     Returns:
         list: A list of floats extracted from the input string.
     """
-    if pd.isna(str_l) or str_l == '':
+    if pd.isna(str_l) or str_l == "":
         return []
     try:
         list_floats = ast.literal_eval(str_l)
@@ -82,6 +84,7 @@ def extract_list_floats(str_l: str) -> List[float]:
     except (ValueError, SyntaxError):
         # If literal_eval fails, return empty list
         return []
+
 
 # Covers ISO, European, US, textual, and timestamp-like formats
 DATETIME_PATTERN = re.compile(
@@ -100,6 +103,7 @@ DATETIME_PATTERN = re.compile(
     re.VERBOSE,
 )
 
+
 def looks_like_datetime(s: str) -> bool:
     """Check if a string has potential to represent a date or datetime."""
     if s.startswith("[") and s.endswith("]"):
@@ -108,11 +112,13 @@ def looks_like_datetime(s: str) -> bool:
         return False
     return bool(DATETIME_PATTERN.search(s))
 
+
 def mean_token_scorer(s1, s2, **kwargs):
     """Custom scorer = mean of token_set_ratio and token_sort_ratio."""
     score1 = fuzz.token_set_ratio(s1, s2)
     score2 = fuzz.token_sort_ratio(s1, s2)
     return (score1 + score2) / 2
+
 
 def fuzzy_fetch(query: str, list_ref_names: List[List[str]], threshold: int = 80):
     """
@@ -148,12 +154,12 @@ def fuzzy_fetch(query: str, list_ref_names: List[List[str]], threshold: int = 80
         'france'
     """
     if not query:
-        return ''
+        return ""
     if isinstance(query, list):
-        query = ' '.join(query)
+        query = " ".join(query)
 
     # clean query
-    query_clean = query.replace('-', ' ')
+    query_clean = query.replace("-", " ")
 
     # Flatten only once outside in your class
     flat_refs = [ref for group in list_ref_names for ref in group]
@@ -161,21 +167,23 @@ def fuzzy_fetch(query: str, list_ref_names: List[List[str]], threshold: int = 80
 
     scores = process.extractOne(query_clean, flat_refs, scorer=mean_token_scorer)
     if not scores or scores[1] < threshold:
-        return '', scores[1]
+        return "", scores[1]
 
     # Find the index of the best match in the first group
     best_match_idx = scores[2] % nb_refs_per_group
     # TODO: special case for "american" demonym
-    if scores[0]=="american":
+    if scores[0] == "american":
         return "united states", scores[1]
     return list_ref_names[0][best_match_idx], scores[1]
+
 
 def contains_any(values: Iterable[str], items: Iterable[str]) -> bool:
     """Check if any of the items are present in the values."""
     s = set(v.strip().lower() for v in values if v)
     return any(t in s for t in items)
 
-def extract_classes(list_strings: List[str|List[str]]) -> List[str]:
+
+def extract_classes(list_strings: List[str | List[str]]) -> List[str]:
     """Extracts unique classes from a list of strings or list of strings.
     Args:
         list_strings (List[str|List[str]]): A list containing strings or lists of strings.
