@@ -1,7 +1,7 @@
 name: Build and Publish Docker Image to Docker Hub
 on:
   push:
-    branches: ["dev/recipes"]
+    branches: ["dev/app-interface"]
   workflow_dispatch: {}
 
 jobs:
