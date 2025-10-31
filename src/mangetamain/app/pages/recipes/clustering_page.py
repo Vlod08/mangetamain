@@ -15,7 +15,6 @@ from mangetamain.core.clustering import clustering_time_tags as time_tags
 from mangetamain.core.clustering import clustering_nutrivalues as nutrivalues
 
 
-
 @st.cache_resource(show_spinner=True)
 def _load_recipes_df() -> pd.DataFrame:
     ds = RecipesDataset()
@@ -41,6 +40,24 @@ def app() -> None:
     # 1. TEXT CLUSTERING
     # =========================================================
     st.header("1. Text clustering (TF-IDF + KMeans)")
+    st.markdown(
+        """
+        We build a textual representation for each recipe by concatenating the recipe name, ingredients
+        and description. That text is transformed to TF-IDF vectors (English stop words removed) so
+        frequent but uninformative words contribute less.
+
+        A KMeans model is trained on the TF-IDF vectors to produce discrete clusters of recipes that
+        share vocabulary. For interpretation we:
+
+        - show the top terms per cluster (terms with largest weights in the cluster centroid), and
+        - project TF-IDF vectors to 2D using Truncated SVD (a linear reduction suitable for sparse text
+          matrices) so you can inspect the cluster layout visually.
+
+        How to use it: change the number of clusters (k) and the TF-IDF max features to move between
+        coarse and fine-grained groupings. Clusters typically capture thematic recipe groups (e.g.
+        "baking", "curry/rice dishes", "salads").
+        """
+    )
 
     df["text"] = (
         df.get("name", pd.Series([""] * len(df))).fillna("")
@@ -76,7 +93,7 @@ def app() -> None:
             opacity=0.7,
             title="2-D projection of recipe clusters",
         ),
-        config={'width': 'stretch'},
+        config={"width": "stretch"},
     )
 
     st.subheader("Top terms per cluster")
@@ -87,7 +104,19 @@ def app() -> None:
     # =========================================================
     # 2. INGREDIENT SIMILARITY
     # =========================================================
-    st.header("2. Ingredient similarity")
+    st.header("2. Ingredient similarity (cosine similarity matrix)")
+    st.markdown(
+        """
+        Ingredients are normalized into plain tokens (we accept parsed lists or string representations).
+        We build a document-term matrix from those tokens (CountVectorizer) and compute pairwise cosine
+        similarity between recipes. The result is a symmetric matrix where larger values mean stronger
+        ingredient overlap.
+
+        Notes:
+        - This is a bag-of-ingredients approach (quantities and order are ignored).
+        - Useful to find substitutions or recipes that can share shopping lists.
+        """
+    )
 
     c1, c2, c3 = st.columns([2, 1, 1])
     with c1:
@@ -148,7 +177,18 @@ def app() -> None:
     # =========================================================
     # 3. TIME-TAG SIMILARITY
     # =========================================================
-    st.header("3. Time-tag similarity")
+    st.header("3. Time-tag similarity (cosine similarity matrix)")
+    st.markdown(
+        """
+        We extract time-related tags (for example '15-minutes' or '30-minutes-or-less') from the
+        recipe tags. These tags are tokenized and vectorized (CountVectorizer configured to keep 
+        hyphenated tokens) and cosine similarity is computed between recipes.
+
+        This surfaces recipes that are similar in preparation time or that share time-related labels. 
+        Results are presented as a cosine similarity matrix indexed
+        by recipe id.
+        """
+    )
 
     tt1, tt2, tt3 = st.columns([2, 1, 1])
     with tt1:
@@ -176,6 +216,15 @@ def app() -> None:
         sel_t = st.selectbox("Choose a recipe (time-tags)", opts_t, key="tt_sel")
         selected_id_t = int(str(sel_t).split(" — ")[0])
 
+        st.subheader("Selected recipe")
+        row = sampled_tt[sampled_tt["id"] == selected_id_t]
+        if not row.empty:
+            r = row.iloc[0]
+            st.markdown(f"**{r.get('name', '—')}**  \nminutes: **{r.get('minutes', '—')}**, steps: **{r.get('n_steps', '—')}**")
+            if "tags" in sampled_tt.columns:
+                st.write(r.get("tags", "[]"))
+
+
         try:
             neigh_t = time_tags.get_similar_recipes(sim_time, selected_id_t, top_n=tt_top_n)
         except KeyError:
@@ -195,7 +244,16 @@ def app() -> None:
     # =========================================================
     # 4. NUTRITION SIMILARITY
     # =========================================================
-    st.header("4. Nutrition similarity")
+    st.header("4. Nutrition similarity (cosine similarity matrix)")
+    st.markdown(
+        """
+        When nutrition columns are available (calories, fat, sugar, sodium, protein, ...), we convert
+        and normalize numeric features then compute cosine similarity between the standardized vectors.
+
+        This yields a similarity matrix that highlights recipes with similar nutritional "ratios".
+        Note : We don't have the infomation about the quantity of each recipe serving.
+        """
+    )
 
     nc1, nc2, nc3 = st.columns([2, 1, 1])
     with nc1:
@@ -224,6 +282,19 @@ def app() -> None:
         ]
         sel_n = st.selectbox("Choose a recipe (nutrition)", opts_n, key="nut_sel")
         selected_id_n = int(str(sel_n).split(" — ")[0])
+
+        st.subheader("Selected recipe")
+        row = df_nut_norm[df_nut_norm["id"] == selected_id_n]
+        if not row.empty:
+            r = row.iloc[0]
+            st.markdown(f"**{r.get('name', '—')}**  \nminutes: **{r.get('minutes', '—')}**, steps: **{r.get('n_steps', '—')}**")
+            nut_cols = [c for c in nutrivalues.NUTRI_COLS if c in df_nut_norm.columns]
+            if nut_cols:
+                nut_vals = {c: r.get(c, "—") for c in nut_cols}
+                st.write(nut_vals)
+            elif "ingredients" in df_nut_norm.columns:
+                st.write(r.get("ingredients", "[]"))
+
 
         try:
             neigh_n = nutrivalues.find_similar_by_nutri(sim_nut, selected_id_n, top_n=nut_top_n)
