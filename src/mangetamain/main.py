@@ -1,5 +1,6 @@
 # main.py
 from __future__ import annotations
+import logging
 import streamlit as st
 from streamlit_lottie import st_lottie
 import time
@@ -211,5 +212,10 @@ def app():
     pg.run()
 
 if __name__ == "__main__":
-    setup_logging()
+    if "logger" not in st.session_state:
+        setup_logging()
+        st.session_state["logger"] = logging.getLogger("mangetamain.main")
+    else:
+        st.session_state["logger"].info("-"*50)
+        st.session_state["logger"].info("Application started/restarted.")
     app()

@@ -178,8 +178,9 @@ class RecipesEDAService(EDAService):
             pd.DataFrame: DataFrame containing recipes with country information.
         """
         self.country_handler.build_ref()
+        columns_to_fetch_in = ["tags"] # + ["name", "description"]
         df_country = self.country_handler.fetch(
-            df, ["tags", "name", "description"])
+            df, columns_to_fetch_in)
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
@@ -290,7 +291,8 @@ class RecipesEDAService(EDAService):
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
         base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
-                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000,
+                       'token_pattern': None}
 
         # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
         tfidf_vec = TfidfVectorizer(**base_params)
@@ -337,7 +339,8 @@ class RecipesEDAService(EDAService):
         season_docs_lists = df.groupby('season')['ingredients'].sum()
 
         base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
-                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000, 
+                       'token_pattern': None}
 
         # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
         tfidf_vec = TfidfVectorizer(**base_params)
