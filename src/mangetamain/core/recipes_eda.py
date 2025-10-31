@@ -15,6 +15,7 @@ from abc import ABC, abstractmethod
 from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
 from mangetamain.core.utils.string_utils import extract_classes
 from mangetamain.core.handlers.country_handler import CountryHandler
+from mangetamain.core.handlers.seasonnality_handler import SeasonalityHandler
 
 
 @dataclass
@@ -132,6 +133,7 @@ class RecipesEDAService(EDAService):
         default_factory=lambda: CountryHandler(
             ref_path=COUNTRIES_FILE_PATH
         ))
+    season_handler = SeasonalityHandler()
 
     def duplicates(self) -> dict:
         """
@@ -183,6 +185,20 @@ class RecipesEDAService(EDAService):
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
         return df_country[df_country["country"] != '']
+
+    def fetch_period(self, df) -> pd.DataFrame:
+        """Fetch recipes with season information.
+        Returns:
+            pd.DataFrame: DataFrame containing recipes with season information.
+        """
+        df_period = self.season_handler.get_periods_all(df)
+        if "season" not in df_period.columns:
+            self.logger.warning("Column 'season' not found in dataset.")
+            return pd.DataFrame()
+        if "event" not in df_period.columns:
+            self.logger.warning("Column 'event' not found in dataset.")
+            return pd.DataFrame()
+        return df_period[(df_period["season"] != '') | (df_period["event"] != '')]
 
     # ---------- Explorer helpers ----------
     def nutrition(self) -> pd.DataFrame:
@@ -305,3 +321,57 @@ class RecipesEDAService(EDAService):
                 df_tf.at[country, term]) for term in top_terms}
 
         return signatures_tfidf, signatures_tf
+
+    @staticmethod
+    def get_signatures_seasons(df: pd.DataFrame, top_n: int = 10) -> dict:
+        """Compute signature ingredients per season using TF-IDF.
+        Args:
+            df (pd.DataFrame): DataFrame containing 'season' and 'ingredients' columns.
+            top_n (int): Number of top ingredients to include in the signature.
+        Returns:
+            dict: A dictionary mapping each season to its signature ingredients and their TF-IDF scores.
+        """
+        if 'season' not in df.columns or 'ingredients' not in df.columns:
+            raise ValueError(
+                "DataFrame must contain 'season' and 'ingredients' columns.")
+
+        # Aggregate all ingredient lists per season into a single list per season
+        season_docs_lists = df.groupby('season')['ingredients'].sum()
+
+        base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+
+        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        tfidf_vec = TfidfVectorizer(**base_params)
+        tfidf_matrix = tfidf_vec.fit_transform(season_docs_lists)
+        features = tfidf_vec.get_feature_names_out()
+
+        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        tf_vec = TfidfVectorizer(
+            **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
+        tf_matrix = tf_vec.fit_transform(season_docs_lists)
+
+        # 5) DataFrames pratiques
+        seasons = season_docs_lists.index
+        df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
+                                index=seasons, columns=features)
+        df_tf = pd.DataFrame(tf_matrix.toarray(),
+                             index=seasons, columns=features)
+
+        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        signatures_tfidf, signatures_tf = {}, {}
+        for season in df_tfidf.index:
+            top_terms = df_tfidf.loc[season].nlargest(top_n).index
+            signatures_tfidf[season] = {term: float(
+                df_tfidf.at[season, term]) for term in top_terms}
+            signatures_tf[season] = {term: float(
+                df_tf.at[season, term]) for term in top_terms}
+
+        return signatures_tfidf, signatures_tf
+
+    @staticmethod
+    def count_recipes_seasons(df_period: pd.DataFrame):
+        seasons_counts = df_period[df_period['season']
+                                   != '']['season'].value_counts().reset_index()
+        seasons_counts.columns = ['season', 'number of recipes']
+        return seasons_counts
