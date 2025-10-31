@@ -6,6 +6,7 @@ import plotly.express as px
 
 from mangetamain.app.app_utils.ui import use_global_ui
 from mangetamain.core.dataset import RecipesDataset
+from mangetamain.core.recipes_eda import RecipesEDAService
 
 # our 4 helpers
 from mangetamain.core.clustering import clustering_recipes as recipes_text
@@ -30,7 +31,11 @@ def app() -> None:
         round_logo=True,
     )
 
-    df = _load_recipes_df()
+    # ======== Data Loading =========
+    # Recipes dataset already uploaded in app entrypoint (main.py)
+    df = st.session_state["recipes"]
+    recipes_eda_svc = RecipesEDAService()
+    recipes_eda_svc.load(df, preprocess=False)
 
     # =========================================================
     # 1. TEXT CLUSTERING
@@ -71,11 +76,11 @@ def app() -> None:
             opacity=0.7,
             title="2-D projection of recipe clusters",
         ),
-        use_container_width=True,
+        config={'width': 'stretch'},
     )
 
     st.subheader("Top terms per cluster")
-    st.dataframe(recipes_text.top_terms_per_cluster(km, tfidf), use_container_width=True)
+    st.dataframe(recipes_text.top_terms_per_cluster(km, tfidf))
 
     st.markdown("---")
 
@@ -136,7 +141,7 @@ def app() -> None:
             neigh_df = neigh_df.merge(sampled_ing, on="id", how="left")
             show_cols = [c for c in ["id", "name", "minutes", "n_steps", "ingredients"] if c in neigh_df.columns]
             neigh_df = neigh_df[["id", "score"] + [c for c in show_cols if c != "id"]]
-            st.dataframe(neigh_df, use_container_width=True)
+            st.dataframe(neigh_df)
 
     st.markdown("---")
 
@@ -183,7 +188,7 @@ def app() -> None:
             neigh_df_t = neigh_df_t.merge(sampled_tt, on="id", how="left")
             use_cols = [c for c in ["id", "name", "minutes", "n_steps", "tags"] if c in neigh_df_t.columns]
             neigh_df_t = neigh_df_t[["id", "score"] + [c for c in use_cols if c != "id"]]
-            st.dataframe(neigh_df_t, use_container_width=True)
+            st.dataframe(neigh_df_t)
 
     st.markdown("---")
 
@@ -232,7 +237,7 @@ def app() -> None:
             neigh_df_n = neigh_df_n.merge(df_nut_norm, on="id", how="left")
             show_cols_n = [c for c in ["id", "name", "minutes", "n_steps"] + nutrivalues.NUTRI_COLS if c in neigh_df_n.columns]
             neigh_df_n = neigh_df_n[["id", "score"] + [c for c in show_cols_n if c != "id"]]
-            st.dataframe(neigh_df_n.fillna("—"), use_container_width=True)
+            st.dataframe(neigh_df_n.fillna("—"))
 
 
 if __name__ == "__main__":

@@ -18,19 +18,23 @@ def app():
 
     sns.set_theme()
 
-    svc = InteractionsEDAService()
+    # ======== Data Loading =========
+    # Interactions dataset already uploaded in app entrypoint (main.py)
+    interactions_df = st.session_state["interactions"]
+    interactions_eda_svc = InteractionsEDAService()
+    interactions_eda_svc.load(interactions_df, preprocess=False)
 
     tabs = st.tabs(["📈 Correlations", "👥 User Bias", "📝 Text ↔ Rating"])
 
     # 1) Correlations
     with tabs[0]:
-        corr = svc.corr_numeric()
+        corr = interactions_eda_svc.corr_numeric()
         if corr.empty:
             st.info("Not enough numeric columns.")
         else:
             fig = px.imshow(corr, title="Heatmap of Correlations (Numeric)", aspect="auto", color_continuous_scale="RdBu", zmin=-1, zmax=1)
             st.plotly_chart(fig)
-        rvl = svc.rating_vs_length()
+        rvl = interactions_eda_svc.rating_vs_length()
         if not rvl.empty:
             st.plotly_chart(
                 px.scatter(
@@ -41,7 +45,7 @@ def app():
 
     # 2) User Bias
     with tabs[1]:
-        ub = svc.user_bias()
+        ub = interactions_eda_svc.user_bias()
         if ub.empty:
             st.info("Columns 'user_id'/'rating' missing.")
         else:
@@ -60,7 +64,7 @@ def app():
 
     # 3) Text ↔ Rating (top tokens by rounded rating)
     with tabs[2]:
-        tbr = svc.tokens_by_rating(k=20)
+        tbr = interactions_eda_svc.tokens_by_rating(k=20)
         if tbr.empty:
             st.info("Columns 'review'/'rating' missing.")
         else:

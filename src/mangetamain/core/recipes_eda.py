@@ -339,7 +339,8 @@ class RecipesEDAService(EDAService):
         season_docs_lists = df.groupby('season')['ingredients'].sum()
 
         base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
-                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000, 
+                       'token_pattern': None}
 
         # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
         tfidf_vec = TfidfVectorizer(**base_params)

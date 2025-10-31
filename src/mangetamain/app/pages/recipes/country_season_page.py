@@ -76,7 +76,6 @@ def fetch_period_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame)
 
     return df_period
 
-
 def display_signature(
         signature: dict,
         selected_feature: str,
@@ -167,7 +166,6 @@ def display_signature(
     except Exception as e:
         st.error(f"Error generating word cloud: {e}")
 
-
 def display_signatures_tfidf_vs_tf(
         signatures_tfidf: dict,
         signatures_tf: dict,
@@ -241,7 +239,6 @@ def display_signatures_tfidf_vs_tf(
     except Exception as e:
         st.error(f"Error generating Plotly chart: {e}")
 
-
 # def display_seasonal_heatmap(signatures_tfidf: dict, top_n: int = 50):
 #     """
 #     Affiche une heatmap comparant les scores TF-IDF des ingrédients
@@ -285,7 +282,6 @@ def display_signatures_tfidf_vs_tf(
 
 #         This helps you instantly spot seasonal patterns, like "Cinnamon" being high in "Fall" but low in "Summer".
 #         """)
-
 
 def display_seasonal_pie(df_period: pd.DataFrame):
     st.subheader("Recipe Distribution by Season")
@@ -420,7 +416,8 @@ def app():
         options=countries_list,
         index=default_index,
         placeholder="Select a country...",
-        label_visibility='hidden'
+        label_visibility='hidden', 
+        format_func=str.title
     )
 
     selected_season = st.sidebar.selectbox(
@@ -428,7 +425,8 @@ def app():
         options=seasons_list,
         index=None,
         placeholder="Select a season...",
-        label_visibility='hidden'
+        label_visibility='hidden', 
+        format_func=str.title
     )
 
     tab1, tab2 = st.tabs(["Country Analysis", "Season Analysis"])
