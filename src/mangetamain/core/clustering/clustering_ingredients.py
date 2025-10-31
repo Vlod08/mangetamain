@@ -1,56 +1,43 @@
-"""Ingredient similarity utilities.
-
-This module focuses only on computing recipe similarity using the
-`ingredients` column. It avoids duplicating clustering logic and reuses
-the dataset loader when needed.
-
-Provided functions
-- build_ingredient_similarity(df, sample_n=None, random_state=42) -> pd.DataFrame
-- find_similar_by_ingredients(sim_df, recipe_id, top_n=25) -> pd.Series
-- compute_similarity_from_dataset(anchor, sample_n=None, random_state=42) -> pd.DataFrame
-"""
+# src/mangetamain/core/clustering/ingredients.py
 from __future__ import annotations
-from typing import Optional
-import ast
-import pandas as pd
 
+from typing import Optional, Any
+import ast
+
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from core.dataset import RecipesDataset
+from mangetamain.core.dataset import RecipesDataset  # <— new import
 
 
-def _ings_to_plaintext(ings: object) -> str:
-    """Normalize ingredients into a single lowercase space-separated string.
-
-    Accepts lists, tuples or string representations (will attempt ast.literal_eval).
-    """
+def _ings_to_plaintext(ings: Any) -> str:
+    """Normalize an 'ingredients' cell into a single lowercase string."""
     if isinstance(ings, (list, tuple)):
-        return " ".join([str(t).strip().lower() for t in ings if t])
+        return " ".join(str(t).strip().lower() for t in ings if t)
     if pd.isna(ings):
         return ""
     if isinstance(ings, str):
+        # try "['salt', 'pepper']"
         try:
             v = ast.literal_eval(ings)
             if isinstance(v, (list, tuple)):
-                return " ".join([str(t).strip().lower() for t in v if t])
+                return " ".join(str(t).strip().lower() for t in v if t)
         except Exception:
-            return " ".join([tok.strip().lower() for tok in ings.split() if tok.strip()])
+            # fallback: just split spaces
+            return " ".join(tok.strip().lower() for tok in ings.split() if tok.strip())
     return str(ings).strip().lower()
 
 
-def build_ingredient_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
-    """Compute cosine similarity DataFrame using only the ingredients text.
-
-    Parameters
-    - df: recipes dataframe (must contain `id` and `ingredients` or will use index as id)
-    - sample_n: optional sample size to reduce computation
-    - random_state: RNG seed used for sampling
-
-    Returns a pandas DataFrame indexed and columned by recipe id with cosine scores.
-    """
+def build_ingredient_similarity(
+    df: pd.DataFrame,
+    sample_n: Optional[int] = None,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Return cosine-similarity (recipes × recipes) using ingredients only."""
     src = df.copy()
-    if sample_n is not None and sample_n > 0 and len(src) > sample_n:
+
+    if sample_n and sample_n > 0 and len(src) > sample_n:
         src = src.sample(n=sample_n, random_state=random_state).reset_index(drop=True)
 
     if "id" not in src.columns:
@@ -62,13 +49,12 @@ def build_ingredient_similarity(df: pd.DataFrame, sample_n: Optional[int] = None
 
     vect = CountVectorizer(tokenizer=lambda s: s.split(" "))
     mat = vect.fit_transform(src["_ings_text"].astype(str))
+
     sim = cosine_similarity(mat)
-    simdf = pd.DataFrame(sim, index=src["id"].values, columns=src["id"].values)
-    return simdf
+    return pd.DataFrame(sim, index=src["id"].values, columns=src["id"].values)
 
 
-def find_similar_by_ingredients(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> pd.Series:
-    """Return top-N similar recipes (scores) from an ingredient-only similarity DataFrame."""
+def find_similar_by_ingredients(sim_df: pd.DataFrame, recipe_id: int | str, top_n: int = 25) -> pd.Series:
     if sim_df.empty:
         return pd.Series(dtype=float)
     if recipe_id not in sim_df.index:
@@ -78,13 +64,8 @@ def find_similar_by_ingredients(sim_df: pd.DataFrame, recipe_id, top_n: int = 25
     return s.head(top_n)
 
 
-def compute_similarity_from_dataset(anchor: str | pd.PathLike | None = None, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
-    """Load recipes via RecipesDataset and compute ingredient similarity.
-
-    anchor: Path to use when instantiating RecipesDataset (defaults to module file path)
-    """
-    anchor_path = anchor or __file__
-    ds = RecipesDataset(anchor=anchor_path)
+def compute_similarity_from_dataset(sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+    """Load recipes with the app dataset service and compute ingredient similarity."""
+    ds = RecipesDataset()
     df = ds.load()
     return build_ingredient_similarity(df, sample_n=sample_n, random_state=random_state)
-

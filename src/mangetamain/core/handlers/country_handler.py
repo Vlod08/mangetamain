@@ -98,6 +98,7 @@ class CountryHandler(RecipesHandler):
             return pd.Series(dtype=str)
     
         # Infer regions from countries if region is still missing
+        df = df.copy()
         missing_regions = df['region'] == ''
         if missing_regions.any():
             self.logger.info("Inferring regions from country names for missing regions...")

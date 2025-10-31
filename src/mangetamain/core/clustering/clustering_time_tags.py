@@ -1,32 +1,17 @@
-"""Compute recipe similarity using time-related tags.
-
-This module re-implements the logic used in `similarity.ipynb` to extract
-time-related tags from the `tags` column of the recipes dataset and build a
-cosine-similarity matrix. It reuses `RecipesDataset` to load recipes, and
-exposes a small API suitable for other code to call.
-
-Public functions
- - extract_time_tags(df) -> DataFrame with columns ['id','time_tags','time_tags_str']
- - compute_time_tag_similarity(df, sample_n=None, random_state=1) -> pd.DataFrame (similarity)
- - get_similar_recipes(sim_df, recipe_id, top_n=5) -> pd.Series
-
-The implementation follows the notebook's approach: parse tag strings, select
-time-related tags with regex, vectorize with CountVectorizer and compute
-cosine similarity.
-"""
-
+# src/mangetamain/core/clustering/time_tags.py
 from __future__ import annotations
-from pathlib import Path
-from typing import Iterable
+
 import re
 import ast
-import pandas as pd
+from pathlib import Path
+from typing import Iterable, Optional
 import streamlit as st
-
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from core.dataset import RecipesDataset
+from mangetamain.core.dataset import RecipesDataset
+
 
 
 # --- Combined features (time-tags + ingredients) similarity ---

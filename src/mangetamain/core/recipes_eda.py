@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Dict
 from collections import Counter
 
 import numpy as np
@@ -15,12 +15,15 @@ from abc import ABC, abstractmethod
 from mangetamain.core.dataset import COUNTRIES_FILE_PATH, DatasetLoader, RecipesDataset
 from mangetamain.core.utils.string_utils import extract_classes
 from mangetamain.core.handlers.country_handler import CountryHandler
+from mangetamain.core.handlers.seasonnality_handler import SeasonalityHandler
+
 
 @dataclass
 class EDAService(ABC):
     """Base class for EDA services."""
 
     ds: DatasetLoader = field(default_factory=DatasetLoader)
+    label: str = ""
 
     def __post_init__(self):
         """Initialize the EDA service."""
@@ -35,13 +38,23 @@ class EDAService(ABC):
         Returns:
             pd.DataFrame: Loaded DataFrame.
         """
+        # If a DataFrame is provided, use it directly
         if df is not None and not df.empty:
+            # Update the dataset in the service
             if preprocess:
                 df = self.ds.preprocess(df)
-            self.ds.df = df
-        else:
-            df = self.ds.load(preprocess=preprocess)
-        st.session_state["issues"] = self.ds.issues
+                st.session_state["issues"][self.label] = self.ds.issues
+                return df
+            else:
+                # Load issues from session state if available
+                self.ds.df = df
+                if self.label in st.session_state.get("issues", {}):
+                    self.ds.issues = st.session_state["issues"][self.label]
+                return df
+        # Otherwise, load from the default path
+        df = self.ds.load(preprocess=preprocess)
+        if preprocess:
+            st.session_state["issues"][self.label] = self.ds.issues
         return df
 
     # ---------- Data Quality ----------
@@ -49,21 +62,48 @@ class EDAService(ABC):
         """Get the schema of the dataset."""
         return self.ds.schema
 
+    def na_counts(self) -> pd.Series:
+        """Get the NA counts of each column."""
+        # Check if issues are stored in the dataset or in session state
+        if self.ds.issues and 'nan' in self.ds.issues:
+            nan_counts = self.ds.issues['nan']
+        # Check if issues are stored in session state
+        else:
+            if self.label not in st.session_state.get("issues", {}):
+                return pd.Series(dtype=int)
+            nan_counts = st.session_state["issues"][self.label].get("nan", {})
+
+        nan_series = pd.Series(nan_counts)
+        nan_series = nan_series.sort_values(ascending=False)
+        nan_series = nan_series.rename("Na count")
+        return nan_series
+
     def na_rate(self) -> pd.Series:
         """Get the NA rate of each column."""
-        if 'nan' not in self.ds.issues:
-            if 'nan' not in st.session_state.get("issues", {}):
-                return pd.Series(dtype=float)
-            nan_counts = st.session_state["issues"]["nan"]
-        else:
+        # Check if issues are stored in the dataset or in session state
+        if self.ds.issues and 'nan' in self.ds.issues:
             nan_counts = self.ds.issues['nan']
-        return pd.Series(nan_counts).sort_values(ascending=False)
-    
+        # Check if issues are stored in session state
+        else:
+            if self.label not in st.session_state.get("issues", {}):
+                return pd.Series(dtype=float)
+            nan_counts = st.session_state["issues"][self.label].get("nan", {})
+
+        nan_rate = pd.Series(
+            {col: count / len(self.ds.df) for col, count in nan_counts.items()}
+        )
+
+        nan_rate_percent = nan_rate * 100
+        nan_rate_percent = nan_rate_percent.sort_values(ascending=False)
+        nan_rate_percent = nan_rate_percent.rename("Na rate (%)")
+        return nan_rate_percent
+
     @abstractmethod
     def duplicates(self) -> dict:
         """Get the duplicate rows in the dataset."""
-        raise NotImplementedError("Subclasses must implement the duplicates method.")
-    
+        raise NotImplementedError(
+            "Subclasses must implement the duplicates method.")
+
     def numeric_desc(self) -> pd.DataFrame:
         return self.ds.df.select_dtypes("number").describe().T
 
@@ -71,24 +111,29 @@ class EDAService(ABC):
         """Get the cardinality of each categorical column."""
         # convert only object-like columns; numeric/datetime are fine as-is
         obj_cols = self.ds.df.select_dtypes(include=["object"]).columns
-        df_copy = self.ds.df.copy()
+        df_copy = self.ds.df[obj_cols].copy()
         for c in obj_cols:
             df_copy[c] = df_copy[c].map(DatasetLoader.to_hashable)
 
-        return df_copy.nunique(dropna=True).sort_values(ascending=False)
+        cards = df_copy.nunique(dropna=True).sort_values(ascending=False)
+        cards = cards.rename("cardinality")
+        return cards
 
     def export_clean_min(self, path: Path = None) -> pd.DataFrame:
         """Export a minimal clean DataFrame."""
         self.ds.export(path=path)
 
+
 @dataclass
 class RecipesEDAService(EDAService):
 
     ds: RecipesDataset = field(default_factory=RecipesDataset)
+    label: str = "recipes"
     country_handler: CountryHandler = field(
         default_factory=lambda: CountryHandler(
             ref_path=COUNTRIES_FILE_PATH
-    ))
+        ))
+    season_handler = SeasonalityHandler()
 
     def duplicates(self) -> dict:
         """
@@ -104,7 +149,8 @@ class RecipesEDAService(EDAService):
         id_duplicates = int(self.ds.df['id'].duplicated().sum())
         if id_duplicates > 0:
             return_duplicates["id"] = id_duplicates
-            id_name_duplicates = int(sum(self.ds.df.duplicated(['id', 'name'])))
+            id_name_duplicates = int(
+                sum(self.ds.df.duplicated(['id', 'name'])))
             if id_name_duplicates > 0:
                 return_duplicates["id_name"] = id_name_duplicates
                 # Hashable view for duplicate detection
@@ -137,7 +183,21 @@ class RecipesEDAService(EDAService):
         if "country" not in df_country.columns:
             self.logger.warning("Column 'country' not found in dataset.")
             return pd.DataFrame()
-        return df_country[df_country["country"]!='']
+        return df_country[df_country["country"] != '']
+
+    def fetch_period(self, df) -> pd.DataFrame:
+        """Fetch recipes with season information.
+        Returns:
+            pd.DataFrame: DataFrame containing recipes with season information.
+        """
+        df_period = self.season_handler.get_periods_all(df)
+        if "season" not in df_period.columns:
+            self.logger.warning("Column 'season' not found in dataset.")
+            return pd.DataFrame()
+        if "event" not in df_period.columns:
+            self.logger.warning("Column 'event' not found in dataset.")
+            return pd.DataFrame()
+        return df_period[(df_period["season"] != '') | (df_period["event"] != '')]
 
     # ---------- Explorer helpers ----------
     def nutrition(self) -> pd.DataFrame:
@@ -145,9 +205,10 @@ class RecipesEDAService(EDAService):
         if "nutrition" in self.ds.df.columns:
             df = self.ds.df.copy()
             cols = [
-                "calories", "total_fat", "sugar", "sodium", 
+                "calories", "total_fat", "sugar", "sodium",
                 "protein", "saturated_fat", "carbohydrates"]
-            nut = pd.DataFrame(df["nutrition"].tolist(), columns=cols, index=df.index)
+            nut = pd.DataFrame(df["nutrition"].tolist(),
+                               columns=cols, index=df.index)
             df = pd.concat([df.drop(columns=["nutrition"]), nut], axis=1)
             return df
         return pd.DataFrame()
@@ -182,8 +243,6 @@ class RecipesEDAService(EDAService):
         self,
         minutes: tuple[int, int] | None = None,
         steps: tuple[int, int] | None = None,
-        include_tags: list[str] | None = None,
-        include_ings: list[str] | None = None,
     ) -> pd.DataFrame:
         """
         Apply various filters to the recipes dataset.
@@ -192,11 +251,7 @@ class RecipesEDAService(EDAService):
         # Make a copy to avoid modifying the original DataFrame
         df = self.ds.df.copy()
         cols = df.columns.tolist()
-        if not include_tags:
-            cols = [c for c in cols if c != "tags"]
-        if not include_ings:
-            cols = [c for c in cols if c != "ingredients"]
-        
+
         if minutes and "minutes" in cols:
             lo, hi = minutes
             df = df[(df["minutes"] >= lo) & (df["minutes"] <= hi)]
@@ -217,33 +272,104 @@ class RecipesEDAService(EDAService):
             if isinstance(row, list):
                 cnt.update([str(x).lower().strip() for x in row if x])
         return pd.DataFrame(cnt.most_common(k), columns=["ingredient", "count"])
-    
-    # Analyze signature ingredients per country
+
     @staticmethod
     def get_signatures_countries(df: pd.DataFrame, top_n: int = 10) -> dict:
-       
+        """Compute signature ingredients per country using TF-IDF.
+        Args:
+            df (pd.DataFrame): DataFrame containing 'country' and 'ingredients' columns.
+            top_n (int): Number of top ingredients to include in the signature.
+        Returns:
+            dict: A dictionary mapping each country to its signature ingredients and their TF-IDF scores.
+        """
+        if 'country' not in df.columns or 'ingredients' not in df.columns:
+            raise ValueError(
+                "DataFrame must contain 'country' and 'ingredients' columns.")
 
         # Aggregate all ingredient lists per country into a single list per country
         country_docs_lists = df.groupby('country')['ingredients'].sum()
 
-        # Configure vectorizer to accept pre-tokenized input (lists)
-        vectorizer = TfidfVectorizer(preprocessor=lambda x: x, tokenizer=lambda x: x,
-                                     lowercase=False, max_df=0.5, max_features=14000)
+        base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
 
-        # Fit TF-IDF on the per-country documents (each document is a list of tokens)
-        tfidf_matrix = vectorizer.fit_transform(country_docs_lists)
+        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        tfidf_vec = TfidfVectorizer(**base_params)
+        tfidf_matrix = tfidf_vec.fit_transform(country_docs_lists)
+        features = tfidf_vec.get_feature_names_out()
 
-        ingredients = vectorizer.get_feature_names_out()
+        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        tf_vec = TfidfVectorizer(
+            **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
+        tf_matrix = tf_vec.fit_transform(country_docs_lists)
 
-        # Build a convenient DataFrame: rows=countries, cols=ingredients, values=tf-idf
-        df_tfidf = pd.DataFrame(
-            tfidf_matrix.toarray(), index=country_docs_lists.index, columns=ingredients
-        )
+        # 5) DataFrames pratiques
+        countries = country_docs_lists.index
+        df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
+                                index=countries, columns=features)
+        df_tf = pd.DataFrame(tf_matrix.toarray(),
+                             index=countries, columns=features)
 
-        signatures = {}
+        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        signatures_tfidf, signatures_tf = {}, {}
         for country in df_tfidf.index:
-            # Pick the "top_n" highest-scoring ingredients for this country
-            top_scores_series = df_tfidf.loc[country].nlargest(top_n)
-            signatures[country] = top_scores_series.to_dict()
+            top_terms = df_tfidf.loc[country].nlargest(top_n).index
+            signatures_tfidf[country] = {term: float(
+                df_tfidf.at[country, term]) for term in top_terms}
+            signatures_tf[country] = {term: float(
+                df_tf.at[country, term]) for term in top_terms}
 
-        return signatures
+        return signatures_tfidf, signatures_tf
+
+    @staticmethod
+    def get_signatures_seasons(df: pd.DataFrame, top_n: int = 10) -> dict:
+        """Compute signature ingredients per season using TF-IDF.
+        Args:
+            df (pd.DataFrame): DataFrame containing 'season' and 'ingredients' columns.
+            top_n (int): Number of top ingredients to include in the signature.
+        Returns:
+            dict: A dictionary mapping each season to its signature ingredients and their TF-IDF scores.
+        """
+        if 'season' not in df.columns or 'ingredients' not in df.columns:
+            raise ValueError(
+                "DataFrame must contain 'season' and 'ingredients' columns.")
+
+        # Aggregate all ingredient lists per season into a single list per season
+        season_docs_lists = df.groupby('season')['ingredients'].sum()
+
+        base_params = {'preprocessor': lambda x: x, 'tokenizer': lambda x: x,
+                       'lowercase': False, 'max_df': 0.5, 'max_features': 14000}
+
+        # 3) TF-IDF (fit) pour fixer le vocabulaire + obtenir TF-IDF
+        tfidf_vec = TfidfVectorizer(**base_params)
+        tfidf_matrix = tfidf_vec.fit_transform(season_docs_lists)
+        features = tfidf_vec.get_feature_names_out()
+
+        # 4) TF normalisé L1 (transform) sur le même vocabulaire
+        tf_vec = TfidfVectorizer(
+            **base_params, use_idf=False, norm='l1', vocabulary=tfidf_vec.vocabulary_)
+        tf_matrix = tf_vec.fit_transform(season_docs_lists)
+
+        # 5) DataFrames pratiques
+        seasons = season_docs_lists.index
+        df_tfidf = pd.DataFrame(tfidf_matrix.toarray(),
+                                index=seasons, columns=features)
+        df_tf = pd.DataFrame(tf_matrix.toarray(),
+                             index=seasons, columns=features)
+
+        # 6) Construire la sortie : top_n par TF-IDF avec tf + tfidf
+        signatures_tfidf, signatures_tf = {}, {}
+        for season in df_tfidf.index:
+            top_terms = df_tfidf.loc[season].nlargest(top_n).index
+            signatures_tfidf[season] = {term: float(
+                df_tfidf.at[season, term]) for term in top_terms}
+            signatures_tf[season] = {term: float(
+                df_tf.at[season, term]) for term in top_terms}
+
+        return signatures_tfidf, signatures_tf
+
+    @staticmethod
+    def count_recipes_seasons(df_period: pd.DataFrame):
+        seasons_counts = df_period[df_period['season']
+                                   != '']['season'].value_counts().reset_index()
+        seasons_counts.columns = ['season', 'number of recipes']
+        return seasons_counts

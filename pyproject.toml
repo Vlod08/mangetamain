@@ -33,14 +33,21 @@ geopandas = "^1.1.1"
 geodatasets = "^2024.8.0"
 rapidfuzz = "^3.14.1"
 nltk = "^3.9.2"
+rapidfuzz = "^3.14.1"
+nltk = "^3.9.2"
+streamlit-charts = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.0"
 sphinx = ">=8.2.3,<9.0.0"
 sphinx-rtd-theme = ">=3.0.2,<4.0.0"
 ghp-import = ">=2.1.0,<3.0.0"
-black = ">=24.0.0,<25.0.0"
 flake8 = ">=7.0.0,<8.0.0"
+
+
+[tool.poetry.group.test.dependencies]
+ruff = "^0.14.2"
+black = "^25.9.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
