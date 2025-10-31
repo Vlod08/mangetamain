@@ -24,7 +24,7 @@ RUN poetry install --no-interaction
 EXPOSE 8501
 
 # Run Streamlit app
-CMD ["poetry", "run", "streamlit", "run", "src/mangetamain/app/Home.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["poetry", "run", "streamlit", "run", "src/mangetamain/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
 
 # To build the Docker image, use: docker build -t mangetamain:latest .
 # To run the Docker container, use: docker run --rm -p 8501:8501 mangetamain:latest
