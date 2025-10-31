@@ -245,50 +245,6 @@ def display_signatures_tfidf_vs_tf(
     except Exception as e:
         st.error(f"Error generating Plotly chart: {e}")
 
-# def display_seasonal_heatmap(signatures_tfidf: dict, top_n: int = 50):
-#     """
-#     Affiche une heatmap comparant les scores TF-IDF des ingrédients
-#     pour toutes les saisons.
-
-#     Args:
-#         signatures_tfidf (dict): Le dict des scores TF-IDF ({season: {term: score}}).
-#         top_n (int): Le nombre total d'ingrédients à afficher
-#                      (basé sur leur meilleur score toutes saisons confondues).
-#     """
-#     st.header("Seasonal Signature Heatmap")
-
-#     df_wide = pd.DataFrame.from_dict(signatures_tfidf).fillna(0)
-#     df_wide['max_score'] = df_wide.max(axis=1)
-#     df_top = df_wide.sort_values(by='max_score', ascending=False).head(top_n)
-#     df_plot = df_top.drop(columns=['max_score'])
-
-#     if df_plot.empty:
-#         st.warning("No data to display in heatmap.")
-#         return
-
-#     # 3. --- Affichage Plotly ---
-#     fig = px.imshow(
-#         df_plot,
-#         labels=dict(x="Season", y="Ingredient", color="TF-IDF Score"),
-#         title="Top Ingredient Signatures by Season",
-#         color_continuous_scale='OrRd',  # Thème de couleur (Orange-Red)
-#         aspect="auto"  # S'adapte à la taille
-#     )
-
-#     # Ajuste la hauteur en fonction du nombre d'ingrédients
-#     fig.update_layout(height=max(400, top_n * 20))
-#     st.plotly_chart(fig, use_container_width=True)
-
-#     with st.expander("How to read this chart?"):
-#         st.markdown("""
-#         This heatmap shows the **relative importance (TF-IDF score)** of an ingredient (row) for each season (column).
-
-#         * A **dark red** cell means the ingredient is a *strong signature* for that season.
-#         * A **light yellow** cell means the score is low or zero.
-
-#         This helps you instantly spot seasonal patterns, like "Cinnamon" being high in "Fall" but low in "Summer".
-#         """)
-
 
 def display_seasonal_pie(df_period: pd.DataFrame):
     st.subheader("Recipe Distribution by Season")
@@ -297,10 +253,10 @@ def display_seasonal_pie(df_period: pd.DataFrame):
         st.info("No seasonal data to display.")
         return
     color_map = {
-        'winter': '#AEC6CF',  # Bleu pastel
-        'spring': '#B7E4C7',  # Vert menthe
-        'summer': '#FFFACD',  # Jaune pâle (citron)
-        'fall':   '#FFDAB9'   # Orange pâle (pêche)
+        'winter': '#AEC6CF',
+        'spring': '#B7E4C7',
+        'summer': '#FFFACD',
+        'fall':   '#FFDAB9'
     }
 
     fig = px.pie(
@@ -340,7 +296,7 @@ def map(df_country: pd.DataFrame, selected_country: str | None = None):
             df_country, continent_col="continent")
         name_map = {}
 
-    # On n’utilise la sélection que pour le highlight (pas pour écrire la sidebar)
+    # We only use the selection for highlighting (not to populate the sidebar)
     selected_for_map = None if (
         not selected_country or selected_country == "Select a country...") else selected_country
 
@@ -359,12 +315,12 @@ def map(df_country: pd.DataFrame, selected_country: str | None = None):
 
     result = st_folium(m, height=640, width=None, key="map_widget")
 
-    # CLICK HANDLER (sélection d’un pays depuis la carte)
+    # CLICK HANDLER (country selection from the map)
     if level == "country":
         clicked_popup = (result or {}).get("last_object_clicked_popup")
         if clicked_popup:
             raw = str(clicked_popup).strip()
-            # gère "<b>France</b><br/>…" ou "France"
+            # handles "<b>France</b><br/>…" or "France"
             if "<b>" in raw and "</b>" in raw:
                 start = raw.find("<b>") + 3
                 end = raw.find("</b>", start)
@@ -385,7 +341,7 @@ def app():
         round_logo=True, subtitle=None, wide=True
     )
 
-    # Dataset déjà chargé par l’entrypoint
+    # Dataset already loaded by the entrypoint
     recipes_df = st.session_state["recipes"]
     recipes_eda_svc = RecipesEDAService()
     recipes_eda_svc.load(recipes_df, preprocess=False)
@@ -410,13 +366,13 @@ def app():
     seasons_list = df_period["season"].dropna().astype(
         str).sort_values().unique().tolist()
 
-    # --------- APPLY PENDING *AVANT* de créer le selectbox ----------
+    # --------- APPLY PENDING *BEFORE* creating the selectbox ----------
     if "__pending_country_choice" in st.session_state:
         st.session_state["country_choice"] = st.session_state.pop(
             "__pending_country_choice")
     st.session_state.setdefault("country_choice", "Select a country...")
 
-    # --------- Signatures (cache session) ----------
+    # --------- Signatures (session cache) ----------
     if "signatures_country" in st.session_state:
         signatures_country = st.session_state["signatures_country"]
     else:
@@ -463,7 +419,7 @@ def app():
         min_value=MIN_TOP_N, max_value=MAX_TOP_N, value=MAX_TOP_N
     )
 
-    # Sélecteurs
+    # Selectors
     default_country_name = "Select a country..."
     options_countries = [default_country_name] + countries_list
     current_choice = st.session_state.get(
@@ -536,7 +492,7 @@ def app():
 
         st.divider()
 
-        # Carte toujours affichée; le clic posera un pending + rerun
+        # Map is always displayed; clicking will set a pending choice and rerun
         map(df_country, None if selected_country ==
             default_country_name else selected_country)
 
