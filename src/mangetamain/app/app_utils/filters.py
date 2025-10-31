@@ -3,24 +3,33 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+
 def ensure_session_filters():
-    st.session_state.setdefault("filters", {
-        "minutes": (0, 240),
-        "steps": (0, 20),
-        "include_tags": [],
-        "exclude_tags": [],
-        "include_ings": [],
-    })
+    st.session_state.setdefault(
+        "filters",
+        {
+            "minutes": (0, 240),
+            "steps": (0, 20),
+            "include_tags": [],
+            "exclude_tags": [],
+            "include_ings": [],
+        },
+    )
+
 
 def parse_tag_str(x: str | None) -> list[str]:
-    if pd.isna(x): return []
+    if pd.isna(x):
+        return []
     x = str(x)
     if x.startswith("["):  # format liste stringifiée
         try:
-            import ast; return [t.strip().strip("'\"") for t in ast.literal_eval(x)]
+            import ast
+
+            return [t.strip().strip("'\"") for t in ast.literal_eval(x)]
         except Exception:
             pass
     return [t.strip() for t in x.replace("|", ",").split(",") if t.strip()]
+
 
 def apply_basic_filters(df: pd.DataFrame) -> pd.DataFrame:
     f = st.session_state["filters"]
@@ -32,9 +41,17 @@ def apply_basic_filters(df: pd.DataFrame) -> pd.DataFrame:
     if f["include_tags"] or f["exclude_tags"]:
         res["__tags_list"] = res["tags"].apply(parse_tag_str)
         if f["include_tags"]:
-            res = res[res["__tags_list"].apply(lambda L: any(t in L for t in f["include_tags"]))]
+            res = res[
+                res["__tags_list"].apply(
+                    lambda L: any(t in L for t in f["include_tags"])
+                )
+            ]
         if f["exclude_tags"]:
-            res = res[~res["__tags_list"].apply(lambda L: any(t in L for t in f["exclude_tags"]))]
+            res = res[
+                ~res["__tags_list"].apply(
+                    lambda L: any(t in L for t in f["exclude_tags"])
+                )
+            ]
         res = res.drop(columns="__tags_list", errors="ignore")
     # ingrédients include (optionnel, matching naïf)
     if f["include_ings"]:

@@ -18,6 +18,7 @@ use_global_ui(
     wide=True,
 )
 
+
 # ---------- Helpers ----------
 def _rerun() -> None:
     """Force a page reload (compatible with old/new Streamlit versions)."""
@@ -34,14 +35,21 @@ def find_root(anchor: Path) -> Path:
     """Find the project root by walking up to detect logs/, .git/, or pyproject.toml."""
     p = anchor.resolve()
     for cand in [p, *p.parents]:
-        if (cand / "logs").exists() or (cand / "pyproject.toml").exists() or (cand / ".git").exists():
+        if (
+            (cand / "logs").exists()
+            or (cand / "pyproject.toml").exists()
+            or (cand / ".git").exists()
+        ):
             return cand
     return p
+
 
 # ---------- Sidebar / Options ----------
 with st.sidebar:
     st.header("Options")
-    autorefresh = st.checkbox("Auto-refresh", value=True, help="Refresh every 5 seconds")
+    autorefresh = st.checkbox(
+        "Auto-refresh", value=True, help="Refresh every 5 seconds"
+    )
     if autorefresh:
         INTERVAL_S = 5
         now = time.time()
@@ -57,7 +65,10 @@ with st.sidebar:
         "Levels", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default=[]
     )
     query = st.text_input("Search (contains):", placeholder="keyword, module, etc.")
-    max_lines = st.slider("Last lines", min_value=200, max_value=10000, value=2000, step=200)
+    max_lines = st.slider(
+        "Last lines", min_value=200, max_value=10000, value=2000, step=200
+    )
+
 
 # ---------- I/O utilities ----------
 def read_log_bytes(path: Path) -> bytes:
@@ -133,7 +144,7 @@ with btn_cols[1]:
         get_logger().warning("Log file cleared: %s", cur_log.name)
         st.success(f"{file_choice} cleared.")
         _rerun()
-    
+
 with btn_cols[2]:
     if st.button("🧪 Write test log (INFO)"):
         logger = get_logger()

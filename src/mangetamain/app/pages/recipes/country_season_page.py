@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from streamlit_folium import st_folium
 import time
-import pandas as pd
 import plotly.express as px
 
 from mangetamain.app.app_utils.ui import use_global_ui
@@ -29,7 +28,9 @@ def format_time(start_time: float, end_time: float) -> str:
     return f"{int(minutes)} min {seconds:.2f} sec"
 
 
-def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.DataFrame):
+def fetch_country_season_animation(
+    recipes_eda_svc: RecipesEDAService, df: pd.DataFrame
+):
     # Placeholders
     lottie_placeholder = st.empty()
     text_placeholder = st.empty()
@@ -38,7 +39,6 @@ def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.Da
     lottie = load_lottie()
     with lottie_placeholder:
         st_lottie(lottie, height=200, speed=1, loop=True)
-
 
     text_placeholder.text("Fetching country and season columns...")
     progress_placeholder.progress(0)
@@ -60,14 +60,15 @@ def fetch_country_season_animation(recipes_eda_svc: RecipesEDAService, df: pd.Da
     st.toast(
         f"Country and season columns added ({formatted})",
         icon=":material/thumb_up:",
-        duration=5)
+        duration=5,
+    )
 
     return df_country_season
 
+
 def compute_country_signatures_animation(df: pd.DataFrame):
     start_time = time.time()
-    signatures_country = RecipesEDAService.get_signatures_countries(
-        df, top_n=MAX_TOP_N)
+    signatures_country = RecipesEDAService.get_signatures_countries(df, top_n=MAX_TOP_N)
     end_time = time.time()
 
     formatted = format_time(start_time, end_time)
@@ -76,15 +77,16 @@ def compute_country_signatures_animation(df: pd.DataFrame):
     st.toast(
         f"Country signatures computed ({formatted})",
         icon=":material/thumb_up:",
-        duration=5)
+        duration=5,
+    )
 
     return signatures_country
+
 
 def compute_season_signatures_animation(df: pd.DataFrame):
 
     start_time = time.time()
-    signatures_season = RecipesEDAService.get_signatures_seasons(
-        df, top_n=MAX_TOP_N)
+    signatures_season = RecipesEDAService.get_signatures_seasons(df, top_n=MAX_TOP_N)
     end_time = time.time()
 
     formatted = format_time(start_time, end_time)
@@ -93,17 +95,19 @@ def compute_season_signatures_animation(df: pd.DataFrame):
     st.toast(
         f"Season signatures computed ({formatted})",
         icon=":material/thumb_up:",
-        duration=5)
+        duration=5,
+    )
 
     return signatures_season
 
 
 def display_signature(
-        signature: dict,
-        selected_feature: str,
-        top_n_to_display: int,
-        country: bool,
-        season: bool = False):
+    signature: dict,
+    selected_feature: str,
+    top_n_to_display: int,
+    country: bool,
+    season: bool = False,
+):
     """Displays the signature of the selected feature as a word cloud
     Args:
         signature (dict): The signature of the feature containing ingredient frequencies.
@@ -132,36 +136,42 @@ def display_signature(
 
     try:
         if country:
-            st.markdown(f"""
+            st.markdown(
+                f"""
             This cloud visualizes the ingredients that are most **characteristic** of **{selected_feature.title()}**.
 
             The size of each ingredient is determined by its **TF-IDF score**, not just its raw frequency. This score highlights ingredients that are not only *frequently used* in this country but also *relatively unique* to it compared to all other cuisines.
 
             This is what defines a **"culinary signature"**: it filters out globally common items (like 'salt' or 'water') to reveal the ingredients that truly make this cuisine distinct.
-            """)
+            """
+            )
             wc = WordCloud(
                 width=width,
                 height=height,
-                background_color='white',
-                colormap='ocean',
+                background_color="white",
+                colormap="ocean",
                 prefer_horizontal=0.95,
-                random_state=42, margin=5
+                random_state=42,
+                margin=5,
             ).generate_from_frequencies(scores_to_display)
 
         elif season:
-            st.markdown("""
+            st.markdown(
+                """
             This analysis shows which ingredients are strongly associated with a specific season (like 'pumpkin' in Fall or 'basil' in Summer).
-            """)
+            """
+            )
             wc = WordCloud(
                 width=width,
                 height=height,
-                background_color='white',
-                colormap='plasma',
+                background_color="white",
+                colormap="plasma",
                 prefer_horizontal=0.95,
-                random_state=42, margin=5
+                random_state=42,
+                margin=5,
             ).generate_from_frequencies(scores_to_display)
 
-    # try:
+        # try:
         # --- DYNAMIC WIDTH BASED ON STREAMLIT CONTAINER ---
         # The more words, the taller the cloud (but cap it for very large numbers)
         # base_height = 300
@@ -180,20 +190,21 @@ def display_signature(
 
         # --- DISPLAY WITH RESPONSIVE FIGURE SIZE ---
         fig, ax = plt.subplots(figsize=(width / 100, height / 100))
-        ax.imshow(wc, interpolation='bilinear')
+        ax.imshow(wc, interpolation="bilinear")
         ax.axis("off")
 
-        st.pyplot(fig, width='stretch')
+        st.pyplot(fig, width="stretch")
 
     except Exception as e:
         st.error(f"Error generating word cloud: {e}")
 
 
 def display_signatures_tfidf_vs_tf(
-        signatures_tfidf: dict,
-        signatures_tf: dict,
-        selected_country: str,
-        top_n_to_display: int):
+    signatures_tfidf: dict,
+    signatures_tf: dict,
+    selected_country: str,
+    top_n_to_display: int,
+):
     """Displays an interactive scatter plot (TF vs TF-IDF) for the selected country.
 
     Args:
@@ -203,7 +214,10 @@ def display_signatures_tfidf_vs_tf(
         top_n_to_display (int): The number of top terms to display.
     """
 
-    if selected_country not in signatures_tfidf or not signatures_tfidf[selected_country]:
+    if (
+        selected_country not in signatures_tfidf
+        or not signatures_tfidf[selected_country]
+    ):
         st.warning(f"No scores found for '{selected_country}'.")
         return
 
@@ -214,8 +228,7 @@ def display_signatures_tfidf_vs_tf(
     country_tfidf = signatures_tfidf[selected_country]
 
     # Sort by descending TF-IDF
-    sorted_terms = sorted(country_tfidf.items(),
-                          key=lambda item: item[1], reverse=True)
+    sorted_terms = sorted(country_tfidf.items(), key=lambda item: item[1], reverse=True)
 
     # Select the Top N terms
     top_scores_tfidf = dict(sorted_terms[:top_n_to_display])
@@ -223,10 +236,12 @@ def display_signatures_tfidf_vs_tf(
 
     # Create data lists for the DataFrame
     data = {
-        'Term': list(top_terms),
-        'TFIDF': [float(top_scores_tfidf[term]) for term in top_terms],
+        "Term": list(top_terms),
+        "TFIDF": [float(top_scores_tfidf[term]) for term in top_terms],
         # Retrieve the corresponding TF scores
-        'TF': [float(signatures_tf[selected_country].get(term, 0)) for term in top_terms]
+        "TF": [
+            float(signatures_tf[selected_country].get(term, 0)) for term in top_terms
+        ],
     }
 
     df_plot = pd.DataFrame(data)
@@ -244,20 +259,19 @@ def display_signatures_tfidf_vs_tf(
     try:
         fig = px.scatter(
             df_plot,
-            x='TF',
-            y='TFIDF',
-            hover_name='Term',  # Label points on hover
-            size='TFIDF',       # Point size based on TF-IDF
-            color='TFIDF',      # Color based on TF-IDF
+            x="TF",
+            y="TFIDF",
+            hover_name="Term",  # Label points on hover
+            size="TFIDF",  # Point size based on TF-IDF
+            color="TFIDF",  # Color based on TF-IDF
             log_x=False,
-            labels={
-                'TF': 'Term Frequency (TF)', 'TFIDF': 'Importance (TF-IDF)'}
+            labels={"TF": "Term Frequency (TF)", "TFIDF": "Importance (TF-IDF)"},
         )
 
-        fig.update_traces(textposition='top center')
+        fig.update_traces(textposition="top center")
 
         # 4. --- STREAMLIT DISPLAY ---
-        st.plotly_chart(fig, config={'width': 'stretch'})
+        st.plotly_chart(fig, config={"width": "stretch"})
 
     except Exception as e:
         st.error(f"Error generating Plotly chart: {e}")
@@ -270,57 +284,60 @@ def display_seasonal_pie(df_period: pd.DataFrame):
         st.info("No seasonal data to display.")
         return
     color_map = {
-        'winter': '#AEC6CF',
-        'spring': '#B7E4C7',
-        'summer': '#FFFACD',
-        'fall':   '#FFDAB9'
+        "winter": "#AEC6CF",
+        "spring": "#B7E4C7",
+        "summer": "#FFFACD",
+        "fall": "#FFDAB9",
     }
 
     fig = px.pie(
         seasons_counts,
-        names='season',
-        values='number of recipes',
-        title='Recipe Distribution by Season',
-        hole=.3,
-        color='season',
-        color_discrete_map=color_map
+        names="season",
+        values="number of recipes",
+        title="Recipe Distribution by Season",
+        hole=0.3,
+        color="season",
+        color_discrete_map=color_map,
     )
 
     fig.update_traces(
-        textposition='outside',
-        textinfo='percent+label',
-        pull=[0.05, 0.05, 0.05, 0.05]
+        textposition="outside", textinfo="percent+label", pull=[0.05, 0.05, 0.05, 0.05]
     )
 
     fig.update_layout(showlegend=False)
-    st.plotly_chart(fig, config={'width': 'stretch'})
+    st.plotly_chart(fig, config={"width": "stretch"})
 
 
 def map(df_country: pd.DataFrame, selected_country: str | None = None):
 
-    level = st.radio("View", ["country", "continent"],
-                     horizontal=True, key="map_view_level")
+    level = st.radio(
+        "View", ["country", "continent"], horizontal=True, key="map_view_level"
+    )
 
     mapper = BubbleMapFolium(tiles="OpenStreetMap", auto_centroids=True)
 
     if level == "country":
         counts = mapper.counts_by_country(df_country, country_col="country")
-        countries_list = counts["country"].dropna().astype(
-            str).sort_values().unique().tolist()
+        countries_list = (
+            counts["country"].dropna().astype(str).sort_values().unique().tolist()
+        )
         name_map = {c.casefold(): c for c in countries_list}
     else:
-        counts = mapper.counts_by_continent(
-            df_country, continent_col="continent")
+        counts = mapper.counts_by_continent(df_country, continent_col="continent")
         name_map = {}
 
     # We only use the selection for highlighting (not to populate the sidebar)
-    selected_for_map = None if (
-        not selected_country or selected_country == "Select a country...") else selected_country
+    selected_for_map = (
+        None
+        if (not selected_country or selected_country == "Select a country...")
+        else selected_country
+    )
 
     m = mapper.build_map(
         counts,
         level=level,
-        min_px=6, max_px=6,
+        min_px=6,
+        max_px=6,
         opacity=0.95,
         use_sqrt=True,
         cluster=False,
@@ -356,7 +373,8 @@ def app():
         subtitle="Explore Culinary Signatures by Country and Season",
         logo="assets/mangetamain-logo.jpg",
         logo_size_px=90,
-        round_logo=True, wide=True
+        round_logo=True,
+        wide=True,
     )
 
     # Dataset already loaded by the entrypoint
@@ -365,18 +383,25 @@ def app():
     recipes_eda_svc.load(recipes_df, preprocess=False)
 
     # --------- PREP DATA (country / period) ----------
-    if 'df_country_season' in st.session_state:
-        df_country_season = st.session_state['df_country_season']
+    if "df_country_season" in st.session_state:
+        df_country_season = st.session_state["df_country_season"]
     else:
         df_country_season = fetch_country_season_animation(recipes_eda_svc, recipes_df)
         df_country_season.rename(columns={"region": "continent"}, inplace=True)
-        st.session_state['df_country_season'] = df_country_season
+        st.session_state["df_country_season"] = df_country_season
 
-    countries_list = df_country_season["country"].dropna().astype(
-        str).sort_values().unique().tolist()
-    seasons_list = df_country_season["season"].dropna().astype(
-        str).sort_values().unique().tolist()
-    
+    countries_list = (
+        df_country_season["country"]
+        .dropna()
+        .astype(str)
+        .sort_values()
+        .unique()
+        .tolist()
+    )
+    seasons_list = (
+        df_country_season["season"].dropna().astype(str).sort_values().unique().tolist()
+    )
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("Number of countries in dataset", len(countries_list))
@@ -386,7 +411,8 @@ def app():
     # --------- APPLY PENDING *BEFORE* creating the selectbox ----------
     if "__pending_country_choice" in st.session_state:
         st.session_state["country_choice"] = st.session_state.pop(
-            "__pending_country_choice")
+            "__pending_country_choice"
+        )
     st.session_state.setdefault("country_choice", "Select a country...")
 
     # --------- Signatures (session cache) ----------
@@ -411,8 +437,9 @@ def app():
 
     progress_placeholder.progress(50)
 
-    assert all(c in countries_list for c in list(signatures_country[0].keys())), \
-        "Signatures list of countries does not match the list of countries in the dataset"
+    assert all(
+        c in countries_list for c in list(signatures_country[0].keys())
+    ), "Signatures list of countries does not match the list of countries in the dataset"
 
     text_placeholder.text("Computing season signatures...")
 
@@ -424,7 +451,7 @@ def app():
             st.error("Could not compute season signatures !")
             return
         st.session_state["signatures_season"] = signatures_season
-    
+
     progress_placeholder.progress(100)
     text_placeholder.text("")
     lottie_placeholder.empty()
@@ -437,8 +464,9 @@ def app():
     progress_placeholder.empty()
     success_placeholder.empty()
 
-    assert all(s in seasons_list for s in list(signatures_season[0].keys())), \
-        "Signatures list of seasons does not match the list of seasons in the dataset"
+    assert all(
+        s in seasons_list for s in list(signatures_season[0].keys())
+    ), "Signatures list of seasons does not match the list of seasons in the dataset"
 
     # -------------------- UI --------------------
     st.title("🧑‍🍳 Recipes and Ingredients Signatures Analyzer")
@@ -447,17 +475,21 @@ def app():
     st.sidebar.header("Analysis Options")
     top_n_to_display = st.sidebar.slider(
         "Display Top N Ingredients:",
-        min_value=MIN_TOP_N, max_value=MAX_TOP_N, value=MAX_TOP_N
+        min_value=MIN_TOP_N,
+        max_value=MAX_TOP_N,
+        value=MAX_TOP_N,
     )
 
     # Selectors
     default_country_name = "Select a country..."
     options_countries = [default_country_name] + countries_list
-    current_choice = st.session_state.get(
-        "country_choice", default_country_name)
+    current_choice = st.session_state.get("country_choice", default_country_name)
     try:
         current_index = options_countries.index(
-            current_choice if current_choice in options_countries else default_country_name)
+            current_choice
+            if current_choice in options_countries
+            else default_country_name
+        )
     except ValueError:
         current_index = 0
 
@@ -471,9 +503,9 @@ def app():
         options=options_countries,
         index=current_index,
         placeholder="Select a country...",
-        label_visibility='hidden',
-        key="country_choice", 
-        format_func=str.title
+        label_visibility="hidden",
+        key="country_choice",
+        format_func=str.title,
     )
 
     selected_season = st.sidebar.selectbox(
@@ -481,19 +513,25 @@ def app():
         options=seasons_list,
         index=default_season_index,
         placeholder="Select a season...",
-        label_visibility='hidden',
-        format_func=str.title
+        label_visibility="hidden",
+        format_func=str.title,
     )
 
     df_country_season_filtered = df_country_season.copy()
-    df_country_season_filtered = df_country_season_filtered[
-        df_country_season_filtered["country"] == selected_country] \
-            if selected_country != default_country_name \
-                else df_country_season_filtered
-    df_country_season_filtered = df_country_season_filtered[
-        df_country_season_filtered["season"] == selected_season] \
-            if selected_season != default_season_name \
-                else df_country_season_filtered
+    df_country_season_filtered = (
+        df_country_season_filtered[
+            df_country_season_filtered["country"] == selected_country
+        ]
+        if selected_country != default_country_name
+        else df_country_season_filtered
+    )
+    df_country_season_filtered = (
+        df_country_season_filtered[
+            df_country_season_filtered["season"] == selected_season
+        ]
+        if selected_season != default_season_name
+        else df_country_season_filtered
+    )
     st.dataframe(df_country_season_filtered.head(5))
 
     # Tabs
@@ -503,26 +541,32 @@ def app():
     with tab1:
 
         # Map is always displayed; clicking will set a pending choice and rerun
-        map(df_country_season, None if selected_country == 
-            default_country_name else selected_country)
-        
+        map(
+            df_country_season,
+            None if selected_country == default_country_name else selected_country,
+        )
+
         st.divider()
 
         if selected_country == default_country_name:
             st.info(
-                "Click a country on the map or choose one from the sidebar to view its analysis.")
+                "Click a country on the map or choose one from the sidebar to view its analysis."
+            )
         else:
             top_3 = list(signatures_country[0][selected_country].keys())[:3]
             c1, c2, c3 = st.columns(3)
             with c1:
-                st.metric("🥇 Top Signature", top_3[0].title() if len(
-                    top_3) > 0 else "N/A")
+                st.metric(
+                    "🥇 Top Signature", top_3[0].title() if len(top_3) > 0 else "N/A"
+                )
             with c2:
-                st.metric("🥈 Second Signature",
-                          top_3[1].title() if len(top_3) > 1 else "N/A")
+                st.metric(
+                    "🥈 Second Signature", top_3[1].title() if len(top_3) > 1 else "N/A"
+                )
             with c3:
-                st.metric("🥉 Third Signature",
-                          top_3[2].title() if len(top_3) > 2 else "N/A")
+                st.metric(
+                    "🥉 Third Signature", top_3[2].title() if len(top_3) > 2 else "N/A"
+                )
 
             st.divider()
             left, right = st.columns(2, gap="large")
@@ -531,20 +575,19 @@ def app():
                     signatures_country[0][selected_country],
                     selected_country,
                     top_n_to_display,
-                    country=True
+                    country=True,
                 )
             with right:
                 display_signatures_tfidf_vs_tf(
                     signatures_country[0],
                     signatures_country[1],
                     selected_country,
-                    top_n_to_display
+                    top_n_to_display,
                 )
 
     with tab2:
         if selected_season == default_season_name:
-            st.info(
-                "Select a season from the sidebar to view its analysis.")
+            st.info("Select a season from the sidebar to view its analysis.")
         else:
             left, right = st.columns(2, gap="large")
             with left:
@@ -553,7 +596,7 @@ def app():
                     selected_season,
                     top_n_to_display,
                     country=False,
-                    season=True
+                    season=True,
                 )
             with right:
                 display_seasonal_pie(df_country_season)

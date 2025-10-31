@@ -1,18 +1,22 @@
 # main.py
 from __future__ import annotations
-import logging
 import streamlit as st
 from streamlit_lottie import st_lottie
 import time
 
 # from mangetamain.core.utils.utils import setup_logging
 from mangetamain.config import ROOT_DIR
-from mangetamain.core.dataset import DatasetLoaderThread, RecipesDataset, InteractionsDataset
+from mangetamain.core.dataset import (
+    DatasetLoaderThread,
+    RecipesDataset,
+    InteractionsDataset,
+)
 from mangetamain.core.utils.utils import load_lottie
 from mangetamain.core.app_logging import setup_logging, get_logger
 import os
 import zipfile
 import requests
+
 
 def download_and_unzip_kaggle_dataset(
     url: str = "https://www.kaggle.com/api/v1/datasets/download/shuyangli94/food-com-recipes-and-user-interactions",
@@ -53,68 +57,59 @@ def pages():
     # --- Pages ---
     pages_dir = ROOT_DIR / "src" / "mangetamain" / "app" / "pages"
     home_page = st.Page(
-        pages_dir / "home_page.py", 
-        title="Home", 
-        icon="🏠", 
-        url_path="",
-        default=True
+        pages_dir / "home_page.py", title="Home", icon="🏠", url_path="", default=True
     )
     explorer_recipes_page = st.Page(
-        pages_dir / "recipes" / "recipes_explorer_page.py", 
-        title="Recipes Explorer", 
+        pages_dir / "recipes" / "recipes_explorer_page.py",
+        title="Recipes Explorer",
         url_path="/recipes",
-        icon="📖"
+        icon="📖",
     )
     explorer_interactions_page = st.Page(
-        pages_dir / "interactions" / "interactions_explorer_page.py", 
-        title="Interactions Explorer", 
+        pages_dir / "interactions" / "interactions_explorer_page.py",
+        title="Interactions Explorer",
         url_path="/interactions",
-        icon="🔍"
+        icon="🔍",
     )
     country_season_page = st.Page(
-        pages_dir / "recipes" / "country_season_page.py", 
-        title="Country & Season", 
+        pages_dir / "recipes" / "country_season_page.py",
+        title="Country & Season",
         url_path="/recipes_country_season",
-        icon="🌍"
+        icon="🌍",
     )
     clustering_page = st.Page(
-        pages_dir / "recipes" / "clustering_page.py", 
-        title="Clustering", 
+        pages_dir / "recipes" / "clustering_page.py",
+        title="Clustering",
         url_path="/recipes_clustering",
-        icon="🧑‍🤝‍🧑"
+        icon="🧑‍🤝‍🧑",
     )
     interactions_analysis_page = st.Page(
-        pages_dir / "interactions" / "interactions_analysis_page.py", 
-        title="Interactions Analysis", 
+        pages_dir / "interactions" / "interactions_analysis_page.py",
+        title="Interactions Analysis",
         url_path="/interactions_analysis",
-        icon="📊"
+        icon="📊",
     )
     admin_page = st.Page(
-        pages_dir / "admin_page.py", 
-        title="Admin", 
-        url_path="/admin",
-        icon="🛠️"
+        pages_dir / "admin_page.py", title="Admin", url_path="/admin", icon="🛠️"
     )
     about_page = st.Page(
-        pages_dir / "about_page.py", 
-        title="About", 
-        url_path="/about",
-        icon="ℹ️"
+        pages_dir / "about_page.py", title="About", url_path="/about", icon="ℹ️"
     )
     pg = st.navigation(
         {
             "Main Menu": [home_page, admin_page, about_page],
             "Recipes": [explorer_recipes_page, country_season_page, clustering_page],
             "Interactions": [explorer_interactions_page, interactions_analysis_page],
-        }, 
+        },
         position="top",
-        expanded=False
+        expanded=False,
     )
     return pg
 
+
 def load_data(name: str = None) -> None:
     """Simulate loading and preprocessing with progress."""
-    
+
     # Placeholders
     header_placeholder = st.empty()
     lottie_placeholder = st.empty()
@@ -134,7 +129,7 @@ def load_data(name: str = None) -> None:
     lottie = load_lottie()
     with lottie_placeholder:
         st_lottie(lottie, height=200, speed=1, loop=True)
-    
+
     # Progress bar and text
     text_placeholder.text("Data loading...")
     progress_bar = progress_placeholder.progress(0)
@@ -142,15 +137,9 @@ def load_data(name: str = None) -> None:
     # Use threads to load datasets concurrently
     threads = []
     if (name is None) or (name == "recipes"):
-        threads.append(DatasetLoaderThread(
-            RecipesDataset(), 
-            label="recipes"
-            ))
+        threads.append(DatasetLoaderThread(RecipesDataset(), label="recipes"))
     if (name is None) or (name == "interactions"):
-        threads.append(DatasetLoaderThread(
-            InteractionsDataset(), 
-            label="interactions"
-        ))
+        threads.append(DatasetLoaderThread(InteractionsDataset(), label="interactions"))
 
     # Start threads
     for thread in threads:
@@ -168,7 +157,7 @@ def load_data(name: str = None) -> None:
                 thread_lives[i] = False
                 progress_bar.progress(100 - sum(thread_lives) * 50)
                 text_placeholder.text(f"{thread.label.capitalize()} dataset loaded.")
-        time.sleep(0.5)    
+        time.sleep(0.5)
 
     # Ensure all threads have finished
     for thread in threads:
@@ -181,7 +170,7 @@ def load_data(name: str = None) -> None:
     text_placeholder.empty()
 
     st.toast("Data is now ready!", icon=":material/thumb_up:", duration=5)
-    
+
     if name is None:
         st.session_state["data_ready"] = True
 
@@ -204,6 +193,7 @@ def load_data(name: str = None) -> None:
     time.sleep(2)
     success_placeholder.empty()
 
+
 def app():
     # Ensure dataset exists locally; attempt download from Kaggle if missing.
     data_dir = ROOT_DIR / "data"
@@ -212,7 +202,9 @@ def app():
     interactions_parquet = data_dir / "processed" / "interactions.parquet"
     interactions_csv = data_dir / "RAW_interactions.csv"
     # If either recipes or interactions datasets are missing, attempt automatic download
-    if not (recipes_parquet.exists() or recipes_csv.exists()) or not (interactions_parquet.exists() or interactions_csv.exists()):
+    if not (recipes_parquet.exists() or recipes_csv.exists()) or not (
+        interactions_parquet.exists() or interactions_csv.exists()
+    ):
         try:
             download_and_unzip_kaggle_dataset(download_dir=str(data_dir))
             st.info("Dataset download attempted; continuing to load the app.")
@@ -225,28 +217,36 @@ def app():
         return
     # Only load the dataset we want in case we visit a specific group page
     if "recipes" in pg.url_path.lower():
-        if ("recipes" not in st.session_state) \
-            or (st.session_state["recipes"] is None) \
-                or (st.session_state["recipes"].empty):
+        if (
+            ("recipes" not in st.session_state)
+            or (st.session_state["recipes"] is None)
+            or (st.session_state["recipes"].empty)
+        ):
             load_data("recipes")
     elif "interactions" in pg.url_path.lower():
-        if ("interactions" not in st.session_state) \
-            or (st.session_state["interactions"] is None) \
-                or (st.session_state["interactions"].empty):
+        if (
+            ("interactions" not in st.session_state)
+            or (st.session_state["interactions"] is None)
+            or (st.session_state["interactions"].empty)
+        ):
             load_data("interactions")
     # otherwise, load both datasets
     else:
         recipes_loaded = True
         interactions_loaded = True
-        if "recipes" not in st.session_state \
-            or (st.session_state["recipes"] is None) \
-                or (st.session_state["recipes"].empty):
+        if (
+            "recipes" not in st.session_state
+            or (st.session_state["recipes"] is None)
+            or (st.session_state["recipes"].empty)
+        ):
             recipes_loaded = False
-        if "interactions" not in st.session_state \
-            or (st.session_state["interactions"] is None) \
-                or (st.session_state["interactions"].empty):
+        if (
+            "interactions" not in st.session_state
+            or (st.session_state["interactions"] is None)
+            or (st.session_state["interactions"].empty)
+        ):
             interactions_loaded = False
-        
+
         placeholders = st.empty()
         if (not recipes_loaded) and (not interactions_loaded):
             load_data()
@@ -261,11 +261,12 @@ def app():
         placeholders.empty()
     pg.run()
 
+
 if __name__ == "__main__":
     if "logger" not in st.session_state:
         setup_logging()
         st.session_state["logger"] = get_logger("mangetamain.main")
     else:
-        st.session_state["logger"].info("-"*50)
+        st.session_state["logger"].info("-" * 50)
         st.session_state["logger"].info("Application started/restarted.")
     app()
