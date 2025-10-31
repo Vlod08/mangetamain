@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 from mangetamain.core.handlers.recipes_handler import RecipesHandler
 
+
 @dataclass
 class SeasonalityHandler(RecipesHandler):
     def __post_init__(self, path: str = None):
@@ -16,10 +17,10 @@ class SeasonalityHandler(RecipesHandler):
         Args:
             path: Path where season/event references could be loaded from.
         """
-        super().__post_init__(path)
+        super().__post_init__()
+        self.build_ref(path)
         self.logger.info("SeasonalityHandler initialized.")
 
-    @st.cache_data(show_spinner=False)
     def build_ref(self, path: str = None) -> None:
         """Build reference season and event names.
 
@@ -28,7 +29,16 @@ class SeasonalityHandler(RecipesHandler):
         """
         # Static references; adjust or replace with file-based loading if needed
         ref_season = ['winter', 'spring', 'summer', 'fall']
-        ref_event = ['christmas', 'halloween', 'thanksgiving']
+        ref_event = ['christmas', 'halloween', 'thanksgiving',
+                     'valentines-day', 'new_years', 'easter', 'independance-day']
+        self.event_to_season_map = {
+            'christmas': 'winter',
+            'halloween': 'fall',
+            'thanksgiving': 'fall',
+            'valentines-day': 'winter',
+            'new_years': 'winter',
+            'easter': 'spring',
+            'independance-day': 'summer'}
         self.ref_names = {
             "season": [ref_season],
             "event": [ref_event]
@@ -81,9 +91,12 @@ class SeasonalityHandler(RecipesHandler):
             indicates that no period could be selected.
         """
         # Take the first candidate of each column when available
-        tags_period = df['tags'].str[0]
-        name_period = df['name'].str[0]
-        description_period = df['description'].str[0]
+        tags_period = df['tags'].apply(
+            lambda x: x[0] if isinstance(x, list) and x else None)
+        name_period = df['name'].apply(
+            lambda x: x[0] if isinstance(x, list) and x else None)
+        description_period = df['description'].apply(
+            lambda x: x[0] if isinstance(x, list) and x else None)
 
         # Priority: tags first, then name, then description
         final_seasons = tags_period.combine_first(
@@ -91,7 +104,7 @@ class SeasonalityHandler(RecipesHandler):
         # Ensure missing values are represented as empty strings for downstream code
         final_seasons = final_seasons.fillna('')
         return final_seasons
-    
+
     def get_periods_all(self, recipe: pd.DataFrame) -> pd.DataFrame:
         """Compute season and event labels for all recipes.
 
@@ -112,10 +125,12 @@ class SeasonalityHandler(RecipesHandler):
         recipe_final = recipe.copy()
 
         # Extract season candidates from each textual field
-        tags = self.get_period_type_column(recipe['tags'], self.ref_season)
-        name = self.get_period_type_column(recipe['name'], self.ref_season)
+        tags = self.get_period_type_column(
+            recipe['tags'], self.ref_names['season'][0])
+        name = self.get_period_type_column(
+            recipe['name'], self.ref_names['season'][0])
         description = self.get_period_type_column(
-            recipe['description'], self.ref_season)
+            recipe['description'], self.ref_names['season'][0])
 
         # Decide a single season based on ambiguity-minimizing heuristic (see choose_period)
         df_seasons = pd.DataFrame(
@@ -125,18 +140,28 @@ class SeasonalityHandler(RecipesHandler):
         # Extract event candidates; note: when using Series.apply with an extra argument,
         # you must pass it through the "args" parameter. Here we use the vectorized version
         # for consistency with seasons above.
-        tags = self.get_period_type_column(recipe['tags'], self.ref_event)
-        name = self.get_period_type_column(recipe['name'], self.ref_event)
+        tags = self.get_period_type_column(
+            recipe['tags'], self.ref_names['event'][0])
+        name = self.get_period_type_column(
+            recipe['name'], self.ref_names['event'][0])
         description = self.get_period_type_column(
-            recipe['description'], self.ref_event)
+            recipe['description'], self.ref_names['event'][0])
 
         df_events = pd.DataFrame(
             {'tags': tags, 'name': name, 'description': description})
         # Reuse the same selection rule; if you intend a different rule, implement it here
         events = self.get_prioritized_period(df_events)
 
+        season_from_event = events.map(self.event_to_season_map)
+        # final_seasons = seasons.combine_first(season_from_event)
+        # final_seasons = final_seasons.fillna('')
+
+        final_seasons = (seasons.replace(
+            '', pd.NA).combine_first(season_from_event))
+        final_seasons = final_seasons.fillna('')
+
         # Attach results to the returned DataFrame
-        recipe_final['season'] = seasons
+        recipe_final['season'] = final_seasons
         recipe_final['event'] = events
 
         return recipe_final
