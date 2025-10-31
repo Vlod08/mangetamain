@@ -7,6 +7,7 @@ import plotly.express as px
 from app.app_utils.ui import use_global_ui
 from core.interactions_eda import InteractionsEDAService
 
+
 def app():
     use_global_ui(
         page_title="Mangetamain — Interactions: Advanced Analysis",
@@ -28,12 +29,27 @@ def app():
         if corr.empty:
             st.info("Not enough numeric columns.")
         else:
-            fig = px.imshow(corr, title="Heatmap of Correlations (Numeric)", aspect="auto", color_continuous_scale="RdBu", zmin=-1, zmax=1)
+            fig = px.imshow(
+                corr,
+                title="Heatmap of Correlations (Numeric)",
+                aspect="auto",
+                color_continuous_scale="RdBu",
+                zmin=-1,
+                zmax=1,
+            )
             st.plotly_chart(fig)
         rvl = svc.rating_vs_length()
         if not rvl.empty:
-            st.plotly_chart(px.scatter(rvl, x="review_len", y="rating", opacity=0.2, trendline="ols",
-                                    title="Rating vs Review Length"))
+            st.plotly_chart(
+                px.scatter(
+                    rvl,
+                    x="review_len",
+                    y="rating",
+                    opacity=0.2,
+                    trendline="ols",
+                    title="Rating vs Review Length",
+                )
+            )
 
     # 2) User Bias
     with tabs[1]:
@@ -45,10 +61,22 @@ def app():
             with col1:
                 st.dataframe(ub.head(20))
             with col2:
-                st.plotly_chart(px.histogram(ub, x="mean", nbins=25, title="Distribution of Means by User"),
-                                width="stretch")
-            st.plotly_chart(px.scatter(ub, x="n", y="mean", title="Volume of Reviews vs Mean", hover_data=["median"]),
-                            width="stretch")
+                st.plotly_chart(
+                    px.histogram(
+                        ub, x="mean", nbins=25, title="Distribution of Means by User"
+                    ),
+                    width="stretch",
+                )
+            st.plotly_chart(
+                px.scatter(
+                    ub,
+                    x="n",
+                    y="mean",
+                    title="Volume of Reviews vs Mean",
+                    hover_data=["median"],
+                ),
+                width="stretch",
+            )
 
     # 3) Text ↔ Rating (top tokens by rounded rating)
     with tabs[2]:
@@ -57,8 +85,17 @@ def app():
             st.info("Columns 'review'/'rating' missing.")
         else:
             st.dataframe(tbr.head(100))
-            st.plotly_chart(px.bar(tbr, x="token", y="count", color="rating", barmode="group",
-                                title="Top tokens by Rounded Rating"))
+            st.plotly_chart(
+                px.bar(
+                    tbr,
+                    x="token",
+                    y="count",
+                    color="rating",
+                    barmode="group",
+                    title="Top tokens by Rounded Rating",
+                )
+            )
+
 
 if __name__ == "__main__":
     app()

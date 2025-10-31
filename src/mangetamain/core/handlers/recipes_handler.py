@@ -10,20 +10,24 @@ import streamlit as st
 
 from mangetamain.core.utils.string_utils import fuzzy_fetch
 
+
 def enforce_check(method):
     """Decorator to ensure check_ref() is called after build_ref()."""
+
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         result = method(self, *args, **kwargs)
         if hasattr(self, "check_ref"):
             self.check_ref()
         return result
+
     return wrapper
+
 
 @dataclass
 class RecipesHandler(ABC):
     """Abstract base class for handling recipe-related data processing.
-    
+
     Attributes:
         ref_dataset (pd.DataFrame): Reference dataset for matching.
         ref_names (Dict[str, List[List[str]]]): Reference names for matching.
@@ -55,17 +59,20 @@ class RecipesHandler(ABC):
         """Check the integrity of the reference dataset and names."""
         self.logger.info("Checking reference dataset and names...")
         if self.ref_dataset is not None:
-            assert isinstance(self.ref_dataset, pd.DataFrame), "Ref Dataset should be a pandas DataFrame"
+            assert isinstance(
+                self.ref_dataset, pd.DataFrame
+            ), "Ref Dataset should be a pandas DataFrame"
             assert len(self.ref_dataset) > 0, "Ref Dataset is empty"
 
         assert self.ref_names is not None, "Ref Names is not properly set"
         assert len(self.ref_names) > 0, "Ref Names is empty"
-        assert isinstance(self.ref_names, dict) \
-            and isinstance(list(self.ref_names.keys())[0], str) \
-            and isinstance(list(self.ref_names.values())[0], list) \
-            and isinstance(list(self.ref_names.values())[0][0], list) \
-            and isinstance(list(self.ref_names.values())[0][0][0], str), \
-            "Ref Names should be a Dict[str, List[List[str]]]"
+        assert (
+            isinstance(self.ref_names, dict)
+            and isinstance(list(self.ref_names.keys())[0], str)
+            and isinstance(list(self.ref_names.values())[0], list)
+            and isinstance(list(self.ref_names.values())[0][0], list)
+            and isinstance(list(self.ref_names.values())[0][0][0], str)
+        ), "Ref Names should be a Dict[str, List[List[str]]]"
 
         self.logger.info("Reference dataset and names are properly set.")
 
@@ -102,24 +109,26 @@ class RecipesHandler(ABC):
         for col_idx, col in enumerate(columns, start=1):
             if col not in df.columns:
                 raise ValueError(f"Column '{col}' not found in DataFrame.")
-            
+
             # If the column is a string, split it into a list of tokens
             if len(df) > 0 and isinstance(df_copy[col][0], str):
                 df_copy[col] = df_copy[col].str.split(expand=False)
-            
+
             # Iterate over each reference column
             for ref_idx, ref_col in enumerate(ref_cols, start=1):
-                self.logger.info(f"[{col_idx}/{len(columns)}] ({ref_idx}/{len(ref_cols)})" \
-                                 + f" Processing column: {col} for {ref_col} matching...")
+                self.logger.info(
+                    f"[{col_idx}/{len(columns)}] ({ref_idx}/{len(ref_cols)})"
+                    + f" Processing column: {col} for {ref_col} matching..."
+                )
 
                 # Only update rows where the reference name is empty
                 if ref_col in df.columns:
-                    indexes_to_update = df[df[ref_col] == ''].index
+                    indexes_to_update = df[df[ref_col] == ""].index
                 else:
                     indexes_to_update = df.index
-                df.loc[indexes_to_update, ref_col] = df_copy.loc[indexes_to_update, col].map(
-                    lambda x: fuzzy_fetch(x, self.ref_names[ref_col])
-                )
+                df.loc[indexes_to_update, ref_col] = df_copy.loc[
+                    indexes_to_update, col
+                ].map(lambda x: fuzzy_fetch(x, self.ref_names[ref_col]))
 
         # Infer missing values after fetching
         df = self.infer(df)

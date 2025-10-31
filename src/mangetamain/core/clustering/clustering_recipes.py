@@ -10,6 +10,7 @@ UI layer remains thin. Exported helpers mirror the style of
 - top_terms_per_cluster(km, tfidf, topn=8) -> pd.DataFrame
 - compute_clustering_from_dataset(anchor=None, k=6, maxf=8000) -> (df, km, tfidf)
 """
+
 from __future__ import annotations
 from typing import Optional, Tuple
 import pandas as pd
@@ -22,7 +23,9 @@ from sklearn.decomposition import TruncatedSVD
 from core.dataset import RecipesDataset
 
 
-def build_tfidf_kmeans(corpus: pd.Series, k: int = 6, maxf: int = 8000, random_state: int = 42) -> Tuple[KMeans, TfidfVectorizer]:
+def build_tfidf_kmeans(
+    corpus: pd.Series, k: int = 6, maxf: int = 8000, random_state: int = 42
+) -> Tuple[KMeans, TfidfVectorizer]:
     """Fit a TF-IDF vectorizer and KMeans on the provided text corpus.
 
     Parameters
@@ -38,7 +41,9 @@ def build_tfidf_kmeans(corpus: pd.Series, k: int = 6, maxf: int = 8000, random_s
     return km, tfidf
 
 
-def assign_clusters(df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_col: str = "text") -> pd.DataFrame:
+def assign_clusters(
+    df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_col: str = "text"
+) -> pd.DataFrame:
     """Return a copy of `df` with a `cluster` integer column assigned using `tfidf`+`km`.
 
     If the text column is missing it will be created as empty strings.
@@ -52,7 +57,12 @@ def assign_clusters(df: pd.DataFrame, tfidf: TfidfVectorizer, km: KMeans, text_c
     return out
 
 
-def compute_2d(tfidf: TfidfVectorizer, texts: pd.Series, n_components: int = 2, random_state: int = 42) -> np.ndarray:
+def compute_2d(
+    tfidf: TfidfVectorizer,
+    texts: pd.Series,
+    n_components: int = 2,
+    random_state: int = 42,
+) -> np.ndarray:
     """Compute a quick 2D projection (TruncatedSVD) from texts via tfidf.transform.
 
     Returns an (N, 2) numpy array.
@@ -63,9 +73,10 @@ def compute_2d(tfidf: TfidfVectorizer, texts: pd.Series, n_components: int = 2, 
     return XY
 
 
-def top_terms_per_cluster(km: KMeans, tfidf: TfidfVectorizer, topn: int = 8) -> pd.DataFrame:
-    """Return a DataFrame with top terms per cluster (cluster, top_terms).
-    """
+def top_terms_per_cluster(
+    km: KMeans, tfidf: TfidfVectorizer, topn: int = 8
+) -> pd.DataFrame:
+    """Return a DataFrame with top terms per cluster (cluster, top_terms)."""
     terms = tfidf.get_feature_names_out()
     order_centroids = km.cluster_centers_.argsort()[:, ::-1]
     rows = []
@@ -75,7 +86,9 @@ def top_terms_per_cluster(km: KMeans, tfidf: TfidfVectorizer, topn: int = 8) -> 
     return pd.DataFrame(rows)
 
 
-def compute_clustering_from_dataset(anchor: Optional[str] = None, k: int = 6, maxf: int = 8000, random_state: int = 42) -> Tuple[pd.DataFrame, KMeans, TfidfVectorizer]:
+def compute_clustering_from_dataset(
+    anchor: Optional[str] = None, k: int = 6, maxf: int = 8000, random_state: int = 42
+) -> Tuple[pd.DataFrame, KMeans, TfidfVectorizer]:
     """Load recipes using RecipesDataset and compute clustering.
 
     Returns (df, km, tfidf) where `df` is the loaded recipes DataFrame (unchanged),
@@ -85,8 +98,14 @@ def compute_clustering_from_dataset(anchor: Optional[str] = None, k: int = 6, ma
     df = ds.load()
     # build a default 'text' column like the UI did (name + ingredients + description)
     df = df.copy()
-    df["text"] = (df.get("name", pd.Series([""] * len(df))).fillna("")
-                  + " " + df.get("ingredients", pd.Series([""] * len(df))).astype(str)
-                  + " " + df.get("description", pd.Series([""] * len(df))).fillna("")).str.lower()
-    km, tfidf = build_tfidf_kmeans(df["text"], k=k, maxf=maxf, random_state=random_state)
+    df["text"] = (
+        df.get("name", pd.Series([""] * len(df))).fillna("")
+        + " "
+        + df.get("ingredients", pd.Series([""] * len(df))).astype(str)
+        + " "
+        + df.get("description", pd.Series([""] * len(df))).fillna("")
+    ).str.lower()
+    km, tfidf = build_tfidf_kmeans(
+        df["text"], k=k, maxf=maxf, random_state=random_state
+    )
     return df, km, tfidf

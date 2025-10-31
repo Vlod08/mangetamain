@@ -5,6 +5,7 @@ nutrition columns (calories, total_fat, sugar, sodium, protein, saturated_fat,
 carbohydrates) and computes a cosine-similarity matrix. It reuses
 `RecipesDataset` for loading data and follows the project's helpers style.
 """
+
 from __future__ import annotations
 from typing import Optional
 from pathlib import Path
@@ -48,7 +49,9 @@ def _select_nutri_matrix(df: pd.DataFrame) -> pd.DataFrame:
     return mat
 
 
-def build_nutri_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def build_nutri_similarity(
+    df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42
+) -> pd.DataFrame:
     """Compute cosine similarity DataFrame using nutritional features.
 
     Parameters
@@ -88,7 +91,9 @@ def build_nutri_similarity(df: pd.DataFrame, sample_n: Optional[int] = None, ran
     return simdf
 
 
-def normalize_nutrition_columns(df: pd.DataFrame, try_parse_nut_column: bool = True) -> tuple[pd.DataFrame, dict]:
+def normalize_nutrition_columns(
+    df: pd.DataFrame, try_parse_nut_column: bool = True
+) -> tuple[pd.DataFrame, dict]:
     """Ensure the dataframe contains the expected NUTRI_COLS.
 
     This will:
@@ -130,12 +135,16 @@ def normalize_nutrition_columns(df: pd.DataFrame, try_parse_nut_column: bool = T
             return None
 
         parsed = out["nutrition"].map(_try_parse)
-        ok_mask = parsed.map(lambda x: isinstance(x, list) and len(x) >= len(NUTRI_COLS))
+        ok_mask = parsed.map(
+            lambda x: isinstance(x, list) and len(x) >= len(NUTRI_COLS)
+        )
         if ok_mask.any():
             info["parsed_nut_column"] = True
             for i, col in enumerate(NUTRI_COLS):
                 out[col] = pd.NA
-                out.loc[ok_mask, col] = parsed[ok_mask].map(lambda lst, idx=i: lst[idx] if idx < len(lst) else pd.NA)
+                out.loc[ok_mask, col] = parsed[ok_mask].map(
+                    lambda lst, idx=i: lst[idx] if idx < len(lst) else pd.NA
+                )
             # coerce numeric types
             for c in NUTRI_COLS:
                 out[c] = pd.to_numeric(out[c], errors="coerce")
@@ -144,7 +153,9 @@ def normalize_nutrition_columns(df: pd.DataFrame, try_parse_nut_column: bool = T
     return out, info
 
 
-def build_nutri_similarity_from_raw(df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42) -> tuple[pd.DataFrame, dict]:
+def build_nutri_similarity_from_raw(
+    df: pd.DataFrame, sample_n: Optional[int] = None, random_state: int = 42
+) -> tuple[pd.DataFrame, dict]:
     """Convenience: normalize nutrition columns (mapping/parsing) then compute similarity.
 
     Returns (sim_df, info) where info is the dict from normalize_nutrition_columns.
@@ -154,7 +165,9 @@ def build_nutri_similarity_from_raw(df: pd.DataFrame, sample_n: Optional[int] = 
     return sim, info
 
 
-def find_similar_by_nutri(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> pd.Series:
+def find_similar_by_nutri(
+    sim_df: pd.DataFrame, recipe_id, top_n: int = 25
+) -> pd.Series:
     """Return top-N similar recipes by nutritional similarity."""
     if sim_df.empty:
         return pd.Series(dtype=float)
@@ -165,7 +178,11 @@ def find_similar_by_nutri(sim_df: pd.DataFrame, recipe_id, top_n: int = 25) -> p
     return s.head(top_n)
 
 
-def compute_similarity_from_dataset(anchor: str | Path | None = None, sample_n: Optional[int] = None, random_state: int = 42) -> pd.DataFrame:
+def compute_similarity_from_dataset(
+    anchor: str | Path | None = None,
+    sample_n: Optional[int] = None,
+    random_state: int = 42,
+) -> pd.DataFrame:
     """Load recipes using RecipesDataset and compute nutritional similarity.
 
     anchor can be Path(__file__) from caller or None (defaults to module path).
