@@ -1,13 +1,6 @@
 # src/mangetamain/app/pages/home_page.py
 from __future__ import annotations
 
-import streamlit as st
-# from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
-from app.app_utils.ui import use_global_ui
-
-
-
-
 import json
 import time
 from pathlib import Path
@@ -24,7 +17,6 @@ from core.dataset import (
 from core.app_logging import get_logger
 from config import ROOT_DIR
 
-
 LOGGER = get_logger()
 
 
@@ -36,7 +28,7 @@ def load_lottie() -> dict:
 
 
 def _render_project_intro() -> None:
-    """Intro block shown after / with the loader."""
+    """Intro block shown after (or without) the loader."""
     st.markdown("## Project context")
     st.write(
         """
@@ -61,9 +53,9 @@ interactions (ratings, comments, dates).
     st.markdown("## Methodology & tools")
     st.write(
         """
-- Modular Python architecture
-- `core/` → data services (`RecipesDataset`, `InteractionsDataset`)
-- `app/pages/` → Streamlit multipage UI
+- Modular Python architecture  
+- `core/` → data services (`RecipesDataset`, `InteractionsDataset`)  
+- `app/pages/` → Streamlit multipage UI  
 - Main libs: **pandas, numpy, plotly, matplotlib, seaborn, streamlit**
 """
     )
@@ -99,19 +91,24 @@ The idea is to show that even “everyday” data like recipes and reviews can r
         st.info("Use the **Interactions** menu (top) to explore reviews / ratings.")
 
 
+def _datasets_present() -> bool:
+    """True if both datasets are already in session_state."""
+    return ("recipes" in st.session_state) and ("interactions" in st.session_state)
+
+
 def _load_datasets_once() -> None:
     """
     Load recipes + interactions in parallel and store them in session_state.
-    If already loaded, do nothing.
+    If already loaded, do nothing (no UI shown).
     """
-    if st.session_state.get("data_ready", False):
+    if _datasets_present():
         LOGGER.info("Home: datasets already in session_state -> skip load")
+        st.session_state["data_ready"] = True
         return
 
     LOGGER.info("Home: starting dataset loading…")
-    st.markdown("#### Loading recipes & interactions datasets")
 
-    # placeholders
+    # placeholders for the loading UI
     lottie_placeholder = st.empty()
     progress_placeholder = st.empty()
     text_placeholder = st.empty()
@@ -129,7 +126,6 @@ def _load_datasets_once() -> None:
         DatasetLoaderThread(RecipesDataset(), label="recipes"),
         DatasetLoaderThread(InteractionsDataset(), label="interactions"),
     ]
-
     for t in threads:
         t.start()
 
@@ -145,7 +141,6 @@ def _load_datasets_once() -> None:
                 progress_bar.progress(min(done, 100))
                 text_placeholder.text(f"{t.label.capitalize()} dataset loaded.")
         time.sleep(0.4)
-
     for t in threads:
         t.join()
 
@@ -154,15 +149,13 @@ def _load_datasets_once() -> None:
     progress_placeholder.empty()
     text_placeholder.empty()
 
-    st.toast("Data is now ready!", icon=":material/thumb_up:")
-    st.success("All datasets loaded successfully!")
+    st.toast("Datasets loaded ✅", icon="✅")
     st.session_state["data_ready"] = True
     LOGGER.info("Home: datasets loaded and stored in session_state")
 
 
 def app() -> None:
-    # top banner
-
+    # Top banner
     use_global_ui(
         page_title="Mangetamain — Data & Cuisine",
         subtitle="Explore and analyze the Food.com recipes dataset",
@@ -171,24 +164,27 @@ def app() -> None:
         round_logo=True,
     )
 
+    # Make sure the flag exists and reflects reality.
+    st.session_state.setdefault("data_ready", _datasets_present())
 
-    # --- Main content ---
-    st.markdown("### Welcome to the Mangetamain App!")
-    st.markdown("Explore and analyze the Food.com recipes dataset.")
-    st.markdown("Use the navigation menu to access different sections of the app.")
-
-    # make sure key exists
-    st.session_state.setdefault("data_ready", False)
-
+    # FIRST VISIT (or after reload): show loader once, then intro.
     if not st.session_state["data_ready"]:
-        # first time → show loader, then intro
         _load_datasets_once()
         _render_project_intro()
-    else:
-        # already loaded → small banner + intro
-        st.success("Data already loaded! 🎉")
-        _render_project_intro()
+        return
 
+    # SUBSEQUENT VISITS: skip any loading/banners, go straight to content.
+    _render_project_intro()
+
+    # Optional little toolbox (collapsed) to let you reload everything.
+    with st.expander("🧰 Maintenance", expanded=False):
+        st.caption("Use this only if you need to refresh the in-memory datasets.")
+        if st.button("🔄 Reload datasets", use_container_width=True):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            for k in ("recipes", "interactions", "data_ready"):
+                st.session_state.pop(k, None)
+            st.rerun()
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ from mangetamain.app.app_utils.ui import use_global_ui
 from mangetamain.core.interactions_eda import InteractionsEDAService
 from mangetamain.core.dataset import DatasetLoader
 
-
 def app():
     use_global_ui(
         page_title="Mangetamain — Exploratory Data Analysis of Interactions",
@@ -25,13 +24,11 @@ def app():
     sns.set_theme()
 
     # ======== Data Loading =========
-    # Interactions dataset already uploaded in app entrypoint (main.py)
-    interactions_df = st.session_state["interactions"]
+    interactions_df = st.session_state["interactions"]  # already loaded in main.py
     interactions_eda_svc = InteractionsEDAService()
     interactions_eda_svc.load(interactions_df, preprocess=False)
 
-    interactions_columns = interactions_df.columns.values
-
+    # Ranges for sliders
     year_range = interactions_eda_svc.year_range()
     min_year, max_year = year_range if year_range else (2000, 2024)
 
@@ -41,21 +38,8 @@ def app():
     review_len_range = interactions_eda_svc.review_len_range()
     min_len, max_len = review_len_range if review_len_range else (0, 1000)
 
-    # ---- Sidebar : source & filters ----
+    # ---- Sidebar filters ----
     with st.sidebar:
-        # st.header("⚙️ Data Source")
-        # uploaded_file = st.file_uploader("Upload CSV/Parquet (optional)", type=["csv","parquet"])
-        # if uploaded_file is None:
-        #     st.info("Using default dataset (Food.com reviews). You can upload your own CSV/Parquet file.")
-        # else:
-        #     st.success(f"File uploaded: {Path(uploaded_file.name).name}")
-    
-        # st.header("⚙️ Artefact")
-        # if st.button("🧹 Regenerate Clean Artefact"):
-        #     with st.spinner("Preprocessing…"):
-        #         interactions_eda_svc = InteractionsEDAService(uploaded_file=uploaded_file)
-        #     st.success(f"Artefact regenerated successfully.")
-        #     st.rerun()  # Refresh to load new artifact
         st.header("Filters")
         rating_range = st.slider("Rating", min_rating, max_rating, value=(min_rating, max_rating), step=0.5)
         review_len_range = st.slider("Review length", min_len, max_len, value=(min_len, max_len))
@@ -67,74 +51,68 @@ def app():
         year_range=year_range,
     )
 
+    # Reload the service with filtered data so downstream methods reflect filters
     interactions_eda_svc.load(df_filtered, preprocess=False)
 
     # =========================
     # KPIs header
     # =========================
-
     c1, c2 = st.columns(2)
     c1.metric("Rows", f"{len(df_filtered):,}")
     c2.metric("Columns", df_filtered.shape[1])
 
-    # Short overview
+    # Preview
     with st.expander("👀 Preview"):
-        st.dataframe(df_filtered.head(20))
-        # buf = io.StringIO()
-        # df_filtered.info(buf=buf)
-        # st.text(buf.getvalue())
+        st.dataframe(df_filtered.head(20), use_container_width=True)
 
     tabs = st.tabs(["🧹 Quality", "📊 Exploration", "📄 Table"])
 
     # =========================
-    # 🧹 Quality
+    # 🧹 Quality (all based on df_filtered)
     # =========================
-    if "issues" in st.session_state and "nan" in interactions_eda_svc.ds.issues:
-        nan_dict = interactions_eda_svc.ds.issues["nan"]
-    elif "nan" in interactions_eda_svc.ds.issues:
-        nan_dict = interactions_eda_svc.ds.issues["nan"]
-    else:
-        nan_dict = {}
-
-    if nan_dict:
-        row = st.container(horizontal=True)
-        with row:
-            for col, na_val in nan_dict.items():
-                if na_val > 0:
-                    st.metric(f"{col} NA", na_val)
-
     with tabs[0]:
         st.subheader("Schema")
-        st.dataframe(DatasetLoader.compute_schema(df_filtered))
+        st.dataframe(DatasetLoader.compute_schema(df_filtered), use_container_width=True)
 
-        st.subheader("NaN rates")
-        miss = interactions_eda_svc.na_counts()
-        if miss.empty:
-            st.write("No missing values detected in the dataset.")
+        st.subheader("NaN overview (counters)")
+        nan_counts = df_filtered.isna().sum().sort_values(ascending=False)
+        nan_counts = nan_counts[nan_counts > 0]
+        if nan_counts.empty:
+            st.write("No missing values detected in the filtered dataset.")
         else:
-            st.dataframe(miss)
-            st.bar_chart(miss)
+            cols = st.columns(min(4, len(nan_counts)))
+            for i, (colname, count) in enumerate(nan_counts.items()):
+                with cols[i % len(cols)]:
+                    st.metric(f"{colname} NA", int(count))
+
+        st.subheader("NaN rates (table + bar)")
+        if not nan_counts.empty:
+            miss_df = (
+                nan_counts.to_frame("n_na")
+                .assign(rate=lambda d: d["n_na"] / len(df_filtered))
+                .reset_index()
+                .rename(columns={"index": "column"})
+            )
+            st.dataframe(miss_df, use_container_width=True)
+            st.bar_chart(miss_df.set_index("column")["n_na"])
+        else:
+            st.write("—")
 
         st.subheader("Duplicates")
-        dups = interactions_eda_svc.duplicates()
+        dups = interactions_eda_svc.duplicates()  # computed on filtered df thanks to .load() above
         if not dups:
-            st.write("No duplicates found in the dataset.")
+            st.write("No duplicates found in the filtered dataset.")
         else:
             for key, val in dups.items():
-                if key != "full":
-                    st.write(f"Duplicates on {key.split('_')} : **{val}**")
-                else:
-                    st.write(f"Duplicates (all columns) : **{val}**")
+                label = " ".join(key.split("_")) if key != "full" else "all columns"
+                st.write(f"Duplicates on {label}: **{val}**")
 
         st.subheader("Descriptive Statistics & Cardinalities")
         c1, c2 = st.columns(2)
-        # Descriptive stats
         with c1:
-            st.dataframe(interactions_eda_svc.desc_numeric())
-        # Cardinalities
+            st.dataframe(interactions_eda_svc.desc_numeric(), use_container_width=True)
         with c2:
-            st.dataframe(interactions_eda_svc.cardinalities())
-
+            st.dataframe(interactions_eda_svc.cardinalities(), use_container_width=True)
 
     # =========================
     # 📊 Exploration
@@ -144,24 +122,28 @@ def app():
         with colA:
             h = interactions_eda_svc.hist_rating()
             if not h.empty:
-                st.plotly_chart(px.bar(h, x="left", y="count", title="Ratings distribution"))
+                st.plotly_chart(px.bar(h, x="left", y="count", title="Ratings distribution"),
+                                use_container_width=True)
         with colB:
             h2 = interactions_eda_svc.hist_review_len()
             if not h2.empty:
-                st.plotly_chart(px.bar(h2, x="left", y="count", title="Review length (characters)"))
+                st.plotly_chart(px.bar(h2, x="left", y="count", title="Review length (characters)"),
+                                use_container_width=True)
 
         bm = interactions_eda_svc.by_month()
         if not bm.empty:
             st.subheader("Trend over time")
             c1, c2 = st.columns(2)
             with c1:
-                st.plotly_chart(px.line(bm, x="month", y="n", title="Reviews per month"))
+                st.plotly_chart(px.line(bm, x="month", y="n", title="Reviews per month"),
+                                use_container_width=True)
             with c2:
-                st.plotly_chart(px.line(bm, x="month", y="mean_rating", title="Average rating per month"))
+                st.plotly_chart(px.line(bm, x="month", y="mean_rating", title="Average rating per month"),
+                                use_container_width=True)
 
             yr = interactions_eda_svc.year_range()
             if yr:
-                y = st.slider("Year (zoom)", yr[0], yr[1], value=int((yr[0]+yr[1])//2))
+                y = st.slider("Year (zoom)", yr[0], yr[1], value=int((yr[0] + yr[1]) // 2))
                 oy = interactions_eda_svc.one_year(y)
                 c3, c4 = st.columns(2)
                 with c3:
@@ -174,7 +156,7 @@ def app():
                 with c4:
                     fig, ax = plt.subplots(figsize=(9, 3.8))
                     ax.plot(oy["month"], oy["mean_rating"], marker="o")
-                    ax.set_title(f"Rating moyen par mois — {y}")
+                    ax.set_title(f"Average rating per month — {y}")
                     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
                     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
                     st.pyplot(fig, clear_figure=True)
@@ -183,18 +165,18 @@ def app():
         au = interactions_eda_svc.agg_by_user()
         if not au.empty:
             st.write("Top users (by #reviews):")
-            st.dataframe(au.head(10))
+            st.dataframe(au.head(10), use_container_width=True)
         ar = interactions_eda_svc.agg_by_recipe()
         if not ar.empty:
             st.write("Top recipes (by #reviews):")
-            st.dataframe(ar.head(10))
+            st.dataframe(ar.head(10), use_container_width=True)
 
     # =========================
     # 📄 Table (with filters)
     # =========================
     with tabs[2]:
         cols = [c for c in ["user_id", "recipe_id", "date", "rating", "review"] if c in df_filtered.columns]
-        st.dataframe(df_filtered.head(1000)[cols], hide_index=True)
+        st.dataframe(df_filtered.head(1000)[cols], hide_index=True, use_container_width=True)
 
         st.download_button(
             "⬇️ Export CSV (filters)",
