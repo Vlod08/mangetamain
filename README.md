@@ -163,7 +163,7 @@ Now, any Python or Streamlit commands you run will use this environment.
 
 *Alternatively*, you can run commands without entering the shell:
 ```
-poetry run python src/mangetamain/app.py
+poetry run python src/mangetamain/main.py
 ```
 
 ### 6. Running Tests
@@ -268,6 +268,17 @@ Launch the Streamlit application:
   poetry run streamlit run src/mangetamain/main.py
   ```
 
+Set up and launch via Docker:
+  1) Download the app image locally:
+  ```bash
+  docker pull vlod08/mangetamain
+  ```
+  2) Run container and expose port 8501:
+  ```bash
+  docker run -p 8501:8501 vlod08/mangetamain 
+  ```
+  3) You can check the app by following the link:
+  http://localhost:8501/ 
 <hr style="height:3px;border-width:0;color:gray;background-color:gray">
 
 ## Configuration
