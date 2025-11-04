@@ -89,167 +89,42 @@ mangetamain/
 
 ## Project Setup Guide — mangetamain
 
-This guide explains how to install and use Poetry to manage the dependencies, environments, and development workflow of this project.
+Follow these steps to install and set up the project locally:
 
-### 1. Install Poetry
-
-You must have **Python ≥ 3.11** and **< 3.12** installed.
-
-Check your Python version:
-```
-python3 --version
-```
-
-If it’s correct, install [Poetry 2.2.0](https://python-poetry.org/docs/#installation) globally:
-```
-curl -sSL https://install.python-poetry.org | python3 - --version 2.2.0
-```
-
-Then make sure Poetry is available in your path:
-```
-poetry --version
-```
-
-If not found, add it manually (depending on your system):
-```
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-### 2. Clone the Project
-```
+```bash
 git clone https://github.com/Vlod08/mangetamain.git
 cd mangetamain
-```
-
-### 3. Run the setup script:
-```bash
 ./setup.sh
-```
-
-This will:
-- Check for Python 3.11
-- Check for Poetry 2.2.0
-- Set up a virtual environment
-
-### 4. Install Dependencies
-
-All project dependencies are declared in `pyproject.toml`.
-
-To install everything (main + dev dependencies):
-```
 poetry install
 ```
 
-If you only want runtime dependencies (without dev tools like Sphinx or pytest):
-```
-poetry install --without dev
-```
-
-### 5. Use the Virtual Environment
-
-Poetry automatically creates a virtual environment.
-
-To get basic information about the currently activated virtual environment, you can use the `env info` command:
-```
-poetry env info
-```
-
-The `poetry env activate` command prints the activate command of the virtual environment to the console. You can run the output command manually or feed it to the eval command of your shell to activate the environment.
-```
-eval $(poetry env activate)
-```
-
-Now, any Python or Streamlit commands you run will use this environment.
-
-*Alternatively*, you can run commands without entering the shell:
-```
-poetry run python src/mangetamain/main.py
-```
-
-### 6. Running Tests
-
-Tests are located in the `tests/ directory`.
-You can run them with:
-```
-poetry run pytest
-```
-
-If you have already activated the environment in your current shell:
-```
-pytest
-```
-
-### 7. Documentation (optional)
-
-If you want to build the Sphinx documentation locally:
-```
-poetry run sphinx-build -b html docs/ docs/_build/
-```
-
-### 8. Adding or Updating Dependencies
-
-To add a new library:
-```
-poetry add numpy
-```
-
-To add a development dependency (like black or pytest):
-```
-poetry add --group dev black
-```
-
-To update dependencies:
-```
-poetry update
-```
-
-### 9. Export Requirements (for non-Poetry users)
-
-If someone prefers using plain pip, they can generate a requirements.txt:
-```
-poetry export -f requirements.txt --output requirements.txt
-```
-
-Then install using:
-```
-pip install -r requirements.txt
-```
-
-### 10. Troubleshooting
-
-Poetry environment not found?
-```
-poetry env info
-poetry env remove python
-poetry install
-```
-
-To check all available environments:
-```
-poetry env list
-```
-
-To clear all Poetry caches (rarely needed):
-```
-poetry cache clear pypi --all
-```
+> 💡 For detailed instructions (including environment setup, dependencies, and troubleshooting), please refer to the [Installation Guide](./guides/INSTALLATION.md).
 
 <hr style="height:3px;border-width:0;color:gray;background-color:gray">
 
-## Best Practices for Contributors
+## Getting Started
 
-* Always run `poetry install` after pulling new changes.
+### Run the streamlit application
 
-* Never manually edit `poetry.lock`.
+Launch the app directly with Poetry:
+  ```bash
+  poetry run streamlit run src/mangetamain/main.py
+  ```
 
-* Use `poetry add` to install new dependencies.
+### Run with Docker
 
-* Commit both `pyproject.toml` and `poetry.lock`.
+Alternatively, you can run the application in a Docker container:
 
-* Before pushing, test locally with:
-```
-poetry run pytest
-```
+  1) Pull the latest image:
+  ```bash
+  docker pull vlod08/mangetamain
+  ```
+  2) Start the container and expose port 8501:
+  ```bash
+  docker run -p 8501:8501 vlod08/mangetamain 
+  ```
+  3) Access the app locally:
+  http://localhost:8501/ 
 
 <hr style="height:3px;border-width:0;color:gray;background-color:gray">
 
@@ -259,26 +134,6 @@ In this project, we use the Food.com dataset for recipe recommendations.
 
 For more information, visit [Food.com Dataset on Kaggle](https://www.kaggle.com/datasets/shuyangli94/food-com-recipes-and-user-interactions).
 
-<hr style="height:3px;border-width:0;color:gray;background-color:gray">
-
-## Getting Started
-
-Launch the Streamlit application:
-  ```bash
-  poetry run streamlit run src/mangetamain/main.py
-  ```
-
-Set up and launch via Docker:
-  1) Download the app image locally:
-  ```bash
-  docker pull vlod08/mangetamain
-  ```
-  2) Run container and expose port 8501:
-  ```bash
-  docker run -p 8501:8501 vlod08/mangetamain 
-  ```
-  3) You can check the app by following the link:
-  http://localhost:8501/ 
 <hr style="height:3px;border-width:0;color:gray;background-color:gray">
 
 ## Configuration

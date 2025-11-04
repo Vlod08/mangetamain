@@ -81,8 +81,8 @@ def download_and_unzip_kaggle_dataset(
     return Path(download_dir)
 
 
-def pages():
-
+def pages() -> st.StreamlitPage:
+    """Define the application pages."""
     # --- Pages ---
     pages_dir = ROOT_DIR / "src" / "mangetamain" / "app" / "pages"
     home_page = st.Page(
