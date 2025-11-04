@@ -3,9 +3,15 @@ from __future__ import annotations
 import streamlit as st
 from streamlit_lottie import st_lottie
 import time
+from pathlib import Path
 
 # from mangetamain.core.utils.utils import setup_logging
-from mangetamain.config import ROOT_DIR
+from mangetamain.config import (
+    ROOT_DIR, DATA_DIR,
+    RECIPES_CSV, RECIPES_PARQUET,
+    INTERACTIONS_CSV, INTERACTIONS_PARQUET,
+    DB_NAME
+)
 from mangetamain.core.dataset import (
     DatasetLoaderThread,
     RecipesDataset,
@@ -20,36 +26,59 @@ import requests
 
 def download_and_unzip_kaggle_dataset(
     url: str = "https://www.kaggle.com/api/v1/datasets/download/shuyangli94/food-com-recipes-and-user-interactions",
-    download_dir: str | None = None,
+    download_dir: Path | None = None,
+    target_files: list[str] | None = None,
 ):
     """
-    Download and unzip the Kaggle dataset into download_dir. If download_dir is None,
-    it defaults to the repository data folder (ROOT_DIR / 'data').
+    Download and unzip specific files from the Kaggle dataset into download_dir.
+    If download_dir is None, defaults to the repository data folder (DATA_DIR).
     """
-    # default to repository data folder if not provided
     if download_dir is None:
-        download_dir = str(ROOT_DIR / "data")
+        download_dir = str(DATA_DIR)
+    elif isinstance(download_dir, Path):
+        download_dir = str(download_dir)
 
     download_dir = os.path.expanduser(download_dir)
     os.makedirs(download_dir, exist_ok=True)
 
     zip_path = os.path.join(download_dir, "food-com-recipes-and-user-interactions.zip")
 
-    # Use requests to stream the download. Note: Kaggle API usually requires credentials.
-    print("Downloading dataset...")
+    # Default files to extract if none are specified
+    if target_files is None:
+        target_files = ["RAW_recipes.csv", "RAW_interactions.csv"]
+
+    st.session_state["logger"].info("Downloading dataset...")
     resp = requests.get(url, stream=True)
     resp.raise_for_status()
+
     with open(zip_path, "wb") as f:
         for chunk in resp.iter_content(chunk_size=8192):
             if chunk:
                 f.write(chunk)
 
-    print(f"Download complete: {zip_path}")
-    print("Unzipping contents...")
-    with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall(download_dir)
+    st.session_state["logger"].info(f"Download complete: {zip_path}")
+    st.session_state["logger"].info("Extracting selected files...")
 
-    print(f"Files extracted to: {download_dir}")
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        all_files = zip_ref.namelist()
+        for file in target_files:
+            matched_files = [f for f in all_files if f.endswith(file)]
+            if matched_files:
+                for f in matched_files:
+                    zip_ref.extract(f, download_dir)
+                    st.session_state["logger"].info(f"Extracted: {f}")
+            else:
+                st.session_state["logger"].warning(f"File not found in archive: {file}")
+
+    # Safely remove the zip file after extraction
+    try:
+        os.remove(zip_path)
+        st.session_state["logger"].info(f"Removed zip file: {zip_path}")
+    except OSError as e:
+        st.session_state["logger"].warning(f"Could not remove zip file: {e}")
+
+    st.session_state["logger"].info(f"Selected files extracted to: {download_dir}")
+    return Path(download_dir)
 
 
 def pages():
@@ -107,8 +136,10 @@ def pages():
     return pg
 
 
-def load_data(name: str = None) -> None:
-    """Simulate loading and preprocessing with progress."""
+def load_data(name: str = None, data_dir: str = None) -> None:
+    """Simulate loading and preprocessing with progress.
+    If name is None, load both datasets. Otherwise, load only the specified dataset.
+    """
 
     # Placeholders
     header_placeholder = st.empty()
@@ -137,9 +168,9 @@ def load_data(name: str = None) -> None:
     # Use threads to load datasets concurrently
     threads = []
     if (name is None) or (name == "recipes"):
-        threads.append(DatasetLoaderThread(RecipesDataset(), label="recipes"))
+        threads.append(DatasetLoaderThread(RecipesDataset(data_dir=data_dir), label="recipes"))
     if (name is None) or (name == "interactions"):
-        threads.append(DatasetLoaderThread(InteractionsDataset(), label="interactions"))
+        threads.append(DatasetLoaderThread(InteractionsDataset(data_dir=data_dir), label="interactions"))
 
     # Start threads
     for thread in threads:
@@ -196,25 +227,44 @@ def load_data(name: str = None) -> None:
 
 def app():
     # Ensure dataset exists locally; attempt download from Kaggle if missing.
-    data_dir = ROOT_DIR / "data"
-    recipes_parquet = data_dir / "processed" / "recipes.parquet"
-    recipes_csv = data_dir / "RAW_recipes.csv"
-    interactions_parquet = data_dir / "processed" / "interactions.parquet"
-    interactions_csv = data_dir / "RAW_interactions.csv"
-    # If either recipes or interactions datasets are missing, attempt automatic download
-    if not (recipes_parquet.exists() or recipes_csv.exists()) or not (
-        interactions_parquet.exists() or interactions_csv.exists()
-    ):
-        try:
-            download_and_unzip_kaggle_dataset(download_dir=str(data_dir))
-            st.info("Dataset download attempted; continuing to load the app.")
-        except Exception as e:
-            st.warning(f"Automatic dataset download failed: {e}")
+    recipes_parquet = DATA_DIR / RECIPES_PARQUET
+    recipes_csv = DATA_DIR / RECIPES_CSV
+    interactions_parquet = DATA_DIR / INTERACTIONS_PARQUET
+    interactions_csv = DATA_DIR / INTERACTIONS_CSV
+    db_path = DATA_DIR / DB_NAME
+
     pg = pages()
+
     # if both datasets are already loaded, then just run the page
     if "data_ready" in st.session_state and st.session_state["data_ready"]:
         pg.run()
         return
+
+    # If either recipes or interactions datasets are missing, attempt automatic download
+    recipes_dataset_missing = True
+    if recipes_parquet.exists() or recipes_csv.exists():
+        st.session_state["logger"].info("Recipes dataset found locally.")
+        recipes_dataset_missing = False
+    else:
+        st.session_state["logger"].warning("Recipes dataset not found locally.")
+
+    interactions_dataset_missing = True
+    if interactions_parquet.exists() or interactions_csv.exists():
+        st.session_state["logger"].info("Interactions dataset found locally.")
+        interactions_dataset_missing = False
+    else:
+        st.session_state["logger"].warning("Interactions dataset not found locally.")
+
+    if recipes_dataset_missing or interactions_dataset_missing:# or (not db_path.exists()):
+        try:
+            st.write("Datasets not found locally. Attempting to download from Kaggle...")
+            download_dir = download_and_unzip_kaggle_dataset(download_dir=str(DATA_DIR))
+            st.success("Datasets downloaded and extracted successfully!")
+        except Exception as e:
+            st.warning(f"Automatic dataset download failed: {e}")
+    else:
+        download_dir = DATA_DIR
+    
     # Only load the dataset we want in case we visit a specific group page
     if "recipes" in pg.url_path.lower():
         if (
@@ -222,14 +272,14 @@ def app():
             or (st.session_state["recipes"] is None)
             or (st.session_state["recipes"].empty)
         ):
-            load_data("recipes")
+            load_data("recipes", data_dir=download_dir)
     elif "interactions" in pg.url_path.lower():
         if (
             ("interactions" not in st.session_state)
             or (st.session_state["interactions"] is None)
             or (st.session_state["interactions"].empty)
         ):
-            load_data("interactions")
+            load_data("interactions", data_dir=download_dir)
     # otherwise, load both datasets
     else:
         recipes_loaded = True
@@ -249,15 +299,15 @@ def app():
 
         placeholders = st.empty()
         if (not recipes_loaded) and (not interactions_loaded):
-            load_data()
+            load_data(data_dir=download_dir)
         elif not recipes_loaded:
             with placeholders:
                 st.success("Interactions dataset already loaded in memory!")
-            load_data("recipes")
+            load_data("recipes", data_dir=download_dir)
         elif not interactions_loaded:
             with placeholders:
                 st.success("Recipes dataset already loaded in memory!")
-            load_data("interactions")
+            load_data("interactions", data_dir=download_dir)
         placeholders.empty()
     pg.run()
 
