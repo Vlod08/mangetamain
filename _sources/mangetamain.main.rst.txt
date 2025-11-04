@@ -1,0 +1,7 @@
+mangetamain.main module
+=======================
+
+.. automodule:: mangetamain.main
+   :members:
+   :show-inheritance:
+   :undoc-members:

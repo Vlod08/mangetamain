@@ -1,0 +1,7 @@
+mangetamain.core.dataset module
+===============================
+
+.. automodule:: mangetamain.core.dataset
+   :members:
+   :show-inheritance:
+   :undoc-members:

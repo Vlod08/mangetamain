@@ -1,0 +1,7 @@
+mangetamain.core.recipes\_eda module
+====================================
+
+.. automodule:: mangetamain.core.recipes_eda
+   :members:
+   :show-inheritance:
+   :undoc-members:

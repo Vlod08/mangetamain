@@ -1,0 +1,7 @@
+mangetamain.core.clustering.clustering\_ingredients module
+==========================================================
+
+.. automodule:: mangetamain.core.clustering.clustering_ingredients
+   :members:
+   :show-inheritance:
+   :undoc-members:

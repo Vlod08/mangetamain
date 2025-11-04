@@ -1,0 +1,452 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mangetamain.main &mdash; Mangetamain  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/image.css?v=6e04a90e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Mangetamain
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">mangetamain</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Mangetamain</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mangetamain.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mangetamain.main</h1><div class="highlight"><pre>
+<span></span><span class="c1"># main.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">streamlit_lottie</span><span class="w"> </span><span class="kn">import</span> <span class="n">st_lottie</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># from mangetamain.core.utils.utils import setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ROOT_DIR</span><span class="p">,</span>
+    <span class="n">DATA_DIR</span><span class="p">,</span>
+    <span class="n">RECIPES_CSV</span><span class="p">,</span>
+    <span class="n">RECIPES_PARQUET</span><span class="p">,</span>
+    <span class="n">INTERACTIONS_CSV</span><span class="p">,</span>
+    <span class="n">INTERACTIONS_PARQUET</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DatasetLoaderThread</span><span class="p">,</span>
+    <span class="n">RecipesDataset</span><span class="p">,</span>
+    <span class="n">InteractionsDataset</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_lottie</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.app_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+
+<div class="viewcode-block" id="download_and_unzip_kaggle_dataset">
+<a class="viewcode-back" href="../../mangetamain.main.html#mangetamain.main.download_and_unzip_kaggle_dataset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_and_unzip_kaggle_dataset</span><span class="p">(</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;https://www.kaggle.com/api/v1/datasets/download/shuyangli94/food-com-recipes-and-user-interactions&quot;</span><span class="p">,</span>
+    <span class="n">download_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">target_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Download and unzip specific files from the Kaggle dataset into download_dir.</span>
+<span class="sd">    If download_dir is None, defaults to the repository data folder (DATA_DIR).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">download_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">download_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="n">download_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
+
+    <span class="n">download_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">zip_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">download_dir</span><span class="p">,</span> <span class="s2">&quot;food-com-recipes-and-user-interactions.zip&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Default files to extract if none are specified</span>
+    <span class="k">if</span> <span class="n">target_files</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">target_files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;RAW_recipes.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;RAW_interactions.csv&quot;</span><span class="p">]</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading dataset...&quot;</span><span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">8192</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">chunk</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Download complete: </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting selected files...&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">zip_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+        <span class="n">all_files</span> <span class="o">=</span> <span class="n">zip_ref</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">target_files</span><span class="p">:</span>
+            <span class="n">matched_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">all_files</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">file</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="n">matched_files</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">matched_files</span><span class="p">:</span>
+                    <span class="n">zip_ref</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">download_dir</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracted: </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found in archive: </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Safely remove the zip file after extraction</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">zip_path</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removed zip file: </span><span class="si">{</span><span class="n">zip_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not remove zip file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selected files extracted to: </span><span class="si">{</span><span class="n">download_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">download_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="pages">
+<a class="viewcode-back" href="../../mangetamain.main.html#mangetamain.main.pages">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pages</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">st</span><span class="o">.</span><span class="n">StreamlitPage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define the application pages.&quot;&quot;&quot;</span>
+    <span class="c1"># --- Pages ---</span>
+    <span class="n">pages_dir</span> <span class="o">=</span> <span class="n">ROOT_DIR</span> <span class="o">/</span> <span class="s2">&quot;src&quot;</span> <span class="o">/</span> <span class="s2">&quot;mangetamain&quot;</span> <span class="o">/</span> <span class="s2">&quot;app&quot;</span> <span class="o">/</span> <span class="s2">&quot;pages&quot;</span>
+    <span class="n">home_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;home_page.py&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Home&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🏠&quot;</span><span class="p">,</span> <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">explorer_recipes_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;recipes&quot;</span> <span class="o">/</span> <span class="s2">&quot;recipes_explorer_page.py&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Recipes Explorer&quot;</span><span class="p">,</span>
+        <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/recipes&quot;</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;📖&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">explorer_interactions_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;interactions&quot;</span> <span class="o">/</span> <span class="s2">&quot;interactions_explorer_page.py&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Interactions Explorer&quot;</span><span class="p">,</span>
+        <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/interactions&quot;</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🔍&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">country_season_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;recipes&quot;</span> <span class="o">/</span> <span class="s2">&quot;country_season_page.py&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Country &amp; Season&quot;</span><span class="p">,</span>
+        <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/recipes_country_season&quot;</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🌍&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">clustering_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;recipes&quot;</span> <span class="o">/</span> <span class="s2">&quot;clustering_page.py&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Clustering&quot;</span><span class="p">,</span>
+        <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/recipes_clustering&quot;</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🧑‍🤝‍🧑&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">interactions_analysis_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;interactions&quot;</span> <span class="o">/</span> <span class="s2">&quot;interactions_analysis_page.py&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Interactions Analysis&quot;</span><span class="p">,</span>
+        <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/interactions_analysis&quot;</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;📊&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">admin_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;admin_page.py&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Admin&quot;</span><span class="p">,</span> <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/admin&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🛠️&quot;</span>
+    <span class="p">)</span>
+    <span class="n">about_page</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">Page</span><span class="p">(</span>
+        <span class="n">pages_dir</span> <span class="o">/</span> <span class="s2">&quot;about_page.py&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;About&quot;</span><span class="p">,</span> <span class="n">url_path</span><span class="o">=</span><span class="s2">&quot;/about&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;ℹ️&quot;</span>
+    <span class="p">)</span>
+    <span class="n">pg</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">navigation</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;Main Menu&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">home_page</span><span class="p">,</span> <span class="n">admin_page</span><span class="p">,</span> <span class="n">about_page</span><span class="p">],</span>
+            <span class="s2">&quot;Recipes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">explorer_recipes_page</span><span class="p">,</span> <span class="n">country_season_page</span><span class="p">,</span> <span class="n">clustering_page</span><span class="p">],</span>
+            <span class="s2">&quot;Interactions&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">explorer_interactions_page</span><span class="p">,</span> <span class="n">interactions_analysis_page</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="n">position</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span>
+        <span class="n">expanded</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pg</span></div>
+
+
+
+<div class="viewcode-block" id="load_data">
+<a class="viewcode-back" href="../../mangetamain.main.html#mangetamain.main.load_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_data</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulate loading and preprocessing with progress.</span>
+<span class="sd">    If name is None, load both datasets. Otherwise, load only the specified dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Placeholders</span>
+    <span class="n">header_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">lottie_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">progress_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">text_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">header_placeholder</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Recipes &amp; Interactions Data Loading&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;recipe&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">header_placeholder</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Recipes Data Loading&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;interaction&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">header_placeholder</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Interactions Data Loading&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">header_placeholder</span><span class="o">.</span><span class="n">header</span><span class="p">(</span><span class="s2">&quot;Recipes &amp; Interactions Data Loading&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load and display Lottie animation</span>
+    <span class="n">lottie</span> <span class="o">=</span> <span class="n">load_lottie</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">lottie_placeholder</span><span class="p">:</span>
+        <span class="n">st_lottie</span><span class="p">(</span><span class="n">lottie</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Progress bar and text</span>
+    <span class="n">text_placeholder</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;Data loading...&quot;</span><span class="p">)</span>
+    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">progress_placeholder</span><span class="o">.</span><span class="n">progress</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># Use threads to load datasets concurrently</span>
+    <span class="n">threads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;recipes&quot;</span><span class="p">):</span>
+        <span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">DatasetLoaderThread</span><span class="p">(</span><span class="n">RecipesDataset</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">data_dir</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;recipes&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;interactions&quot;</span><span class="p">):</span>
+        <span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">DatasetLoaderThread</span><span class="p">(</span>
+                <span class="n">InteractionsDataset</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">data_dir</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;interactions&quot;</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Start threads</span>
+    <span class="k">for</span> <span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Monitor progress</span>
+    <span class="n">thread_lives</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">threads</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nb">any</span><span class="p">(</span><span class="n">thread_lives</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">thread</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">threads</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">thread_lives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="n">thread</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">thread</span><span class="o">.</span><span class="n">return_value</span>
+                <span class="k">if</span> <span class="s2">&quot;issues&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="n">thread</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">thread</span><span class="o">.</span><span class="n">issues</span>
+                <span class="n">thread_lives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">progress_bar</span><span class="o">.</span><span class="n">progress</span><span class="p">(</span><span class="mi">100</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">thread_lives</span><span class="p">)</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+                <span class="n">text_placeholder</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">thread</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> dataset loaded.&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># Ensure all threads have finished</span>
+    <span class="k">for</span> <span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="c1"># --- Replace loading elements with success message ---</span>
+    <span class="n">header_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">lottie_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">progress_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">text_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+    <span class="n">st</span><span class="o">.</span><span class="n">toast</span><span class="p">(</span><span class="s2">&quot;Data is now ready!&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;:material/thumb_up:&quot;</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;data_ready&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Cool success animation</span>
+    <span class="c1"># st_lottie(load_lottie(&quot;success_check.json&quot;), height=150, speed=0.7, loop=False)</span>
+    <span class="n">success_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">success_placeholder</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;All datasets loaded successfully!&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;recipe&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">with</span> <span class="n">success_placeholder</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Recipes dataset loaded successfully!&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;interaction&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">with</span> <span class="n">success_placeholder</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Interactions dataset loaded successfully!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">success_placeholder</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;All datasets loaded successfully!&quot;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">balloons</span><span class="p">()</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">success_placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="app">
+<a class="viewcode-back" href="../../mangetamain.main.html#mangetamain.main.app">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">app</span><span class="p">():</span>
+    <span class="c1"># Ensure dataset exists locally; attempt download from Kaggle if missing.</span>
+    <span class="n">recipes_parquet</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="n">RECIPES_PARQUET</span>
+    <span class="n">recipes_csv</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="n">RECIPES_CSV</span>
+    <span class="n">interactions_parquet</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="n">INTERACTIONS_PARQUET</span>
+    <span class="n">interactions_csv</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="n">INTERACTIONS_CSV</span>
+    <span class="c1"># db_path = DATA_DIR / DB_NAME</span>
+
+    <span class="n">pg</span> <span class="o">=</span> <span class="n">pages</span><span class="p">()</span>
+
+    <span class="c1"># if both datasets are already loaded, then just run the page</span>
+    <span class="k">if</span> <span class="s2">&quot;data_ready&quot;</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span> <span class="ow">and</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;data_ready&quot;</span><span class="p">]:</span>
+        <span class="n">pg</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="k">return</span>
+
+    <span class="c1"># If either recipes or interactions datasets are missing, attempt automatic download</span>
+    <span class="n">recipes_dataset_missing</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">recipes_parquet</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">recipes_csv</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Recipes dataset found locally.&quot;</span><span class="p">)</span>
+        <span class="n">recipes_dataset_missing</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Recipes dataset not found locally.&quot;</span><span class="p">)</span>
+
+    <span class="n">interactions_dataset_missing</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">interactions_parquet</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">interactions_csv</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Interactions dataset found locally.&quot;</span><span class="p">)</span>
+        <span class="n">interactions_dataset_missing</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Interactions dataset not found locally.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">recipes_dataset_missing</span> <span class="ow">or</span> <span class="n">interactions_dataset_missing</span>
+    <span class="p">):</span>  <span class="c1"># or (not db_path.exists()):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="s2">&quot;Datasets not found locally. Attempting to download from Kaggle...&quot;</span>
+            <span class="p">)</span>
+            <span class="n">download_dir</span> <span class="o">=</span> <span class="n">download_and_unzip_kaggle_dataset</span><span class="p">(</span><span class="n">download_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="p">))</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Datasets downloaded and extracted successfully!&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Automatic dataset download failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">download_dir</span> <span class="o">=</span> <span class="n">DATA_DIR</span>
+
+    <span class="c1"># Only load the dataset we want in case we visit a specific group page</span>
+    <span class="k">if</span> <span class="s2">&quot;recipes&quot;</span> <span class="ow">in</span> <span class="n">pg</span><span class="o">.</span><span class="n">url_path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;recipes&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;recipes&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;recipes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;recipes&quot;</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;interactions&quot;</span> <span class="ow">in</span> <span class="n">pg</span><span class="o">.</span><span class="n">url_path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;interactions&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;interactions&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;interactions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;interactions&quot;</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">)</span>
+    <span class="c1"># otherwise, load both datasets</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">recipes_loaded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">interactions_loaded</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;recipes&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;recipes&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;recipes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">recipes_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="s2">&quot;interactions&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;interactions&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;interactions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">interactions_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">placeholders</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">recipes_loaded</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">interactions_loaded</span><span class="p">):</span>
+            <span class="n">load_data</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">recipes_loaded</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">placeholders</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Interactions dataset already loaded in memory!&quot;</span><span class="p">)</span>
+            <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;recipes&quot;</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">interactions_loaded</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">placeholders</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;Recipes dataset already loaded in memory!&quot;</span><span class="p">)</span>
+            <span class="n">load_data</span><span class="p">(</span><span class="s2">&quot;interactions&quot;</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">download_dir</span><span class="p">)</span>
+        <span class="n">placeholders</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="n">pg</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;logger&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+        <span class="n">setup_logging</span><span class="p">()</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;mangetamain.main&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;logger&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application started/restarted.&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

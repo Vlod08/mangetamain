@@ -1,0 +1,7 @@
+mangetamain.core.clustering.clustering\_time\_tags module
+=========================================================
+
+.. automodule:: mangetamain.core.clustering.clustering_time_tags
+   :members:
+   :show-inheritance:
+   :undoc-members:

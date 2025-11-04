@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mangetamain.core.clustering.clustering_time_tags module &mdash; Mangetamain  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/image.css?v=6e04a90e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="mangetamain.core.app_logging module" href="mangetamain.core.app_logging.html" />
+    <link rel="prev" title="mangetamain.core.clustering.clustering_recipes module" href="mangetamain.core.clustering.clustering_recipes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mangetamain
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">mangetamain</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mangetamain.html">mangetamain package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="mangetamain.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="mangetamain.core.html">mangetamain.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mangetamain.preprocessing.html">mangetamain.preprocessing package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mangetamain.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mangetamain</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">mangetamain</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.html">mangetamain package</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.core.html">mangetamain.core package</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.core.clustering.html">mangetamain.core.clustering package</a></li>
+      <li class="breadcrumb-item active">mangetamain.core.clustering.clustering_time_tags module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mangetamain.core.clustering.clustering_time_tags.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mangetamain.core.clustering.clustering_time_tags">
+<span id="mangetamain-core-clustering-clustering-time-tags-module"></span><h1>mangetamain.core.clustering.clustering_time_tags module<a class="headerlink" href="#module-mangetamain.core.clustering.clustering_time_tags" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.compute_similarity_from_dataset">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">compute_similarity_from_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#compute_similarity_from_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.compute_similarity_from_dataset" title="Link to this definition"></a></dt>
+<dd><p>Helper to load the recipes using RecipesDataset(anchor) and compute similarity.</p>
+<p>anchor is typically Path(__file__) from the caller; accepts str for convenience.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.compute_time_tag_similarity">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">compute_time_tag_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.compute_time_tag_similarity" title="Link to this definition"></a></dt>
+<dd><p>Compute cosine similarity DataFrame between recipes based on time tags.</p>
+<p>Parameters
+- df: recipes dataframe (must contain ‘id’ and ‘tags’ or precomputed ‘time_tags_str’)
+- sample_n: if provided, randomly sample this many recipes before computing
+- random_state: RNG seed for sampling</p>
+<p>Returns
+- similarity_df: pandas.DataFrame indexed and columned by recipe id</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.extract_time_tags">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">extract_time_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.extract_time_tags" title="Link to this definition"></a></dt>
+<dd><p>Return a dataframe with recipe id and extracted time tags.</p>
+<p>Output columns: [‘id’,’time_tags’,’time_tags_str’] where time_tags is a list
+and time_tags_str is the space-joined representation used for vectorization.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.fetch_similar_items">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">fetch_similar_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipe_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#fetch_similar_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.fetch_similar_items" title="Link to this definition"></a></dt>
+<dd><p>Return top-N similar recipe ids (with scores) given a combined similarity DataFrame.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.get_similar_recipes">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">get_similar_recipes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipe_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#get_similar_recipes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.get_similar_recipes" title="Link to this definition"></a></dt>
+<dd><p>Return top-n similar recipes (scores) for a given recipe id from sim_df.</p>
+<p>If recipe_id is not found, KeyError is raised.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.get_time_tags">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">get_time_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#get_time_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.get_time_tags" title="Link to this definition"></a></dt>
+<dd><p>Return the list of time-related tags from a tag list.</p>
+<p>Matches patterns like ‘15-minutes’, ‘4-hours’, ‘1-day-or-more’,
+‘30-minutes-or-less’, etc.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.ingred_tokenizer">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">ingred_tokenizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.ingred_tokenizer" title="Link to this definition"></a></dt>
+<dd><p>Normalize an ingredients value into a list of tokens.</p>
+<p>Accepts already-parsed lists, or string representations (will try ast.literal_eval).
+Returns a list of lowercase tokens.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.merge_temporal_ingredient_features">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">merge_temporal_ingredient_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#merge_temporal_ingredient_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.merge_temporal_ingredient_features" title="Link to this definition"></a></dt>
+<dd><p>Create a single space-separated feature string from time-tags and ingredients tokens.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.save_time_similarity_matrix">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">save_time_similarity_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'data/processed/time_similarity.parquet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Path</span></span></span><a class="reference internal" href="_modules/mangetamain/core/clustering/clustering_time_tags.html#save_time_similarity_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.save_time_similarity_matrix" title="Link to this definition"></a></dt>
+<dd><p>Compute and save the cosine similarity matrix based on time-related tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>anchor</strong> (<em>Path</em><em> | </em><em>str</em>) – Typically Path(__file__) or the project root (used by RecipesDataset).</p></li>
+<li><p><strong>out_path</strong> (<em>Path</em><em> | </em><em>str</em><em>, </em><em>default 'data/processed/time_similarity.parquet'</em>) – Where to save the similarity matrix.</p></li>
+<li><p><strong>sample_n</strong> (<em>int</em><em> | </em><em>None</em>) – If provided, randomly sample this many recipes before computing similarity.</p></li>
+<li><p><strong>random_state</strong> (<em>int</em><em>, </em><em>default 1</em>) – Random seed for reproducible sampling.</p></li>
+<li><p><strong>as_csv</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, saves the matrix as CSV instead of Parquet.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path to the saved similarity file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mangetamain.core.clustering.clustering_time_tags.vectorize_and_score">
+<span class="sig-prename descclassname"><span class="pre">mangetamain.core.clustering.clustering_time_tags.</span></span><span class="sig-name descname"><span class="pre">vectorize_and_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#mangetamain.core.clustering.clustering_time_tags.vectorize_and_score" title="Link to this definition"></a></dt>
+<dd><p>Build a CountVectorizer on combined time+ingredient features and return cosine similarity DataFrame.</p>
+<p>The function will create a temporary column <cite>_proc_ings</cite> with tokenized ingredients
+and a column <cite>_merged_feats</cite> with the combined string used for vectorization.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mangetamain.core.clustering.clustering_recipes.html" class="btn btn-neutral float-left" title="mangetamain.core.clustering.clustering_recipes module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mangetamain.core.app_logging.html" class="btn btn-neutral float-right" title="mangetamain.core.app_logging module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

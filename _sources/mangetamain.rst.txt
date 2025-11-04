@@ -1,0 +1,25 @@
+mangetamain package
+===================
+
+.. automodule:: mangetamain
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mangetamain.core
+   mangetamain.preprocessing
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mangetamain.config
+   mangetamain.main

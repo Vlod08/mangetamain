@@ -1,0 +1,7 @@
+mangetamain.core.app\_logging module
+====================================
+
+.. automodule:: mangetamain.core.app_logging
+   :members:
+   :show-inheritance:
+   :undoc-members:

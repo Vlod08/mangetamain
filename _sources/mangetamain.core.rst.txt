@@ -1,0 +1,26 @@
+mangetamain.core package
+========================
+
+.. automodule:: mangetamain.core
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mangetamain.core.clustering
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mangetamain.core.app_logging
+   mangetamain.core.dataset
+   mangetamain.core.interactions_eda
+   mangetamain.core.recipes_eda

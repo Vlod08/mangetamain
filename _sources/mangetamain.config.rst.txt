@@ -1,0 +1,7 @@
+mangetamain.config module
+=========================
+
+.. automodule:: mangetamain.config
+   :members:
+   :show-inheritance:
+   :undoc-members:

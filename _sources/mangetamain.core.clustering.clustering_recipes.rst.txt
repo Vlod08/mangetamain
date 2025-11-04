@@ -1,0 +1,7 @@
+mangetamain.core.clustering.clustering\_recipes module
+======================================================
+
+.. automodule:: mangetamain.core.clustering.clustering_recipes
+   :members:
+   :show-inheritance:
+   :undoc-members:

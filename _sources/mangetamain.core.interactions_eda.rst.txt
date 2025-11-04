@@ -1,0 +1,7 @@
+mangetamain.core.interactions\_eda module
+=========================================
+
+.. automodule:: mangetamain.core.interactions_eda
+   :members:
+   :show-inheritance:
+   :undoc-members:

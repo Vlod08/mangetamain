@@ -1,0 +1,18 @@
+mangetamain.core.clustering package
+===================================
+
+.. automodule:: mangetamain.core.clustering
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mangetamain.core.clustering.clustering_ingredients
+   mangetamain.core.clustering.clustering_nutrivalues
+   mangetamain.core.clustering.clustering_recipes
+   mangetamain.core.clustering.clustering_time_tags

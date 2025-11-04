@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mangetamain.core.recipes_eda module &mdash; Mangetamain  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/image.css?v=6e04a90e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="mangetamain.preprocessing package" href="mangetamain.preprocessing.html" />
+    <link rel="prev" title="mangetamain.core.interactions_eda module" href="mangetamain.core.interactions_eda.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mangetamain
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">mangetamain</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mangetamain.html">mangetamain package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="mangetamain.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="mangetamain.core.html">mangetamain.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mangetamain.preprocessing.html">mangetamain.preprocessing package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mangetamain.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mangetamain</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">mangetamain</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.html">mangetamain package</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.core.html">mangetamain.core package</a></li>
+      <li class="breadcrumb-item active">mangetamain.core.recipes_eda module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mangetamain.core.recipes_eda.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mangetamain.core.recipes_eda">
+<span id="mangetamain-core-recipes-eda-module"></span><h1>mangetamain.core.recipes_eda module<a class="headerlink" href="#module-mangetamain.core.recipes_eda" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mangetamain.core.recipes_eda.</span></span><span class="sig-name descname"><span class="pre">EDAService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds:</span> <span class="pre">~mangetamain.core.dataset.DatasetLoader</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Base class for EDA services.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.cardinalities">
+<span class="sig-name descname"><span class="pre">cardinalities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.cardinalities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.cardinalities" title="Link to this definition"></a></dt>
+<dd><p>Get the cardinality of each categorical column.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.ds">
+<span class="sig-name descname"><span class="pre">ds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="mangetamain.core.dataset.html#mangetamain.core.dataset.DatasetLoader" title="mangetamain.core.dataset.DatasetLoader"><span class="pre">DatasetLoader</span></a></em><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.ds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.duplicates">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">duplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.duplicates" title="Link to this definition"></a></dt>
+<dd><p>Get the duplicate rows in the dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.export_clean_min">
+<span class="sig-name descname"><span class="pre">export_clean_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.export_clean_min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.export_clean_min" title="Link to this definition"></a></dt>
+<dd><p>Export a minimal clean DataFrame.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.label">
+<span class="sig-name descname"><span class="pre">label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.load" title="Link to this definition"></a></dt>
+<dd><p>Load the dataset.
+Args:</p>
+<blockquote>
+<div><p>df (pd.DataFrame, optional): DataFrame to load. If None, load from default path.
+preprocess (bool): Whether to preprocess the dataset after loading.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>pd.DataFrame: Loaded DataFrame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.na_counts">
+<span class="sig-name descname"><span class="pre">na_counts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.na_counts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.na_counts" title="Link to this definition"></a></dt>
+<dd><p>Get the NA counts of each column.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.na_rate">
+<span class="sig-name descname"><span class="pre">na_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.na_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.na_rate" title="Link to this definition"></a></dt>
+<dd><p>Get the NA rate of each column.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.numeric_desc">
+<span class="sig-name descname"><span class="pre">numeric_desc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.numeric_desc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.numeric_desc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.EDAService.schema">
+<span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#EDAService.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.EDAService.schema" title="Link to this definition"></a></dt>
+<dd><p>Get the schema of the dataset.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mangetamain.core.recipes_eda.</span></span><span class="sig-name descname"><span class="pre">RecipesEDAService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds:</span> <span class="pre">'RecipesDataset'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label:</span> <span class="pre">'str'</span> <span class="pre">=</span> <span class="pre">'recipes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_handler:</span> <span class="pre">'CountryHandler'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mangetamain.core.recipes_eda.EDAService" title="mangetamain.core.recipes_eda.EDAService"><code class="xref py py-class docutils literal notranslate"><span class="pre">EDAService</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.apply_filters">
+<span class="sig-name descname"><span class="pre">apply_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">minutes_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.apply_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.apply_filters" title="Link to this definition"></a></dt>
+<dd><p>Apply various filters to the recipes dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.by_year">
+<span class="sig-name descname"><span class="pre">by_year</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.by_year"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.by_year" title="Link to this definition"></a></dt>
+<dd><p>Get the number of recipes submitted by year.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.count_recipes_seasons">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">count_recipes_seasons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_period</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.count_recipes_seasons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.count_recipes_seasons" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.country_handler">
+<span class="sig-name descname"><span class="pre">country_handler</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">CountryHandler</span></em><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.country_handler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.ds">
+<span class="sig-name descname"><span class="pre">ds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="mangetamain.core.dataset.html#mangetamain.core.dataset.RecipesDataset" title="mangetamain.core.dataset.RecipesDataset"><span class="pre">RecipesDataset</span></a></em><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.ds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.duplicates">
+<span class="sig-name descname"><span class="pre">duplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.duplicates" title="Link to this definition"></a></dt>
+<dd><p>Check for duplicates in the recipes dataset.
+Works even when some columns are lists/ndarrays/dicts.
+Returns:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>dict: A dictionary with counts of duplicates by different criteria.</dt><dd><p>Keys can include ‘id’, ‘id_name’, and ‘full’ for different levels of duplication.
+Returns an empty dict if no duplicates are found.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.fetch_country">
+<span class="sig-name descname"><span class="pre">fetch_country</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.fetch_country"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.fetch_country" title="Link to this definition"></a></dt>
+<dd><p>Fetch recipes with country information.
+Returns:</p>
+<blockquote>
+<div><p>pd.DataFrame: DataFrame containing recipes with country information.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.fetch_country_season">
+<span class="sig-name descname"><span class="pre">fetch_country_season</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.fetch_country_season"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.fetch_country_season" title="Link to this definition"></a></dt>
+<dd><p>Fetch recipes with both country and season information.
+Returns:</p>
+<blockquote>
+<div><p>pd.DataFrame: DataFrame containing recipes with country and season information.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.fetch_period">
+<span class="sig-name descname"><span class="pre">fetch_period</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.fetch_period"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.fetch_period" title="Link to this definition"></a></dt>
+<dd><p>Fetch recipes with season information.
+Returns:</p>
+<blockquote>
+<div><p>pd.DataFrame: DataFrame containing recipes with season information.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_countries">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_signatures_countries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.get_signatures_countries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_countries" title="Link to this definition"></a></dt>
+<dd><p>Compute signature ingredients per country using TF-IDF.
+Args:</p>
+<blockquote>
+<div><p>df (pd.DataFrame): DataFrame containing ‘country’ and ‘ingredients’ columns.
+top_n (int): Number of top ingredients to include in the signature.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dict: A dictionary mapping each country to its signature ingredients and their TF-IDF scores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_seasons">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_signatures_seasons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.get_signatures_seasons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_seasons" title="Link to this definition"></a></dt>
+<dd><p>Compute signature ingredients per season using TF-IDF.
+Args:</p>
+<blockquote>
+<div><p>df (pd.DataFrame): DataFrame containing ‘season’ and ‘ingredients’ columns.
+top_n (int): Number of top ingredients to include in the signature.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dict: A dictionary mapping each season to its signature ingredients and their TF-IDF scores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.get_unique">
+<span class="sig-name descname"><span class="pre">get_unique</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.get_unique"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.get_unique" title="Link to this definition"></a></dt>
+<dd><p>Compute unique values across all recipes.
+Args:</p>
+<blockquote>
+<div><p>column (str): The column name to extract unique values from.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>List[str]: A sorted list of unique values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.label">
+<span class="sig-name descname"><span class="pre">label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'recipes'</span></em><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.minutes_hist">
+<span class="sig-name descname"><span class="pre">minutes_hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.minutes_hist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.minutes_hist" title="Link to this definition"></a></dt>
+<dd><p>Get histogram of cooking minutes in recipes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.minutes_range">
+<span class="sig-name descname"><span class="pre">minutes_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.minutes_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.minutes_range" title="Link to this definition"></a></dt>
+<dd><p>Get the range of cooking minutes in recipes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.minutes_stats">
+<span class="sig-name descname"><span class="pre">minutes_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.minutes_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.minutes_stats" title="Link to this definition"></a></dt>
+<dd><p>Get statistics for cooking minutes in recipes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.nsteps_range">
+<span class="sig-name descname"><span class="pre">nsteps_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.nsteps_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.nsteps_range" title="Link to this definition"></a></dt>
+<dd><p>Get the range of number of steps in recipes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.nutrition">
+<span class="sig-name descname"><span class="pre">nutrition</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.nutrition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.nutrition" title="Link to this definition"></a></dt>
+<dd><p>Expand the nutrition column into separate columns.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.season_handler">
+<span class="sig-name descname"><span class="pre">season_handler</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">SeasonalityHandler(ref_dataset=None,</span> <span class="pre">ref_names={'season':</span> <span class="pre">[['winter',</span> <span class="pre">'spring',</span> <span class="pre">'summer',</span> <span class="pre">'fall']],</span> <span class="pre">'event':</span> <span class="pre">[['christmas',</span> <span class="pre">'halloween',</span> <span class="pre">'thanksgiving',</span> <span class="pre">'valentines-day',</span> <span class="pre">'new_years',</span> <span class="pre">'easter',</span> <span class="pre">'independance-day']]},</span> <span class="pre">ref_path=None)</span></em><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.season_handler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.steps_hist">
+<span class="sig-name descname"><span class="pre">steps_hist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.steps_hist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.steps_hist" title="Link to this definition"></a></dt>
+<dd><p>Get histogram of number of steps in recipes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.recipes_eda.RecipesEDAService.top_ingredients">
+<span class="sig-name descname"><span class="pre">top_ingredients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/recipes_eda.html#RecipesEDAService.top_ingredients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.recipes_eda.RecipesEDAService.top_ingredients" title="Link to this definition"></a></dt>
+<dd><p>Get the top-k ingredients across all recipes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mangetamain.core.interactions_eda.html" class="btn btn-neutral float-left" title="mangetamain.core.interactions_eda module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mangetamain.preprocessing.html" class="btn btn-neutral float-right" title="mangetamain.preprocessing package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

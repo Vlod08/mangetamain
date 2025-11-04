@@ -1,0 +1,7 @@
+mangetamain.preprocessing package
+=================================
+
+.. automodule:: mangetamain.preprocessing
+   :members:
+   :show-inheritance:
+   :undoc-members:

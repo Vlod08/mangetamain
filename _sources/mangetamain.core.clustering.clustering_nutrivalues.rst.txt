@@ -1,0 +1,7 @@
+mangetamain.core.clustering.clustering\_nutrivalues module
+==========================================================
+
+.. automodule:: mangetamain.core.clustering.clustering_nutrivalues
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,634 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mangetamain.core.recipes_eda &mdash; Mangetamain  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/image.css?v=6e04a90e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Mangetamain
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">mangetamain</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Mangetamain</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mangetamain.core.recipes_eda</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mangetamain.core.recipes_eda</h1><div class="highlight"><pre>
+<span></span><span class="c1"># core/recipes_service.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.feature_extraction.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">streamlit</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">st</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">COUNTRIES_FILE_PATH</span><span class="p">,</span> <span class="n">DatasetLoader</span><span class="p">,</span> <span class="n">RecipesDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.utils.string_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_classes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.handlers.country_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">CountryHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.handlers.seasonnality_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeasonalityHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mangetamain.core.app_logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+
+<div class="viewcode-block" id="EDAService">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EDAService</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for EDA services.&quot;&quot;&quot;</span>
+
+    <span class="n">ds</span><span class="p">:</span> <span class="n">DatasetLoader</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">DatasetLoader</span><span class="p">)</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the EDA service.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="c1"># self.load()</span>
+
+<div class="viewcode-block" id="EDAService.load">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.load">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">preprocess</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the dataset.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            df (pd.DataFrame, optional): DataFrame to load. If None, load from default path.</span>
+<span class="sd">            preprocess (bool): Whether to preprocess the dataset after loading.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: Loaded DataFrame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If a DataFrame is provided, use it directly</span>
+        <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="c1"># Update the dataset in the service</span>
+            <span class="k">if</span> <span class="n">preprocess</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dataset loaded successfully.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Load issues from session state if available</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Dataset loaded successfully (without preprocessing)&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">df</span>
+        <span class="c1"># Otherwise, load from the default path</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">preprocess</span><span class="o">=</span><span class="n">preprocess</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">preprocess</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span>
+        <span class="k">return</span> <span class="n">df</span></div>
+
+
+    <span class="c1"># ---------- Data Quality ----------</span>
+<div class="viewcode-block" id="EDAService.schema">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the schema of the dataset.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">schema</span></div>
+
+
+<div class="viewcode-block" id="EDAService.na_counts">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.na_counts">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">na_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the NA counts of each column.&quot;&quot;&quot;</span>
+        <span class="c1"># Check if issues are stored in the dataset or in session state</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span> <span class="ow">and</span> <span class="s2">&quot;nan&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+            <span class="n">nan_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">]</span>
+        <span class="c1"># Check if issues are stored in session state</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+                <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">nan_counts</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nan_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">nan_counts</span><span class="p">)</span>
+        <span class="n">nan_series</span> <span class="o">=</span> <span class="n">nan_series</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">nan_series</span> <span class="o">=</span> <span class="n">nan_series</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;Na count&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nan_series</span></div>
+
+
+<div class="viewcode-block" id="EDAService.na_rate">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.na_rate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">na_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the NA rate of each column.&quot;&quot;&quot;</span>
+        <span class="c1"># Check if issues are stored in the dataset or in session state</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span> <span class="ow">and</span> <span class="s2">&quot;nan&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+            <span class="n">nan_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">issues</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">]</span>
+        <span class="c1"># Check if issues are stored in session state</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="p">{}):</span>
+                <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">nan_counts</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;issues&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nan_rate</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">count</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">nan_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+
+        <span class="n">nan_rate_percent</span> <span class="o">=</span> <span class="n">nan_rate</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="n">nan_rate_percent</span> <span class="o">=</span> <span class="n">nan_rate_percent</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">nan_rate_percent</span> <span class="o">=</span> <span class="n">nan_rate_percent</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;Na rate (%)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nan_rate_percent</span></div>
+
+
+<div class="viewcode-block" id="EDAService.duplicates">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.duplicates">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the duplicate rows in the dataset.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Subclasses must implement the duplicates method.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EDAService.numeric_desc">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.numeric_desc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">numeric_desc</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">T</span></div>
+
+
+<div class="viewcode-block" id="EDAService.cardinalities">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.cardinalities">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cardinalities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the cardinality of each categorical column.&quot;&quot;&quot;</span>
+        <span class="c1"># convert only object-like columns; numeric/datetime are fine as-is</span>
+        <span class="n">obj_cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">df_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">obj_cols</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">obj_cols</span><span class="p">:</span>
+            <span class="n">df_copy</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_copy</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">DatasetLoader</span><span class="o">.</span><span class="n">to_hashable</span><span class="p">)</span>
+
+        <span class="n">cards</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">nunique</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">cards</span> <span class="o">=</span> <span class="n">cards</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;cardinality&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cards</span></div>
+
+
+<div class="viewcode-block" id="EDAService.export_clean_min">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.EDAService.export_clean_min">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">export_clean_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export a minimal clean DataFrame.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RecipesEDAService">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecipesEDAService</span><span class="p">(</span><span class="n">EDAService</span><span class="p">):</span>
+
+    <span class="n">ds</span><span class="p">:</span> <span class="n">RecipesDataset</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">RecipesDataset</span><span class="p">)</span>
+    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;recipes&quot;</span>
+    <span class="n">country_handler</span><span class="p">:</span> <span class="n">CountryHandler</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">CountryHandler</span><span class="p">(</span><span class="n">ref_path</span><span class="o">=</span><span class="n">COUNTRIES_FILE_PATH</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">season_handler</span> <span class="o">=</span> <span class="n">SeasonalityHandler</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RecipesEDAService.duplicates">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.duplicates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check for duplicates in the recipes dataset.</span>
+<span class="sd">        Works even when some columns are lists/ndarrays/dicts.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary with counts of duplicates by different criteria.</span>
+<span class="sd">                  Keys can include &#39;id&#39;, &#39;id_name&#39;, and &#39;full&#39; for different levels of duplication.</span>
+<span class="sd">                  Returns an empty dict if no duplicates are found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">return_duplicates</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">id_duplicates</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">id_duplicates</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">return_duplicates</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_duplicates</span>
+            <span class="n">id_name_duplicates</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">duplicated</span><span class="p">([</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">])))</span>
+            <span class="k">if</span> <span class="n">id_name_duplicates</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">return_duplicates</span><span class="p">[</span><span class="s2">&quot;id_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">id_name_duplicates</span>
+                <span class="c1"># Hashable view for duplicate detection</span>
+                <span class="n">df_hashable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">DatasetLoader</span><span class="o">.</span><span class="n">to_hashable</span><span class="p">)</span>
+                <span class="n">return_duplicates</span><span class="p">[</span><span class="s2">&quot;full&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">df_hashable</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()))</span>
+            <span class="k">return</span> <span class="n">return_duplicates</span>
+        <span class="k">return</span> <span class="n">return_duplicates</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.get_unique">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.get_unique">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_unique</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute unique values across all recipes.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            column (str): The column name to extract unique values from.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A sorted list of unique values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Column &#39;</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">()</span>
+        <span class="k">return</span> <span class="n">extract_classes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">])</span></div>
+
+
+    <span class="c1"># ---------- Data Fetching ----------</span>
+<div class="viewcode-block" id="RecipesEDAService.fetch_country">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.fetch_country">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_country</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch recipes with country information.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: DataFrame containing recipes with country information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">country_handler</span><span class="o">.</span><span class="n">build_ref</span><span class="p">()</span>
+        <span class="n">columns_to_fetch_in</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]</span>  <span class="c1"># + [&quot;name&quot;, &quot;description&quot;]</span>
+        <span class="n">df_country</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">country_handler</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">columns_to_fetch_in</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;country&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_country</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;country&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">df_country</span><span class="p">[</span><span class="n">df_country</span><span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.fetch_period">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.fetch_period">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_period</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch recipes with season information.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: DataFrame containing recipes with season information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df_period</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">season_handler</span><span class="o">.</span><span class="n">get_periods_all</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;season&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_period</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;season&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;event&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_period</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;event&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">df_period</span><span class="p">[(</span><span class="n">df_period</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_period</span><span class="p">[</span><span class="s2">&quot;event&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.fetch_country_season">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.fetch_country_season">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fetch_country_season</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch recipes with both country and season information.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            pd.DataFrame: DataFrame containing recipes with country and season information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># First fetch country</span>
+        <span class="n">df_country</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_country</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">df_country</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;No country information found; cannot fetch country and season.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="c1"># Then fetch season on the country DataFrame</span>
+        <span class="n">df_country_season</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">season_handler</span><span class="o">.</span><span class="n">get_periods_all</span><span class="p">(</span><span class="n">df_country</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;season&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_country_season</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;season&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;event&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df_country_season</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;event&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">df_country_season</span><span class="p">[</span>
+            <span class="p">(</span><span class="n">df_country_season</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_country_season</span><span class="p">[</span><span class="s2">&quot;event&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+    <span class="c1"># ---------- Explorer helpers ----------</span>
+<div class="viewcode-block" id="RecipesEDAService.minutes_range">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.minutes_range">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minutes_range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the range of cooking minutes in recipes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">min_minutes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">max_minutes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">min_minutes</span><span class="p">,</span> <span class="n">max_minutes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.nsteps_range">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.nsteps_range">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nsteps_range</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the range of number of steps in recipes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">min_n_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="n">max_n_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">min_n_steps</span><span class="p">,</span> <span class="n">max_n_steps</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.minutes_stats">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.minutes_stats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minutes_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get statistics for cooking minutes in recipes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">percentiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.nutrition">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.nutrition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nutrition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Expand the nutrition column into separate columns.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;nutrition&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;calories&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;total_fat&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sugar&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sodium&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;protein&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;saturated_fat&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;carbohydrates&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="n">nut</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;nutrition&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nutrition&quot;</span><span class="p">]),</span> <span class="n">nut</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">df</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.minutes_hist">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.minutes_hist">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">minutes_hist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get histogram of cooking minutes in recipes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">c</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.steps_hist">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.steps_hist">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">steps_hist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get histogram of number of steps in recipes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">c</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.by_year">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.by_year">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">by_year</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of recipes submitted by year.&quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;submitted&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;submitted&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">size</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.apply_filters">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.apply_filters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_filters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">minutes_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">steps_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply various filters to the recipes dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Start with the full dataset</span>
+        <span class="c1"># Make a copy to avoid modifying the original DataFrame</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">minutes_range</span> <span class="ow">and</span> <span class="s2">&quot;minutes&quot;</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">minutes_range</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;minutes&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">steps_range</span> <span class="ow">and</span> <span class="s2">&quot;n_steps&quot;</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">steps_range</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;n_steps&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.top_ingredients">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.top_ingredients">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">top_ingredients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the top-k ingredients across all recipes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;ingredients&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Column &#39;ingredients&#39; not found in dataset.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ingredient&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">])</span>
+        <span class="n">cnt</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;ingredients&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">cnt</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row</span> <span class="k">if</span> <span class="n">x</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">cnt</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ingredient&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.get_signatures_countries">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_countries">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signatures_countries</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">top_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute signature ingredients per country using TF-IDF.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            df (pd.DataFrame): DataFrame containing &#39;country&#39; and &#39;ingredients&#39; columns.</span>
+<span class="sd">            top_n (int): Number of top ingredients to include in the signature.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary mapping each country to its signature ingredients and their TF-IDF scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;country&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">or</span> <span class="s2">&quot;ingredients&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;DataFrame must contain &#39;country&#39; and &#39;ingredients&#39; columns.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Aggregate all ingredient lists per country into a single list per country</span>
+        <span class="n">country_docs_lists</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;country&quot;</span><span class="p">)[</span><span class="s2">&quot;ingredients&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">base_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;preprocessor&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s2">&quot;lowercase&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;max_df&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">&quot;max_features&quot;</span><span class="p">:</span> <span class="mi">14000</span><span class="p">,</span>
+            <span class="s2">&quot;token_pattern&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 3) TF-IDF (fit) to build the vocabulary and compute TF-IDF scores</span>
+        <span class="n">tfidf_vec</span> <span class="o">=</span> <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="o">**</span><span class="n">base_params</span><span class="p">)</span>
+        <span class="n">tfidf_matrix</span> <span class="o">=</span> <span class="n">tfidf_vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">country_docs_lists</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">tfidf_vec</span><span class="o">.</span><span class="n">get_feature_names_out</span><span class="p">()</span>
+
+        <span class="c1"># 4) L1-normalized TF (transform) using the same vocabulary</span>
+        <span class="n">tf_vec</span> <span class="o">=</span> <span class="n">TfidfVectorizer</span><span class="p">(</span>
+            <span class="o">**</span><span class="n">base_params</span><span class="p">,</span> <span class="n">use_idf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="n">vocabulary</span><span class="o">=</span><span class="n">tfidf_vec</span><span class="o">.</span><span class="n">vocabulary_</span>
+        <span class="p">)</span>
+        <span class="n">tf_matrix</span> <span class="o">=</span> <span class="n">tf_vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">country_docs_lists</span><span class="p">)</span>
+
+        <span class="c1"># 5) Build convenient DataFrames for TF-IDF and TF matrices</span>
+        <span class="n">countries</span> <span class="o">=</span> <span class="n">country_docs_lists</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">df_tfidf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">tfidf_matrix</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="n">countries</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">features</span>
+        <span class="p">)</span>
+        <span class="n">df_tf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tf_matrix</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="n">countries</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+
+        <span class="c1"># 6) Build output: top_n terms by TF-IDF and include TF values</span>
+        <span class="n">signatures_tfidf</span><span class="p">,</span> <span class="n">signatures_tf</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">df_tfidf</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">top_terms</span> <span class="o">=</span> <span class="n">df_tfidf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">country</span><span class="p">]</span><span class="o">.</span><span class="n">nlargest</span><span class="p">(</span><span class="n">top_n</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
+            <span class="n">signatures_tfidf</span><span class="p">[</span><span class="n">country</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">term</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">df_tfidf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">country</span><span class="p">,</span> <span class="n">term</span><span class="p">])</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">top_terms</span>
+            <span class="p">}</span>
+            <span class="n">signatures_tf</span><span class="p">[</span><span class="n">country</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">term</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">df_tf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">country</span><span class="p">,</span> <span class="n">term</span><span class="p">])</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">top_terms</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">signatures_tfidf</span><span class="p">,</span> <span class="n">signatures_tf</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.get_signatures_seasons">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.get_signatures_seasons">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signatures_seasons</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">top_n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute signature ingredients per season using TF-IDF.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            df (pd.DataFrame): DataFrame containing &#39;season&#39; and &#39;ingredients&#39; columns.</span>
+<span class="sd">            top_n (int): Number of top ingredients to include in the signature.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary mapping each season to its signature ingredients and their TF-IDF scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;season&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">or</span> <span class="s2">&quot;ingredients&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;DataFrame must contain &#39;season&#39; and &#39;ingredients&#39; columns.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Aggregate all ingredient lists per season into a single list per season</span>
+        <span class="n">season_docs_lists</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;season&quot;</span><span class="p">)[</span><span class="s2">&quot;ingredients&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">base_params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;preprocessor&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s2">&quot;lowercase&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;max_df&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">&quot;max_features&quot;</span><span class="p">:</span> <span class="mi">14000</span><span class="p">,</span>
+            <span class="s2">&quot;token_pattern&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># 3) TF-IDF (fit) to build the vocabulary and compute TF-IDF scores</span>
+        <span class="n">tfidf_vec</span> <span class="o">=</span> <span class="n">TfidfVectorizer</span><span class="p">(</span><span class="o">**</span><span class="n">base_params</span><span class="p">)</span>
+        <span class="n">tfidf_matrix</span> <span class="o">=</span> <span class="n">tfidf_vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">season_docs_lists</span><span class="p">)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="n">tfidf_vec</span><span class="o">.</span><span class="n">get_feature_names_out</span><span class="p">()</span>
+
+        <span class="c1"># 4) L1-normalized TF (transform) using the same vocabulary</span>
+        <span class="n">tf_vec</span> <span class="o">=</span> <span class="n">TfidfVectorizer</span><span class="p">(</span>
+            <span class="o">**</span><span class="n">base_params</span><span class="p">,</span> <span class="n">use_idf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;l1&quot;</span><span class="p">,</span> <span class="n">vocabulary</span><span class="o">=</span><span class="n">tfidf_vec</span><span class="o">.</span><span class="n">vocabulary_</span>
+        <span class="p">)</span>
+        <span class="n">tf_matrix</span> <span class="o">=</span> <span class="n">tf_vec</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">season_docs_lists</span><span class="p">)</span>
+
+        <span class="c1"># 5) Build convenient DataFrames for TF-IDF and TF matrices</span>
+        <span class="n">seasons</span> <span class="o">=</span> <span class="n">season_docs_lists</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">df_tfidf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tfidf_matrix</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="n">seasons</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">df_tf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tf_matrix</span><span class="o">.</span><span class="n">toarray</span><span class="p">(),</span> <span class="n">index</span><span class="o">=</span><span class="n">seasons</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">features</span><span class="p">)</span>
+
+        <span class="c1"># 6) Build output: top_n terms by TF-IDF and include TF values</span>
+        <span class="n">signatures_tfidf</span><span class="p">,</span> <span class="n">signatures_tf</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">season</span> <span class="ow">in</span> <span class="n">df_tfidf</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">top_terms</span> <span class="o">=</span> <span class="n">df_tfidf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">season</span><span class="p">]</span><span class="o">.</span><span class="n">nlargest</span><span class="p">(</span><span class="n">top_n</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
+            <span class="n">signatures_tfidf</span><span class="p">[</span><span class="n">season</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">term</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">df_tfidf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">season</span><span class="p">,</span> <span class="n">term</span><span class="p">])</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">top_terms</span>
+            <span class="p">}</span>
+            <span class="n">signatures_tf</span><span class="p">[</span><span class="n">season</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">term</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">df_tf</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">season</span><span class="p">,</span> <span class="n">term</span><span class="p">])</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">top_terms</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">signatures_tfidf</span><span class="p">,</span> <span class="n">signatures_tf</span></div>
+
+
+<div class="viewcode-block" id="RecipesEDAService.count_recipes_seasons">
+<a class="viewcode-back" href="../../../mangetamain.core.recipes_eda.html#mangetamain.core.recipes_eda.RecipesEDAService.count_recipes_seasons">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">count_recipes_seasons</span><span class="p">(</span><span class="n">df_period</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">seasons_counts</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">df_period</span><span class="p">[</span><span class="n">df_period</span><span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">][</span><span class="s2">&quot;season&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">seasons_counts</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;season&quot;</span><span class="p">,</span> <span class="s2">&quot;number of recipes&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">seasons_counts</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

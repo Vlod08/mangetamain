@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mangetamain.core.interactions_eda module &mdash; Mangetamain  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/image.css?v=6e04a90e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="mangetamain.core.recipes_eda module" href="mangetamain.core.recipes_eda.html" />
+    <link rel="prev" title="mangetamain.core.dataset module" href="mangetamain.core.dataset.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mangetamain
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">mangetamain</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mangetamain.html">mangetamain package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="mangetamain.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="mangetamain.core.html">mangetamain.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mangetamain.preprocessing.html">mangetamain.preprocessing package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mangetamain.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mangetamain</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">mangetamain</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.html">mangetamain package</a></li>
+          <li class="breadcrumb-item"><a href="mangetamain.core.html">mangetamain.core package</a></li>
+      <li class="breadcrumb-item active">mangetamain.core.interactions_eda module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mangetamain.core.interactions_eda.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mangetamain.core.interactions_eda">
+<span id="mangetamain-core-interactions-eda-module"></span><h1>mangetamain.core.interactions_eda module<a class="headerlink" href="#module-mangetamain.core.interactions_eda" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mangetamain.core.interactions_eda.</span></span><span class="sig-name descname"><span class="pre">InteractionsEDAService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds:</span> <span class="pre">'InteractionsDataset'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label:</span> <span class="pre">'str'</span> <span class="pre">=</span> <span class="pre">'interactions'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uploaded_file:</span> <span class="pre">'Optional[IO[bytes]]'</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_features:</span> <span class="pre">'pd.DataFrame'</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">EDAService</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.agg_by_recipe">
+<span class="sig-name descname"><span class="pre">agg_by_recipe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recipe_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'recipe_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rating_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rating'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.agg_by_recipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.agg_by_recipe" title="Link to this definition"></a></dt>
+<dd><p>Aggregate reviews by recipe.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.agg_by_user">
+<span class="sig-name descname"><span class="pre">agg_by_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'user_id'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rating_col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rating'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.agg_by_user"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.agg_by_user" title="Link to this definition"></a></dt>
+<dd><p>Aggregate reviews by user.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.apply_filters">
+<span class="sig-name descname"><span class="pre">apply_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rating_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">review_len_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.apply_filters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.apply_filters" title="Link to this definition"></a></dt>
+<dd><p>Apply filters to the reviews DataFrame.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.by_month">
+<span class="sig-name descname"><span class="pre">by_month</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.by_month"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.by_month" title="Link to this definition"></a></dt>
+<dd><p>Agrège par mois: n et rating moyen.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.cohorts_users">
+<span class="sig-name descname"><span class="pre">cohorts_users</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.cohorts_users"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.cohorts_users" title="Link to this definition"></a></dt>
+<dd><p>Cohortes par 1ère interaction (mois) et âge (mois depuis cohorte).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.compute_text_features">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_text_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.compute_text_features" title="Link to this definition"></a></dt>
+<dd><p>Return DataFrame with basic text features extracted from reviews.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.desc_numeric">
+<span class="sig-name descname"><span class="pre">desc_numeric</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.desc_numeric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.desc_numeric" title="Link to this definition"></a></dt>
+<dd><p>Return descriptive statistics for numeric features.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.ds">
+<span class="sig-name descname"><span class="pre">ds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="mangetamain.core.dataset.html#mangetamain.core.dataset.InteractionsDataset" title="mangetamain.core.dataset.InteractionsDataset"><span class="pre">InteractionsDataset</span></a></em><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.ds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.duplicates">
+<span class="sig-name descname"><span class="pre">duplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.duplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.duplicates" title="Link to this definition"></a></dt>
+<dd><p>Get duplicate interactions.
+Returns a dict with counts of duplicates by type, or None if none found.
+Keys can include “user_recipe_date” and “full”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.export_clean_min">
+<span class="sig-name descname"><span class="pre">export_clean_min</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.export_clean_min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.export_clean_min" title="Link to this definition"></a></dt>
+<dd><p>Export minimal clean DataFrame with key columns and types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.hist_rating">
+<span class="sig-name descname"><span class="pre">hist_rating</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.hist_rating"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.hist_rating" title="Link to this definition"></a></dt>
+<dd><p>Return histogram of ratings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.hist_review_len">
+<span class="sig-name descname"><span class="pre">hist_review_len</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.hist_review_len"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.hist_review_len" title="Link to this definition"></a></dt>
+<dd><p>Return histogram of review lengths.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.label">
+<span class="sig-name descname"><span class="pre">label</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interactions'</span></em><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.label" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.load" title="Link to this definition"></a></dt>
+<dd><p>Load the dataset.
+Args:</p>
+<blockquote>
+<div><p>df (pd.DataFrame, optional): DataFrame to load. If None, load from default path.
+preprocess (bool): Whether to preprocess the dataset after loading.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>pd.DataFrame: Loaded DataFrame.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.monthly_anomalies">
+<span class="sig-name descname"><span class="pre">monthly_anomalies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_thresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.monthly_anomalies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.monthly_anomalies" title="Link to this definition"></a></dt>
+<dd><p>Z-score sur n mensuel pour marquer les anomalies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.monthly_rolling">
+<span class="sig-name descname"><span class="pre">monthly_rolling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.monthly_rolling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.monthly_rolling" title="Link to this definition"></a></dt>
+<dd><p>Ajoute des colonnes lissées (rolling 3 par défaut).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.monthly_series">
+<span class="sig-name descname"><span class="pre">monthly_series</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.monthly_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.monthly_series" title="Link to this definition"></a></dt>
+<dd><p>Alias by_month avec noms attendus par la page.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.monthly_yoy">
+<span class="sig-name descname"><span class="pre">monthly_yoy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.monthly_yoy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.monthly_yoy" title="Link to this definition"></a></dt>
+<dd><p>Croissance YoY de n (t vs t-12).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.one_year">
+<span class="sig-name descname"><span class="pre">one_year</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.one_year"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.one_year" title="Link to this definition"></a></dt>
+<dd><p>Return DataFrame with reviews for a specific year.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.rating_range">
+<span class="sig-name descname"><span class="pre">rating_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.rating_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.rating_range" title="Link to this definition"></a></dt>
+<dd><p>Return the range of ratings in the dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.rating_vs_length">
+<span class="sig-name descname"><span class="pre">rating_vs_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.rating_vs_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.rating_vs_length" title="Link to this definition"></a></dt>
+<dd><p>Return DataFrame with rating vs review length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.review_len_range">
+<span class="sig-name descname"><span class="pre">review_len_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.review_len_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.review_len_range" title="Link to this definition"></a></dt>
+<dd><p>Return the range of review lengths in the dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.seasonal_decompose_monthly">
+<span class="sig-name descname"><span class="pre">seasonal_decompose_monthly</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.seasonal_decompose_monthly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.seasonal_decompose_monthly" title="Link to this definition"></a></dt>
+<dd><p>Décomposition additive (trend/seasonal/resid) sur n mensuel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.seasonal_profile">
+<span class="sig-name descname"><span class="pre">seasonal_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.seasonal_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.seasonal_profile" title="Link to this definition"></a></dt>
+<dd><p>Return DataFrame with seasonal profile of reviews.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.text_features">
+<span class="sig-name descname"><span class="pre">text_features</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.text_features" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.tokens_by_rating">
+<span class="sig-name descname"><span class="pre">tokens_by_rating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.tokens_by_rating"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.tokens_by_rating" title="Link to this definition"></a></dt>
+<dd><p>Return top k tokens by rounded rating.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.uploaded_file">
+<span class="sig-name descname"><span class="pre">uploaded_file</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">IO</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.uploaded_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.user_bias">
+<span class="sig-name descname"><span class="pre">user_bias</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.user_bias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.user_bias" title="Link to this definition"></a></dt>
+<dd><p>Return DataFrame with user bias information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.weekday_hour_heat">
+<span class="sig-name descname"><span class="pre">weekday_hour_heat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.weekday_hour_heat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.weekday_hour_heat" title="Link to this definition"></a></dt>
+<dd><p>Matrice heure × jour (heatmap).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.weekday_profile">
+<span class="sig-name descname"><span class="pre">weekday_profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.weekday_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.weekday_profile" title="Link to this definition"></a></dt>
+<dd><p>Volume par jour de semaine (0=Mon..6=Sun).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.with_text_features">
+<span class="sig-name descname"><span class="pre">with_text_features</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.with_text_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.with_text_features" title="Link to this definition"></a></dt>
+<dd><p>Return the dataset’s DataFrame with basic text features extracted from reviews.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mangetamain.core.interactions_eda.InteractionsEDAService.year_range">
+<span class="sig-name descname"><span class="pre">year_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/mangetamain/core/interactions_eda.html#InteractionsEDAService.year_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mangetamain.core.interactions_eda.InteractionsEDAService.year_range" title="Link to this definition"></a></dt>
+<dd><p>Return the range of years for which reviews are available.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mangetamain.core.dataset.html" class="btn btn-neutral float-left" title="mangetamain.core.dataset module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mangetamain.core.recipes_eda.html" class="btn btn-neutral float-right" title="mangetamain.core.recipes_eda module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Lina Hazime, Bryan LY, Khalil OUNIS, Mohammed ELAMINE, Lokeshwaran VENGADABADY.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
