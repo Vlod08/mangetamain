@@ -7,10 +7,12 @@ from pathlib import Path
 
 # from mangetamain.core.utils.utils import setup_logging
 from mangetamain.config import (
-    ROOT_DIR, DATA_DIR,
-    RECIPES_CSV, RECIPES_PARQUET,
-    INTERACTIONS_CSV, INTERACTIONS_PARQUET,
-    DB_NAME
+    ROOT_DIR,
+    DATA_DIR,
+    RECIPES_CSV,
+    RECIPES_PARQUET,
+    INTERACTIONS_CSV,
+    INTERACTIONS_PARQUET,
 )
 from mangetamain.core.dataset import (
     DatasetLoaderThread,
@@ -168,9 +170,15 @@ def load_data(name: str = None, data_dir: str = None) -> None:
     # Use threads to load datasets concurrently
     threads = []
     if (name is None) or (name == "recipes"):
-        threads.append(DatasetLoaderThread(RecipesDataset(data_dir=data_dir), label="recipes"))
+        threads.append(
+            DatasetLoaderThread(RecipesDataset(data_dir=data_dir), label="recipes")
+        )
     if (name is None) or (name == "interactions"):
-        threads.append(DatasetLoaderThread(InteractionsDataset(data_dir=data_dir), label="interactions"))
+        threads.append(
+            DatasetLoaderThread(
+                InteractionsDataset(data_dir=data_dir), label="interactions"
+            )
+        )
 
     # Start threads
     for thread in threads:
@@ -231,7 +239,7 @@ def app():
     recipes_csv = DATA_DIR / RECIPES_CSV
     interactions_parquet = DATA_DIR / INTERACTIONS_PARQUET
     interactions_csv = DATA_DIR / INTERACTIONS_CSV
-    db_path = DATA_DIR / DB_NAME
+    # db_path = DATA_DIR / DB_NAME
 
     pg = pages()
 
@@ -255,16 +263,20 @@ def app():
     else:
         st.session_state["logger"].warning("Interactions dataset not found locally.")
 
-    if recipes_dataset_missing or interactions_dataset_missing:# or (not db_path.exists()):
+    if (
+        recipes_dataset_missing or interactions_dataset_missing
+    ):  # or (not db_path.exists()):
         try:
-            st.write("Datasets not found locally. Attempting to download from Kaggle...")
+            st.write(
+                "Datasets not found locally. Attempting to download from Kaggle..."
+            )
             download_dir = download_and_unzip_kaggle_dataset(download_dir=str(DATA_DIR))
             st.success("Datasets downloaded and extracted successfully!")
         except Exception as e:
             st.warning(f"Automatic dataset download failed: {e}")
     else:
         download_dir = DATA_DIR
-    
+
     # Only load the dataset we want in case we visit a specific group page
     if "recipes" in pg.url_path.lower():
         if (
