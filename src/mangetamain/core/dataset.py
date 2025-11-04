@@ -12,10 +12,14 @@ import numpy as np
 from threading import Thread
 
 from mangetamain.config import (
-    ROOT_DIR, DATA_DIR, 
-    RECIPES_CSV, RECIPES_PARQUET,
-    INTERACTIONS_CSV, INTERACTIONS_PARQUET,
-    DB_NAME, COUNTRIES_FILE
+    ROOT_DIR,
+    DATA_DIR,
+    RECIPES_CSV,
+    RECIPES_PARQUET,
+    INTERACTIONS_CSV,
+    INTERACTIONS_PARQUET,
+    DB_NAME,
+    COUNTRIES_FILE,
 )
 from mangetamain.core.utils.string_utils import (
     extract_list_strings,
@@ -107,7 +111,9 @@ class DatasetLoader(ABC):
 
     # ---- Loading Methods ----
     @staticmethod
-    def load_files(data_name: str, data_dir: Path | None, _logger: logging.Logger) -> pd.DataFrame:
+    def load_files(
+        data_name: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame:
         """Load dataset from CSV or Parquet files."""
         _logger.info(f"Attempting to load {data_name} dataset...")
         if data_name == "recipes":
@@ -141,7 +147,9 @@ class DatasetLoader(ABC):
         raise FileNotFoundError(f"Not found: {parquet_path} or {raw_path}")
 
     @staticmethod
-    def load_db(data_name: str, data_dir: Path | None, _logger: logging.Logger) -> pd.DataFrame | None:
+    def load_db(
+        data_name: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame | None:
         """Load dataset from SQLite database.
         Args:
             data_name (str): The name of the table/dataset to load.
@@ -170,7 +178,9 @@ class DatasetLoader(ABC):
     # leading underscore to the argument's name in the function signature
     @st.cache_data(show_spinner=False)
     @staticmethod
-    def load_dataset(table: str, data_dir: Path | None, _logger: logging.Logger) -> pd.DataFrame:
+    def load_dataset(
+        table: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame:
         """Load the dataset into self.df.
         Args:
             table (str): The name of the table/dataset to load.
@@ -207,7 +217,9 @@ class DatasetLoader(ABC):
             preprocess (bool): Whether to preprocess the dataset after loading.
         """
         data_dir = data_dir or self.data_dir
-        df = DatasetLoader.load_dataset(table=self.table, data_dir=data_dir, _logger=self.logger)
+        df = DatasetLoader.load_dataset(
+            table=self.table, data_dir=data_dir, _logger=self.logger
+        )
         if preprocess:
             df = self.preprocess(df)
         self.df = df
