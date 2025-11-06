@@ -11,7 +11,16 @@ import re
 import numpy as np
 from threading import Thread
 
-from mangetamain.config import ROOT_DIR
+from mangetamain.config import (
+    ROOT_DIR,
+    DATA_DIR,
+    RECIPES_CSV,
+    RECIPES_PARQUET,
+    INTERACTIONS_CSV,
+    INTERACTIONS_PARQUET,
+    DB_NAME,
+    COUNTRIES_FILE,
+)
 from mangetamain.core.utils.string_utils import (
     extract_list_strings,
     extract_list_floats,
@@ -21,13 +30,12 @@ from mangetamain.core.utils.string_utils import (
 )
 from mangetamain.core.app_logging import get_logger
 
-DATA_DIR: Path = ROOT_DIR / "data"
-MANGETAMAIN_DB_PATH: Path = DATA_DIR / "mangetamain.db"
-RECIPES_RAW_DATA_PATH: Path = DATA_DIR / "RAW_recipes.csv"
-RECIPES_PARQUET_DATA_PATH: Path = DATA_DIR / "processed" / "recipes.parquet"
-INTERACTIONS_RAW_DATA_PATH: Path = DATA_DIR / "RAW_interactions.csv"
-INTERACTIONS_PARQUET_DATA_PATH: Path = DATA_DIR / "processed" / "interactions.parquet"
-COUNTRIES_FILE_PATH: Path = DATA_DIR / "countries.json"
+MANGETAMAIN_DB_PATH: Path = DATA_DIR / DB_NAME
+RECIPES_RAW_DATA_PATH: Path = DATA_DIR / RECIPES_CSV
+RECIPES_PARQUET_DATA_PATH: Path = DATA_DIR / RECIPES_PARQUET
+INTERACTIONS_RAW_DATA_PATH: Path = DATA_DIR / INTERACTIONS_CSV
+INTERACTIONS_PARQUET_DATA_PATH: Path = DATA_DIR / INTERACTIONS_PARQUET
+COUNTRIES_FILE_PATH: Path = DATA_DIR / COUNTRIES_FILE
 
 
 class DatasetLoaderThread(Thread):
@@ -53,6 +61,8 @@ class DatasetLoader(ABC):
     _df: pd.DataFrame | None = None
     _schema: pd.DataFrame | None = None
     issues: dict = field(default_factory=dict)
+    data_dir: Path | None = None
+    logger: logging.Logger = field(init=False)
 
     def __post_init__(self):
         self.logger = get_logger(self.__class__.__name__)
@@ -101,14 +111,24 @@ class DatasetLoader(ABC):
 
     # ---- Loading Methods ----
     @staticmethod
-    def load_files(data_name: str, _logger: logging.Logger) -> pd.DataFrame:
+    def load_files(
+        data_name: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame:
         """Load dataset from CSV or Parquet files."""
         _logger.info(f"Attempting to load {data_name} dataset...")
         if data_name == "recipes":
-            parquet_path = RECIPES_PARQUET_DATA_PATH
-            raw_path = RECIPES_RAW_DATA_PATH
+            if data_dir:
+                parquet_path = data_dir / RECIPES_PARQUET
+                raw_path = data_dir / RECIPES_CSV
+            else:
+                parquet_path = RECIPES_PARQUET_DATA_PATH
+                raw_path = RECIPES_RAW_DATA_PATH
         elif data_name == "interactions":
-            parquet_path = INTERACTIONS_PARQUET_DATA_PATH
+            if data_dir:
+                parquet_path = data_dir / INTERACTIONS_PARQUET
+                raw_path = data_dir / INTERACTIONS_CSV
+            else:
+                parquet_path = INTERACTIONS_PARQUET_DATA_PATH
             raw_path = INTERACTIONS_RAW_DATA_PATH
         else:
             raise ValueError(f"Unknown data_name: {data_name}")
@@ -127,11 +147,24 @@ class DatasetLoader(ABC):
         raise FileNotFoundError(f"Not found: {parquet_path} or {raw_path}")
 
     @staticmethod
-    def load_db(data_name: str, _logger: logging.Logger) -> pd.DataFrame | None:
-        """Load dataset from SQLite database."""
-        url = f"sqlite:///{MANGETAMAIN_DB_PATH}"
+    def load_db(
+        data_name: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame | None:
+        """Load dataset from SQLite database.
+        Args:
+            data_name (str): The name of the table/dataset to load.
+            data_dir (Path | None): The directory path to load the database from.
+            _logger (logging.Logger): Logger for logging messages.
+        Returns:
+            pd.DataFrame | None: The loaded dataset, or None if loading failed.
+        """
+        if data_dir:
+            db_path = Path(data_dir) / DB_NAME
+        else:
+            db_path = MANGETAMAIN_DB_PATH
+        url = f"sqlite:///{db_path}"
         _logger.info(f"Attempting to load {data_name} dataset from DB at {url}...")
-        if not MANGETAMAIN_DB_PATH.exists():
+        if not db_path.exists():
             _logger.warning("Database file not found.")
             return None
         try:
@@ -145,10 +178,13 @@ class DatasetLoader(ABC):
     # leading underscore to the argument's name in the function signature
     @st.cache_data(show_spinner=False)
     @staticmethod
-    def load_dataset(table: str, _logger: logging.Logger) -> pd.DataFrame:
+    def load_dataset(
+        table: str, data_dir: Path | None, _logger: logging.Logger
+    ) -> pd.DataFrame:
         """Load the dataset into self.df.
         Args:
             table (str): The name of the table/dataset to load.
+            data_dir (Path | None): The directory path to load the dataset from.
             _logger (logging.Logger): Logger for logging messages.
         Returns:
             pd.DataFrame: The loaded dataset.
@@ -159,12 +195,12 @@ class DatasetLoader(ABC):
 
         df = None  # reset
         try:
-            df = DatasetLoader.load_db(table, _logger)
+            df = DatasetLoader.load_db(table=table, data_dir=data_dir, _logger=_logger)
             if df is None:
                 raise ValueError("DB returned no data")
         except Exception as e:
             _logger.warning(f"DB load failed ({e}), trying files...")
-            df = DatasetLoader.load_files(table, _logger)
+            df = DatasetLoader.load_files(table, data_dir=data_dir, _logger=_logger)
         finally:
             if df is not None:
                 _logger.info(f"{table} dataset loaded successfully.")
@@ -174,12 +210,16 @@ class DatasetLoader(ABC):
         # self.df = df  # triggers preprocessing and schema computation
         return df
 
-    def load(self, preprocess: bool = True) -> None:
+    def load(self, data_dir: Path | None = None, preprocess: bool = True) -> None:
         """Load the dataset into self.df.
         Args:
+            data_dir (Path | None): The directory path to load the dataset from.
             preprocess (bool): Whether to preprocess the dataset after loading.
         """
-        df = DatasetLoader.load_dataset(self.table, self.logger)
+        data_dir = data_dir or self.data_dir
+        df = DatasetLoader.load_dataset(
+            table=self.table, data_dir=data_dir, _logger=self.logger
+        )
         if preprocess:
             df = self.preprocess(df)
         self.df = df
